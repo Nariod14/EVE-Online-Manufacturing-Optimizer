@@ -44,6 +44,8 @@ if result.success:
     profit_max_words = num2words.num2words(int(profit_max), lang='en')
     print(f"Maximum profit: {profit_max_formatted} ISK ({profit_max_words.capitalize()} ISK)")
     print("Required materials for optimal number of units:")
+    
+    # Print the required materials in the order: Tritanium|Pyerite|Mexallon|Isogen|Nocxium|Zydrine|Megacyte
     for material, amount in required_materials.items():
         print(f"{material}: {amount}")
 
