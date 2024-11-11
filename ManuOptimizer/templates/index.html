@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>EVE Online Manufacturing Optimizer</h1>
+<h2>Add Blueprint</h2>
+<form id="blueprintForm">
+    <input type="text" id="blueprintName" placeholder="Blueprint Name" required>
+    <input type="number" id="blueprintSellPrice" placeholder="Sell Price" required>
+    <div id="materials">
+        <input type="text" placeholder="Material Name" required>
+        <input type="number" placeholder="Quantity" required>
+    </div>
+    <button type="button" onclick="addMaterial()">Add Material</button>
+    <button type="submit">Add Blueprint</button>
+</form>
+
+<h2>Add Material</h2>
+<form id="materialForm">
+    <input type="text" id="materialName" placeholder="Material Name" required>
+    <input type="number" id="materialQuantity" placeholder="Quantity" required>
+    <button type="submit">Add Material</button>
+</form>
+
+<button onclick="optimize()">Optimize Production</button>
+<h2>Current Blueprints</h2>
+<div id="blueprintList"></div>
+
+<h2>Current Materials</h2>
+<div id="materialList"></div>
+<div id="results"></div>
+{% endblock %}
