@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVE Online Manufacturing Optimizer</title>
+    <style>
+        /* TODO: Make the CSS pretty. */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    {% block content %}{% endblock %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function addMaterial() {
+    $('#materials').append('<input type="text" placeholder="Material Name" required><input type="number" placeholder="Quantity" required>');
+}
+
+$('#blueprintForm').submit(function(e) {
+    e.preventDefault();
+    var materials = {};
+    $('#materials input:even').each(function(i) {
+        materials[$(this).val()] = parseInt($('#materials input:odd').eq(i).val());
+    });
+    $.ajax({
+        url: '/blueprint',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            name: $('#blueprintName').val(),
+            materials: materials,
+            sell_price: parseFloat($('#blueprintSellPrice').val())
+        }),
+        success: function(response) {
+            alert('Blueprint added successfully');
+        }
+    });
+});
+
+$('#materialForm').submit(function(e) {
+    e.preventDefault();
+    $.ajax({
+        url: '/material',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            name: $('#materialName').val(),
+            quantity: parseInt($('#materialQuantity').val())
+        }),
+        success: function(response) {
+            alert('Material added successfully');
+        }
+    });
+});
+
+// Function to load and display blueprints
+function loadBlueprints() {
+    $.ajax({
+        url: '/blueprint',
+        method: 'GET',
+        success: function(response) {
+            var blueprintHtml = '<table><tr><th>Name</th><th>Sell Price</th><th>Materials</th><th>Actions</th></tr>';
+            response.forEach(function(blueprint) {
+                blueprintHtml += '<tr>';
+                blueprintHtml += '<td>' + blueprint.name + '</td>';
+                blueprintHtml += '<td>' + blueprint.sell_price + '</td>';
+                blueprintHtml += '<td>' + JSON.stringify(blueprint.materials) + '</td>';
+                blueprintHtml += '<td><button onclick="editBlueprint(' + blueprint.id + ')">Edit</button> ';
+                blueprintHtml += '<button onclick="deleteBlueprint(' + blueprint.id + ')">Delete</button></td>';
+                blueprintHtml += '</tr>';
+            });
+            blueprintHtml += '</table>';
+            $('#blueprintList').html(blueprintHtml);
+        }
+    });
+}
+
+// Function to load and display materials
+function loadMaterials() {
+    $.ajax({
+        url: '/material',
+        method: 'GET',
+        success: function(response) {
+            var materialHtml = '<table><tr><th>Name</th><th>Quantity</th><th>Actions</th></tr>';
+            response.forEach(function(material) {
+                materialHtml += '<tr>';
+                materialHtml += '<td>' + material.name + '</td>';
+                materialHtml += '<td>' + material.quantity + '</td>';
+                materialHtml += '<td><button onclick="editMaterial(' + material.id + ')">Edit</button> ';
+                materialHtml += '<button onclick="deleteMaterial(' + material.id + ')">Delete</button></td>';
+                materialHtml += '</tr>';
+            });
+            materialHtml += '</table>';
+            $('#materialList').html(materialHtml);
+        }
+    });
+}
+
+// Function to edit a blueprint
+function editBlueprint(id) {
+    // For simplicity, we'll just prompt for new values
+    var newName = prompt("Enter new name for blueprint:");
+    var newSellPrice = prompt("Enter new sell price for blueprint:");
+    if (newName && newSellPrice) {
+        $.ajax({
+            url: '/blueprint/' + id,
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                name: newName,
+                sell_price: parseFloat(newSellPrice)
+            }),
+            success: function(response) {
+                alert('Blueprint updated successfully');
+                loadBlueprints();
+            }
+        });
+    }
+}
+
+// Function to delete a blueprint
+function deleteBlueprint(id) {
+    if (confirm("Are you sure you want to delete this blueprint?")) {
+        $.ajax({
+            url: '/blueprint/' + id,
+            method: 'DELETE',
+            success: function(response) {
+                alert('Blueprint deleted successfully');
+                loadBlueprints();
+            }
+        });
+    }
+}
+
+// Function to edit a material
+function editMaterial(id) {
+    var newQuantity = prompt("Enter new quantity for material:");
+    if (newQuantity) {
+        $.ajax({
+            url: '/material/' + id,
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                quantity: parseInt(newQuantity)
+            }),
+            success: function(response) {
+                alert('Material updated successfully');
+                loadMaterials();
+            }
+        });
+    }
+}
+
+// Function to delete a material
+function deleteMaterial(id) {
+    if (confirm("Are you sure you want to delete this material?")) {
+        $.ajax({
+            url: '/material/' + id,
+            method: 'DELETE',
+            success: function(response) {
+                alert('Material deleted successfully');
+                loadMaterials();
+            }
+        });
+    }
+}
+
+// Update the optimize function for more detailed results
+function optimize() {
+    $.ajax({
+        url: '/optimize',
+        method: 'GET',
+        success: function(response) {
+            var resultsHtml = '<h3>Optimization Results</h3>';
+            resultsHtml += '<p>Total Profit: ' + response.total_profit.toFixed(2) + ' ISK</p>';
+            resultsHtml += '<h4>Production Plan:</h4>';
+            resultsHtml += '<ul>';
+            for (var blueprint in response.production) {
+                resultsHtml += '<li>' + blueprint + ': ' + response.production[blueprint] + '</li>';
+            }
+            resultsHtml += '</ul>';
+            resultsHtml += '<h4>Material Usage:</h4>';
+            resultsHtml += '<ul>';
+            for (var material in response.material_usage) {
+                resultsHtml += '<li>' + material + ': Used ' + response.material_usage[material].used + 
+                                ', Remaining ' + response.material_usage[material].remaining + '</li>';
+            }
+            resultsHtml += '</ul>';
+            $('#results').html(resultsHtml);
+        }
+    });
+}
+
+// Call these functions when the page loads
+$(document).ready(function() {
+    loadBlueprints();
+    loadMaterials();
+});
+
+function optimize() {
+    $.ajax({
+        url: '/optimize',
+        method: 'GET',
+        success: function(response) {
+            $('#results').html('<pre>' + JSON.stringify(response, null, 2) + '</pre>');
+        }
+    });
+}
+    </script>
+</body>
+</html>
