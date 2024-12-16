@@ -22,15 +22,40 @@ def create_app():
     def add_blueprint():
         try:
             data = request.json
-            if not all(key in data for key in ['name', 'materials', 'sell_price']):
-                return jsonify({"error": "Missing required fields"}), 400
-            new_blueprint = Blueprint(name=data['name'], materials=data['materials'], sell_price=data['sell_price'])
+            name = data['name']
+            materials = data['materials']
+            sell_price = data['sell_price']
+
+            existing_blueprint = Blueprint.query.filter_by(name=name).first()
+            if existing_blueprint:
+                # Option 1: Update existing blueprint
+                existing_blueprint.materials = materials
+                existing_blueprint.sell_price = sell_price
+                db.session.commit()
+                return jsonify({"message": "Blueprint updated successfully"}), 200
+                
+                # Option 2: Return error message
+                # return jsonify({"error": "Blueprint with this name already exists"}), 400
+
+            new_blueprint = Blueprint(name=name, materials=materials, sell_price=sell_price)
             db.session.add(new_blueprint)
             db.session.commit()
             return jsonify({"message": "Blueprint added successfully"}), 201
+
         except Exception as e:
             db.session.rollback()
-            return jsonify({"error": str(e)}), 500
+            app.logger.error(f"Error adding blueprint: {str(e)}")
+            return jsonify({"error": "An error occurred while adding the blueprint"}), 500
+
+    @flask_app.route('/blueprint/<int:id>', methods=['GET'])
+    def get_blueprint(id):
+        blueprint = Blueprint.query.get_or_404(id)
+        return jsonify({
+            'id': blueprint.id,
+            'name': blueprint.name,
+            'materials': blueprint.materials,
+            'sell_price': blueprint.sell_price
+        })
 
     @flask_app.route('/blueprint', methods=['GET'])
     def get_blueprints():
@@ -62,12 +87,13 @@ def create_app():
         
     @flask_app.route('/blueprint/<int:id>', methods=['PUT'])
     def update_blueprint(id):
-        data = request.json
         blueprint = Blueprint.query.get_or_404(id)
+        data = request.json
         blueprint.name = data.get('name', blueprint.name)
+        blueprint.materials = data.get('materials', blueprint.materials)
         blueprint.sell_price = data.get('sell_price', blueprint.sell_price)
         db.session.commit()
-        return jsonify({"message": "Blueprint updated successfully"}), 200
+        return jsonify({'message': 'Blueprint updated successfully'})
 
     @flask_app.route('/blueprint/<int:id>', methods=['DELETE'])
     def delete_blueprint(id):
@@ -118,18 +144,14 @@ def create_app():
                 results = {
                     "status": "Optimal",
                     "total_profit": value(prob.objective),
-                    "what to produce": {b.name: value(x[b.name]) for b in blueprints},
-                    "material_usage": {}
-                }
-
-                # Calculate material usage
-                for m in materials:
-                    usage = sum(b.materials.get(m.name, 0) * value(x[b.name]) for b in blueprints)
-                    results["material_usage"][m.name] = {
-                        "used": usage,
-                        "remaining": m.quantity - usage
+                    "what_to_produce": {b.name: value(x[b.name]) for b in blueprints},
+                    "material_usage": {
+                        m.name: {
+                            "used": sum(b.materials.get(m.name, 0) * value(x[b.name]) for b in blueprints),
+                            "remaining": m.quantity - sum(b.materials.get(m.name, 0) * value(x[b.name]) for b in blueprints)
+                        } for m in materials
                     }
-
+                }
                 return jsonify(results), 200
             else:
                 return jsonify({"status": "No optimal solution found"}), 400
