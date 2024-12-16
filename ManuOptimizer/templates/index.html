@@ -5,26 +5,69 @@
 <form id="blueprintForm">
     <input type="text" id="blueprintName" placeholder="Blueprint Name" required>
     <input type="number" id="blueprintSellPrice" placeholder="Sell Price" required>
-    <div id="materials">
-        <input type="text" placeholder="Material Name" required>
-        <input type="number" placeholder="Quantity" required>
+    <div id="blueprintMaterials">
+        <div class="material-input">
+            <select class="materialName">
+                <option value="Tritanium">Tritanium</option>
+                <option value="Pyerite">Pyerite</option>
+                <option value="Mexallon">Mexallon</option>
+                <option value="Isogen">Isogen</option>
+                <option value="Nocxium">Nocxium</option>
+                <option value="Zydrine">Zydrine</option>
+                <option value="Megacyte">Megacyte</option>
+                <option value="other">Other</option>
+            </select>
+            <input type="text" class="otherMaterialName" placeholder="Other Material Name" style="display: none;">
+            <input type="number" class="materialQuantity" placeholder="Quantity" required>
+            <button type="button" class="removeMaterialButton">Remove</button>
+            <hr>
+        </div>
     </div>
-    <button type="button" onclick="addMaterial()">Add Material</button>
+    <button type="button" onclick="addBlueprintMaterial()">Add Another Material</button>
     <button type="submit">Add Blueprint</button>
 </form>
 
+
+<div id="editBlueprintModal" style="display:none; position:fixed; z-index:1; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
+    <div style="background-color:#fefefe; margin:15% auto; padding:20px; border:1px solid #888; width:80%;">
+      <h2>Edit Blueprint</h2>
+      <form id="editBlueprintForm">
+        <input type="hidden" id="editBlueprintId">
+        <input type="text" id="editBlueprintName" placeholder="Blueprint Name" required>
+        <input type="number" id="editBlueprintSellPrice" placeholder="Sell Price" required>
+        <div id="editBlueprintMaterials"></div>
+        <button type="button" onclick="addEditBlueprintMaterial()">Add Material</button>
+        <button type="submit">Save Changes</button>
+        <button type="button" onclick="closeEditBlueprintModal()">Cancel</button>
+      </form>
+    </div>
+  </div>
+  
+
 <h2>Add Material</h2>
 <form id="materialForm">
-    <input type="text" id="materialName" placeholder="Material Name" required>
+    <select id="materialName" required>
+        <option value="Tritanium">Tritanium</option>
+        <option value="Pyerite">Pyerite</option>
+        <option value="Mexallon">Mexallon</option>
+        <option value="Isogen">Isogen</option>
+        <option value="Nocxium">Nocxium</option>
+        <option value="Zydrine">Zydrine</option>
+        <option value="Megacyte">Megacyte</option>
+        <option value="other">Other</option>
+    </select>
+    <input type="text" id="otherMaterialName" placeholder="Other Material Name" style="display: none;">
     <input type="number" id="materialQuantity" placeholder="Quantity" required>
     <button type="submit">Add Material</button>
 </form>
 
 <button onclick="optimize()">Optimize Production</button>
+
 <h2>Current Blueprints</h2>
 <div id="blueprintList"></div>
 
 <h2>Current Materials</h2>
 <div id="materialList"></div>
+
 <div id="results"></div>
 {% endblock %}
