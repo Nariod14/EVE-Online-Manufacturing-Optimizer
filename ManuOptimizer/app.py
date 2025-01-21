@@ -87,6 +87,7 @@ def create_app():
         blueprint.name = data.get('name', blueprint.name)
         blueprint.materials = data.get('materials', blueprint.materials)
         blueprint.sell_price = data.get('sell_price', blueprint.sell_price)
+        blueprint.max = data.get('max', blueprint.max)
         db.session.commit()
         return jsonify({'message': 'Blueprint updated successfully'})
 
