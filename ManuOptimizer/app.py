@@ -1,9 +1,6 @@
-# pylint: disable=no-else-return
-# trunk-ignore-all(isort)
-# pylint: disable=missing-class-docstring
-"""Implementation of the blueprint optimizer using the PuLP library."""
-
-from flask import Flask, request, jsonify, render_template
+# app.py
+import os
+from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 from models import db, Blueprint, Material
 from pulp import PULP_CBC_CMD, LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus
@@ -166,4 +163,4 @@ if __name__ == '__main__':
     app = create_app()
     with app.app_context():
         db.create_all()
-    app.run(debug=True)  # Set to False for production
+    app.run(debug=False)
