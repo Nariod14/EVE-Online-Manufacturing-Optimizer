@@ -69,6 +69,20 @@
     <button type="submit">Add Material</button>
 </form>
 
+<h2>Add Available Materials</h2>
+<form id="availableMaterialsForm">
+    <textarea id="availableMaterialsData" placeholder="Paste available materials here" required></textarea>
+    <div>
+        <input type="radio" id="replaceMaterials" name="updateType" value="replace" checked>
+        <label for="replaceMaterials">Replace existing materials</label>
+    </div>
+    <div>
+        <input type="radio" id="addToMaterials" name="updateType" value="add">
+        <label for="addToMaterials">Add to existing materials</label>
+    </div>
+    <button type="submit">Update Available Materials</button>
+</form>
+
 <button onclick="optimize()">Optimize Production</button>
 
 <h2>Current Blueprints</h2>
@@ -78,4 +92,21 @@
 <div id="materialList"></div>
 
 <div id="results"></div>
+
+
+<div id="editBlueprintModal" style="display:none; position:fixed; z-index:1; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
+    <div style="background-color:#fefefe; margin:15% auto; padding:20px; border:1px solid #888; width:80%;">
+      <h2>Edit Blueprint</h2>
+      <form id="editBlueprintForm">
+        <input type="hidden" id="editBlueprintId">
+        <input type="text" id="editBlueprintName" placeholder="Blueprint Name" required>
+        <input type="number" id="editBlueprintSellPrice" placeholder="Sell Price" required>
+        <div id="editBlueprintMaterials"></div>
+        <button type="button" onclick="addEditBlueprintMaterial()">Add Material</button>
+        <button type="submit">Save Changes</button>
+        <button type="button" onclick="closeEditBlueprintModal()">Cancel</button>
+      </form>
+    </div>
+  </div>
+  
 {% endblock %}

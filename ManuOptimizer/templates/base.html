@@ -252,6 +252,43 @@ $('#blueprintParseForm').submit(function(e) {
     });
 });
 
+$('#availableMaterialsForm').submit(function(e) {
+    e.preventDefault();
+    var lines = $('#availableMaterialsData').val().split('\n');
+    var materials = {};
+    var updateType = $('input[name="updateType"]:checked').val();
+
+    lines.forEach(function(line) {
+        var parts = line.trim().split('\t');
+        if (parts.length === 2) {
+            var name = parts[0].trim();
+            var quantity = parseInt(parts[1].trim().replace(/,/g, ''));
+            if (!isNaN(quantity)) {
+                materials[name] = quantity;
+            }
+        }
+    });
+
+    $.ajax({
+        url: '/update_materials',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            materials: materials,
+            updateType: updateType
+        }),
+        success: function(response) {
+            alert('Materials updated successfully');
+            loadMaterials();
+            $('#availableMaterialsForm')[0].reset();
+        },
+        error: function(xhr, status, error) {
+            console.error("Error updating materials:", error);
+            alert('Error updating materials: ' + error);
+        }
+    });
+});
+
 
 // Function to edit a blueprint
 
@@ -264,26 +301,98 @@ $('#blueprintParseForm').submit(function(e) {
  * 
  * @param {number} id The ID of the blueprint to edit.
  */
-function editBlueprint(id) {
-    // For simplicity, we'll just prompt for new values
-    var newName = prompt("Enter new name for blueprint:");
-    var newSellPrice = prompt("Enter new sell price for blueprint:");
-    if (newName && newSellPrice) {
-        $.ajax({
-            url: '/blueprint/' + id,
-            method: 'PUT',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                name: newName,
-                sell_price: parseFloat(newSellPrice)
-            }),
-            success: function(response) {
-                alert('Blueprint updated successfully');
-                loadBlueprints();
-            }
-        });
+ function editBlueprint(id) {
+  $.ajax({
+    url: '/blueprint/' + id,
+    method: 'GET',
+    success: function(blueprint) {
+      $('#editBlueprintId').val(blueprint.id);
+      $('#editBlueprintName').val(blueprint.name);
+      $('#editBlueprintSellPrice').val(blueprint.sell_price);
+      $('#editBlueprintMaterials').empty();
+      
+      for (var material in blueprint.materials) {
+        addEditBlueprintMaterial(material, blueprint.materials[material]);
+      }
+      
+      $('#editBlueprintModal').show();
     }
+  });
 }
+
+function addEditBlueprintMaterial(name = '', quantity = '') {
+  $('#editBlueprintMaterials').append(`
+    <div class="edit-material-input">
+      <select class="editMaterialName">
+        <option value="Tritanium" ${name === 'Tritanium' ? 'selected' : ''}>Tritanium</option>
+        <option value="Pyerite" ${name === 'Pyerite' ? 'selected' : ''}>Pyerite</option>
+        <option value="Mexallon" ${name === 'Mexallon' ? 'selected' : ''}>Mexallon</option>
+        <option value="Isogen" ${name === 'Isogen' ? 'selected' : ''}>Isogen</option>
+        <option value="Nocxium" ${name === 'Nocxium' ? 'selected' : ''}>Nocxium</option>
+        <option value="Zydrine" ${name === 'Zydrine' ? 'selected' : ''}>Zydrine</option>
+        <option value="Megacyte" ${name === 'Megacyte' ? 'selected' : ''}>Megacyte</option>
+        <option value="other" ${!['Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 'Nocxium', 'Zydrine', 'Megacyte'].includes(name) ? 'selected' : ''}>Other</option>
+      </select>
+      <input type="text" class="editOtherMaterialName" placeholder="Other Material Name" style="display: ${!['Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 'Nocxium', 'Zydrine', 'Megacyte'].includes(name) ? 'inline-block' : 'none'};" value="${name}">
+      <input type="number" class="editMaterialQuantity" placeholder="Quantity" required value="${quantity}">
+      <button type="button" class="removeEditMaterialButton">Remove</button>
+    </div>
+  `);
+}
+
+function closeEditBlueprintModal() {
+  $('#editBlueprintModal').hide();
+}
+
+$(document).on('change', '.editMaterialName', function() {
+  if ($(this).val() === 'other') {
+    $(this).siblings('.editOtherMaterialName').show();
+  } else {
+    $(this).siblings('.editOtherMaterialName').hide();
+  }
+});
+
+$(document).on('click', '.removeEditMaterialButton', function() {
+  $(this).closest('.edit-material-input').remove();
+});
+
+$('#editBlueprintForm').submit(function(e) {
+  e.preventDefault();
+  var materials = {};
+  $('.edit-material-input').each(function() {
+    var name = $(this).find('.editMaterialName').val();
+    if (name === 'other') {
+      name = $(this).find('.editOtherMaterialName').val();
+    }
+    var quantity = parseInt($(this).find('.editMaterialQuantity').val());
+    if (name && quantity > 0) {
+      materials[name] = (materials[name] || 0) + quantity;
+    }
+  });
+  
+  var blueprintData = {
+    name: $('#editBlueprintName').val(),
+    materials: materials,
+    sell_price: parseFloat($('#editBlueprintSellPrice').val())
+  };
+
+  $.ajax({
+    url: '/blueprint/' + $('#editBlueprintId').val(),
+    method: 'PUT',
+    contentType: 'application/json',
+    data: JSON.stringify(blueprintData),
+    success: function(response) {
+      alert('Blueprint updated successfully');
+      loadBlueprints();
+      closeEditBlueprintModal();
+    },
+    error: function(xhr, status, error) {
+      console.error("Error updating blueprint:", error);
+      alert('Error updating blueprint: ' + error);
+    }
+  });
+});
+
 
 // Function to delete a blueprint
 
