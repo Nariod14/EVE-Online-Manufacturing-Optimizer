@@ -1,5 +1,4 @@
 from flask_sqlalchemy import SQLAlchemy
-
 db = SQLAlchemy()
 
 class Blueprint(db.Model):
@@ -7,6 +6,9 @@ class Blueprint(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     materials = db.Column(db.JSON, nullable=False)
     sell_price = db.Column(db.Float, nullable=False)
+    max = db.Column(db.Integer, nullable=True)
+    material_cost = db.Column(db.Float, nullable=True, default=0)  # Make this optional
+
 
 class Material(db.Model):
     id = db.Column(db.Integer, primary_key=True)

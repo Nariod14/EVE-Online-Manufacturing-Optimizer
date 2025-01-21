@@ -211,6 +211,48 @@ function loadMaterials() {
     });
 }
 
+$('#blueprintParseForm').submit(function(e) {
+    e.preventDefault();
+    var lines = $('#blueprintParseData').val().split('\n');
+    var materials = {};
+    var totalCost = 0;
+
+    for (var i = 2; i < lines.length; i++) {  // Start from 2 to skip header lines
+        var parts = lines[i].split('\t');
+        if (parts.length >= 5) {
+            var name = parts[0];
+            var quantity = parseInt(parts[1]);
+            var unitPrice = parseFloat(parts[3]);
+            materials[name] = quantity;
+            totalCost += quantity * unitPrice;
+        }
+    }
+
+    var blueprintData = {
+        name: $('#blueprintParseName').val(),
+        materials: materials,
+        sell_price: parseFloat($('#blueprintParseSellPrice').val()),
+        material_cost: totalCost
+    };
+
+    $.ajax({
+        url: '/blueprint',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(blueprintData),
+        success: function(response) {
+            alert('Blueprint added successfully');
+            loadBlueprints();
+            $('#blueprintParseForm')[0].reset();
+        },
+        error: function(xhr, status, error) {
+            console.error("Error submitting blueprint:", error);
+            alert('Error adding blueprint: ' + error);
+        }
+    });
+});
+
+
 // Function to edit a blueprint
 
 /**
@@ -325,27 +367,46 @@ function deleteMaterial(id) {
  * algorithm. Upon success, it displays the results in the #results element, including
  * the total profit, production plan, and material usage.
  */
-function optimize() {
+ function optimize() {
     $.ajax({
         url: '/optimize',
         method: 'GET',
         success: function(response) {
             var resultsHtml = '<h3>Optimization Results</h3>';
-            resultsHtml += '<p>Total Profit: ' + response.total_profit.toFixed(2) + ' ISK</p>';
+            var formattedProfit = response.total_profit.toLocaleString('en-US', {maximumFractionDigits: 2});
+            var trueProfit = response.true_profit.toLocaleString('en-US', {maximumFractionDigits: 2});
+            var profitInWords = numberToWords(response.total_profit);
+            var trueProfitInWords = numberToWords(response.true_profit);
+            var trueProfitPercentage = ((response.true_profit / response.total_profit) * 100).toFixed(2);
+            
+            resultsHtml += '<p>Total Profit: ' + formattedProfit + ' (' + profitInWords + ') ISK</p>';
+            resultsHtml += '<p>True Profit (after material costs): ' + trueProfit + ' (' + trueProfitInWords + ') ISK</p>';
+            resultsHtml += '<p>True Profit Percentage: ' + trueProfitPercentage + '%</p>';
+            
+            // Rest of the function remains the same
             resultsHtml += '<h4>Production Plan:</h4>';
-            resultsHtml += '<ul>';
-            for (var blueprint in response.production) {
-                resultsHtml += '<li>' + blueprint + ': ' + response.production[blueprint] + '</li>';
+            resultsHtml += '<table><tr><th>Blueprint</th><th>Quantity</th></tr>';
+            for (var blueprint in response.what_to_produce) {
+                if (response.what_to_produce[blueprint] > 0) {
+                    resultsHtml += '<tr><td>' + blueprint + '</td><td>' + response.what_to_produce[blueprint] + '</td></tr>';
+                }
             }
-            resultsHtml += '</ul>';
+            resultsHtml += '</table>';
+            
             resultsHtml += '<h4>Material Usage:</h4>';
-            resultsHtml += '<ul>';
+            resultsHtml += '<table><tr><th>Material</th><th>Used</th><th>Remaining</th></tr>';
             for (var material in response.material_usage) {
-                resultsHtml += '<li>' + material + ': Used ' + response.material_usage[material].used + 
-                                ', Remaining ' + response.material_usage[material].remaining + '</li>';
+                resultsHtml += '<tr><td>' + material + '</td><td>' + 
+                                response.material_usage[material].used.toLocaleString() + '</td><td>' + 
+                                response.material_usage[material].remaining.toLocaleString() + '</td></tr>';
             }
-            resultsHtml += '</ul>';
+            resultsHtml += '</table>';
+            
             $('#results').html(resultsHtml);
+        },
+        error: function(xhr, status, error) {
+            console.error("Error optimizing:", error);
+            alert('Error during optimization: ' + error);
         }
     });
 }
@@ -368,17 +429,24 @@ $(document).ready(function() {
         success: function(response) {
             var resultsHtml = '<h3>Optimization Results</h3>';
             var formattedProfit = response.total_profit.toLocaleString('en-US', {maximumFractionDigits: 2});
+            var trueProfit = response.true_profit.toLocaleString('en-US', {maximumFractionDigits: 2});
             var profitInWords = numberToWords(response.total_profit);
-            resultsHtml += '<p>Total Profit: ' + formattedProfit + ' (' + profitInWords + ') ISK</p>';
+            var trueProfitInWords = numberToWords(response.true_profit);
+            var trueProfitPercentage = ((response.true_profit / response.total_profit) * 100).toFixed(2);
             
+            resultsHtml += '<p>Total Profit: ' + formattedProfit + ' (' + profitInWords + ') ISK</p>';
+            resultsHtml += '<p>True Profit (after material costs): ' + trueProfit + ' (' + trueProfitInWords + ') ISK</p>';
+            resultsHtml += '<p>True Profit Percentage: ' + trueProfitPercentage + '%</p>';
+            
+            // Rest of the function remains the same
             resultsHtml += '<h4>Production Plan:</h4>';
-            resultsHtml += '<ul>';
+            resultsHtml += '<table><tr><th>Blueprint</th><th>Quantity</th></tr>';
             for (var blueprint in response.what_to_produce) {
                 if (response.what_to_produce[blueprint] > 0) {
-                    resultsHtml += '<li>' + blueprint + ': ' + response.what_to_produce[blueprint] + '</li>';
+                    resultsHtml += '<tr><td>' + blueprint + '</td><td>' + response.what_to_produce[blueprint] + '</td></tr>';
                 }
             }
-            resultsHtml += '</ul>';
+            resultsHtml += '</table>';
             
             resultsHtml += '<h4>Material Usage:</h4>';
             resultsHtml += '<table><tr><th>Material</th><th>Used</th><th>Remaining</th></tr>';

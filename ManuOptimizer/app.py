@@ -1,6 +1,6 @@
 # app.py
 import os
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
 from models import db, Blueprint, Material
 from pulp import PULP_CBC_CMD, LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus
@@ -22,19 +22,17 @@ def create_app():
             name = data['name']
             materials = data['materials']
             sell_price = data['sell_price']
+            material_cost = data['material_cost']
 
             existing_blueprint = Blueprint.query.filter_by(name=name).first()
             if existing_blueprint:
-                # Option 1: Update existing blueprint
                 existing_blueprint.materials = materials
                 existing_blueprint.sell_price = sell_price
+                existing_blueprint.material_cost = material_cost
                 db.session.commit()
                 return jsonify({"message": "Blueprint updated successfully"}), 200
-                
-                # Option 2: Return error message
-                # return jsonify({"error": "Blueprint with this name already exists"}), 400
 
-            new_blueprint = Blueprint(name=name, materials=materials, sell_price=sell_price)
+            new_blueprint = Blueprint(name=name, materials=materials, sell_price=sell_price, material_cost=material_cost)
             db.session.add(new_blueprint)
             db.session.commit()
             return jsonify({"message": "Blueprint added successfully"}), 201
@@ -117,45 +115,46 @@ def create_app():
     @flask_app.route('/optimize', methods=['GET'])
     def optimize():
         try:
-            # Fetch all blueprints and materials from the database
             blueprints = Blueprint.query.all()
             materials = Material.query.all()
 
-            # Create the LP problem
             prob = LpProblem("Modules Optimization", LpMaximize)
 
-            # Define decision variables
             x = {b.name: LpVariable(f"x_{b.name}", lowBound=0, cat='Integer') for b in blueprints}
 
-            # Set the objective function
-            prob += lpSum(b.sell_price * x[b.name] for b in blueprints)
+            prob += lpSum((b.sell_price - b.material_cost) * x[b.name] for b in blueprints)
 
-            # Add the material constraints
             for m in materials:
                 prob += lpSum(b.materials.get(m.name, 0) * x[b.name] for b in blueprints) <= m.quantity
 
-            # Solve the problem using CBC solver
+            for b in blueprints:
+                if b.max is not None:
+                    prob += x[b.name] <= b.max
+
             prob.solve(PULP_CBC_CMD())
 
             if LpStatus[prob.status] == 'Optimal':
                 results = {
                     "status": "Optimal",
-                    "total_profit": value(prob.objective),
+                    "total_profit": sum(b.sell_price * value(x[b.name]) for b in blueprints),
                     "what_to_produce": {b.name: value(x[b.name]) for b in blueprints},
                     "material_usage": {
                         m.name: {
                             "used": sum(b.materials.get(m.name, 0) * value(x[b.name]) for b in blueprints),
                             "remaining": m.quantity - sum(b.materials.get(m.name, 0) * value(x[b.name]) for b in blueprints)
                         } for m in materials
-                    }
+                    },
+                    "true_profit": sum((b.sell_price - b.material_cost) * value(x[b.name]) for b in blueprints)
                 }
+
                 return jsonify(results), 200
             else:
                 return jsonify({"status": "No optimal solution found"}), 400
 
         except Exception as e:
-            flask_app.logger.error("An error occurred during optimization: %s", str(e))
+            app.logger.error("An error occurred during optimization: %s", str(e))
             return jsonify({"error": "An error occurred during optimization"}), 500
+
 
     return flask_app
 
