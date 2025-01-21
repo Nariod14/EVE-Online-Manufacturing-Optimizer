@@ -1,9 +1,24 @@
 # app.py
 import os
+import logging
+import traceback
 from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
 from models import db, Blueprint, Material
 from pulp import PULP_CBC_CMD, LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus
+
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),  # Outputs to console
+        logging.FileHandler('app.log', mode='w')  # Writes to log file, overwriting previous logs
+    ]
+)
+logger = logging.getLogger(__name__)
+
 
 def create_app():
     flask_app = Flask(__name__)
@@ -90,6 +105,21 @@ def create_app():
         blueprint.max = data.get('max', blueprint.max)
         db.session.commit()
         return jsonify({'message': 'Blueprint updated successfully'})
+    
+    @flask_app.route('/blueprints/reset_max', methods=['POST'])
+    def reset_all_blueprint_max():
+        try:
+            blueprints = Blueprint.query.all()
+            for blueprint in blueprints:
+                blueprint.max = None  # Set max to None
+            db.session.commit()
+            return jsonify({"message": "All blueprint max values have been reset."}), 200
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error resetting all blueprint max values: {str(e)}")
+            logger.error(traceback.format_exc())
+            return jsonify({"error": "An error occurred while resetting max values."}), 500
+
 
     @flask_app.route('/blueprint/<int:id>', methods=['DELETE'])
     def delete_blueprint(id):

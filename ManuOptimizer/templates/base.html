@@ -172,14 +172,62 @@ $('#blueprintForm').submit(function(e) {
                 blueprintHtml += '<td>' + JSON.stringify(blueprint.materials) + '</td>';
                 blueprintHtml += '<td style="text-align: center; width: 90px;"><input type="number" class="blueprint-max" data-id="' + blueprint.id + '" value="' + (blueprint.max || '') + '" style="width: 60px; text-align: center;"></td>';
                 blueprintHtml += '<td style="text-align: center;"><button onclick="editBlueprint(' + blueprint.id + ')">Edit</button> ';
-                blueprintHtml += '<button onclick="deleteBlueprint(' + blueprint.id + ')">Delete</button></td>';
+                blueprintHtml += '<button onclick="deleteBlueprint(' + blueprint.id + ')">Delete</button> ';
+                blueprintHtml += '<button onclick="resetBlueprintMax(' + blueprint.id + ')">Reset Max</button></td>';
                 blueprintHtml += '</tr>';
             });
             blueprintHtml += '</table>';
+
+            // Add a button to reset all max values
+            blueprintHtml += '<button id="resetAllMaxButton">Reset All Max Values</button>';
+
             $('#blueprintList').html(blueprintHtml);
+
+            // Bind click event for Reset All Max Values button
+            $('#resetAllMaxButton').click(function() {
+                resetAllBlueprintMax();
+            });
+        
         }
     });
 }
+
+
+// Add this new function
+function resetBlueprintMax(id) {
+    $.ajax({
+        url: `/blueprint/${id}`,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({ max: null }),
+        success: function(response) {
+            alert('Blueprint max value reset successfully');
+            loadBlueprints();
+        },
+        error: function(xhr, status, error) {
+            console.error("Error resetting max:", error);
+            alert('Error resetting blueprint max');
+        }
+    });
+}
+
+function resetAllBlueprintMax() {
+    console.log("Reset All Max Values button clicked"); // Debug log
+    $.ajax({
+        url: '/blueprints/reset_max',
+        method: 'POST',
+        success: function(response) {
+            console.log("Response from server:", response); // Debug log
+            alert(response.message);
+            loadBlueprints(); // Reload blueprints to reflect changes
+        },
+        error: function(xhr, status, error) {
+            console.error("Error resetting all max values:", error);
+            alert('Error resetting all max values: ' + xhr.responseText);
+        }
+    });
+}
+
 
 
 
@@ -523,7 +571,16 @@ function deleteMaterial(id) {
                 }
             }
             resultsHtml += '</table>';
-            
+
+            if (response.limited_blueprints && response.limited_blueprints.length > 0) {
+                resultsHtml += '<h4>Blueprints with Limits:</h4>';
+                resultsHtml += '<ul>';
+                response.limited_blueprints.forEach(function(blueprint) {
+                    resultsHtml += '<li>' + blueprint + '</li>';
+                });
+                resultsHtml += '</ul>';
+            }
+
             resultsHtml += '<h4>Material Usage:</h4>';
             resultsHtml += '<table><tr><th>Material</th><th>Used</th><th>Remaining</th></tr>';
             for (var material in response.material_usage) {
