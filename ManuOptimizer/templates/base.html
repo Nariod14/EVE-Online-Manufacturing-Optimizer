@@ -159,18 +159,19 @@ $('#blueprintForm').submit(function(e) {
  * includes action buttons for editing and deleting each blueprint, and updates the
  * '#blueprintList' element with this table.
  */
-function loadBlueprints() {
+ function loadBlueprints() {
     $.ajax({
         url: '/blueprint',
         method: 'GET',
         success: function(response) {
-            var blueprintHtml = '<table><tr><th>Name</th><th>Sell Price</th><th>Materials</th><th>Actions</th></tr>';
+            var blueprintHtml = '<table><tr><th>Name</th><th>Sell Price</th><th>Materials</th><th>Max</th><th>Actions</th></tr>';
             response.forEach(function(blueprint) {
                 blueprintHtml += '<tr>';
                 blueprintHtml += '<td>' + blueprint.name + '</td>';
                 blueprintHtml += '<td>' + blueprint.sell_price + '</td>';
                 blueprintHtml += '<td>' + JSON.stringify(blueprint.materials) + '</td>';
-                blueprintHtml += '<td><button onclick="editBlueprint(' + blueprint.id + ')">Edit</button> ';
+                blueprintHtml += '<td style="text-align: center; width: 90px;"><input type="number" class="blueprint-max" data-id="' + blueprint.id + '" value="' + (blueprint.max || '') + '" style="width: 60px; text-align: center;"></td>';
+                blueprintHtml += '<td style="text-align: center;"><button onclick="editBlueprint(' + blueprint.id + ')">Edit</button> ';
                 blueprintHtml += '<button onclick="deleteBlueprint(' + blueprint.id + ')">Delete</button></td>';
                 blueprintHtml += '</tr>';
             });
@@ -179,6 +180,9 @@ function loadBlueprints() {
         }
     });
 }
+
+
+
 
 
 
@@ -351,6 +355,24 @@ $(document).on('change', '.editMaterialName', function() {
     $(this).siblings('.editOtherMaterialName').hide();
   }
 });
+
+$(document).on('change', '.blueprint-max', function() {
+    var id = $(this).data('id');
+    var max = $(this).val();
+    $.ajax({
+        url: '/blueprint/' + id,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({ max: max }),
+        success: function(response) {
+            console.log('Blueprint max updated successfully');
+        },
+        error: function(xhr, status, error) {
+            console.error("Error updating blueprint max:", error);
+        }
+    });
+});
+
 
 $(document).on('click', '.removeEditMaterialButton', function() {
   $(this).closest('.edit-material-input').remove();
