@@ -40,11 +40,12 @@ def register_routes(app):
             new_blueprint = Blueprint(name=name, materials=materials, sell_price=sell_price, material_cost=material_cost)
             db.session.add(new_blueprint)
             db.session.commit()
+            logger.info("Blueprint added successfully")
             return jsonify({"message": "Blueprint added successfully"}), 201
 
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error adding blueprint: {str(e)}")
+            logger.error(f"Error adding blueprint! See the traceback for more info:")
             logger.error(traceback.format_exc())
             return jsonify({"ERROR": "An error occurred while adding the blueprint"}), 500
 
@@ -59,7 +60,8 @@ def register_routes(app):
                 'sell_price': blueprint.sell_price    
             }), 200
         except Exception as e:
-            logger.error(f"Error getting blueprint: {str(e)}")
+            logger.error(f"Error getting blueprint! See the traceback for more info:")
+            logger.error(traceback.format_exc())
             return jsonify({
                 'error': 'An error occurred while getting the blueprint'
             }), 500
@@ -69,12 +71,14 @@ def register_routes(app):
     def get_blueprints():
         try:
             blueprints = Blueprint.query.all()
+            logger.info("Blueprints retrieved successfully")
             return jsonify([
                 {"id": b.id, "name": b.name, "materials": b.materials, "sell_price": b.sell_price}
                 for b in blueprints
             ]), 200
         except Exception as e:
-            logger.error(f"Error getting blueprints: {str(e)}")
+            logger.error(f"Error getting blueprints! See the traceback for more info:")
+            logger.error(traceback.format_exc())
             return jsonify({"ERROR": "An error occurred while getting the blueprints"}), 500
 
     @app.route('/material', methods=['POST'])
@@ -88,22 +92,26 @@ def register_routes(app):
                 new_material = Material(name=data['name'], quantity=data['quantity'])
                 db.session.add(new_material)
             db.session.commit()
+            logger.info("Material added successfully")
             return jsonify({"message": "Material updated successfully"}), 200
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error adding material: {str(e)}")
+            logger.error(f"Error adding material! See the traceback for more info:")
+            logger.error(traceback.format_exc())
             return jsonify({"ERROR": "An error occurred while adding the material"}), 500
 
     @app.route('/material', methods=['GET'])
     def get_materials():
         try:
             materials = Material.query.all()
+            logger.info("Materials retrieved successfully")
             return jsonify([
                 {"id": m.id, "name": m.name, "quantity": m.quantity}
                 for m in materials
             ]), 200
         except Exception as e:
-            logger.error(f"Error getting materials: {str(e)}")
+            logger.error(f"Error getting materials! See the traceback for more info:")
+            logger.error(traceback.format_exc())
             return jsonify({"ERROR": "An error occurred while getting the materials"}), 500
         
     @app.route('/blueprint/<int:id>', methods=['PUT'])
@@ -116,10 +124,12 @@ def register_routes(app):
             blueprint.sell_price = data.get('sell_price', blueprint.sell_price)
             blueprint.max = data.get('max', blueprint.max)
             db.session.commit()
+            logger.info("Blueprint updated successfully")
             return jsonify({'message': 'Blueprint updated successfully'}), 200
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error updating blueprint: {str(e)}")
+            logger.error(f"Error updating blueprint! See the traceback for more info:")
+            logger.error(traceback.format_exc())
             return jsonify({"ERROR": "An error occurred while updating the blueprint"}), 500
     
     @app.route('/blueprints/reset_max', methods=['POST'])
@@ -129,35 +139,57 @@ def register_routes(app):
             for blueprint in blueprints:
                 blueprint.max = None  # Set max to None for ALL blueprints
             db.session.commit()
+            logger.info("All blueprint max values have been reset")
             return jsonify({"message": "All blueprint max values have been reset."}), 200
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error resetting all blueprint max values: {str(e)}")
+            logger.error(f"Error resetting all blueprint max values! See the traceback for more info:")
             logger.error(traceback.format_exc())
             return jsonify({"ERROR": "An error occurred while resetting max values."}), 500
 
 
     @app.route('/blueprint/<int:id>', methods=['DELETE'])
     def delete_blueprint(id):
-        blueprint = Blueprint.query.get_or_404(id)
-        db.session.delete(blueprint)
-        db.session.commit()
-        return jsonify({"message": "Blueprint deleted successfully"}), 200
+        try:
+            blueprint = Blueprint.query.get_or_404(id)
+            db.session.delete(blueprint)
+            db.session.commit()
+            logger.info("Blueprint deleted successfully")
+            return jsonify({"message": "Blueprint deleted successfully"}), 200
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error deleting blueprint! See the traceback for more info:")
+            logger.error(traceback.format_exc())
+            return jsonify({"ERROR": "An error occurred while deleting the blueprint"}), 500
 
     @app.route('/material/<int:id>', methods=['PUT'])
     def update_material(id):
-        data = request.json
-        material = Material.query.get_or_404(id)
-        material.quantity = data.get('quantity', material.quantity)
-        db.session.commit()
-        return jsonify({"message": "Material updated successfully"}), 200
+        try:
+            data = request.json
+            material = Material.query.get_or_404(id)
+            material.quantity = data.get('quantity', material.quantity)
+            db.session.commit()
+            logger.info("Material updated successfully")
+            return jsonify({"message": "Material updated successfully"}), 200
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error updating material! See the traceback for more info:")
+            logger.error(traceback.format_exc())
+            return jsonify({"ERROR": "An error occurred while updating the material"}), 500
 
     @app.route('/material/<int:id>', methods=['DELETE'])
     def delete_material(id):
-        material = Material.query.get_or_404(id)
-        db.session.delete(material)
-        db.session.commit()
-        return jsonify({"message": "Material deleted successfully"}), 200
+        try:
+            material = Material.query.get_or_404(id)
+            db.session.delete(material)
+            db.session.commit()
+            logger.info("Material deleted successfully")
+            return jsonify({"message": "Material deleted successfully"}), 200
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error deleting material! See the traceback for more info:")
+            logger.error(traceback.format_exc())
+            return jsonify({"ERROR": "An error occurred while deleting the material"}), 500
 
     @app.route('/optimize', methods=['GET'])
     def optimize():
@@ -193,11 +225,13 @@ def register_routes(app):
                     },
                     "true_profit": sum((b.sell_price - b.material_cost) * value(x[b.name]) for b in blueprints)
                 }
-
+                logger.info("Optimization completed successfully")
+                logger.info("Results: %s", results)
                 return jsonify(results), 200
             else:
                 return jsonify({"status": "No optimal solution found"}), 400
 
         except Exception as e:
             logger.error("An error occurred during optimization: %s", str(e))
+            logger.error(traceback.format_exc())
             return jsonify({"ERROR": "An error occurred during optimization"}), 500
