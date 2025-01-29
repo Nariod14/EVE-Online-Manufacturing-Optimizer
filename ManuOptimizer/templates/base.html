@@ -193,7 +193,17 @@ $('#blueprintForm').submit(function(e) {
 }
 
 
-// Add this new function
+
+/**
+ * Resets the max value for a blueprint.
+ * 
+ * This function sends an AJAX PUT request to the `/blueprint/:id` endpoint to set
+ * the max value for the blueprint with the given `id` to null. Upon a successful
+ * response, it shows an alert and reloads the list of blueprints. If there is an
+ * error, it shows an alert with the error message.
+ * 
+ * @param {number} id The ID of the blueprint to reset the max value for.
+ */
 function resetBlueprintMax(id) {
     $.ajax({
         url: `/blueprint/${id}`,
@@ -262,6 +272,7 @@ function loadMaterials() {
         }
     });
 }
+
 
 $('#blueprintParseForm').submit(function(e) {
     e.preventDefault();
@@ -371,6 +382,7 @@ $('#availableMaterialsForm').submit(function(e) {
     }
   });
 }
+
 
 function addEditBlueprintMaterial(name = '', quantity = '') {
   $('#editBlueprintMaterials').append(`
