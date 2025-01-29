@@ -121,11 +121,13 @@ $('#blueprintForm').submit(function(e) {
             materials[name] = (materials[name] || 0) + quantity;
         }
     });
+
     
     var blueprintData = {
         name: $('#blueprintName').val(),
         materials: materials,
-        sell_price: parseFloat($('#blueprintSellPrice').val())
+        sell_price: parseFloat($('#blueprintSellPrice').val()),
+        material_cost: parseFloat($('#blueprintMaterialCost').val())
     };
 
     console.log("Submitting blueprint:", blueprintData);  // For debugging
