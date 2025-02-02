@@ -8,7 +8,7 @@ This project is a web-based application designed to optimize manufacturing proce
 - **Material Tracking**: Keep track of available materials and their quantities.
 - **Production Optimization**: Calculate the most profitable production plan based on available materials and blueprint data.
 - **Dynamic UI**: Real-time updates of blueprint and material lists without page reloads.
-- **Responsive Design**: User-friendly interface that works on both desktop and mobile devices.
+- **Responsive Design**: User-friendly interface that works on desktop and mobile devices.
 
 ## Technologies Used
 
@@ -18,7 +18,7 @@ This project is a web-based application designed to optimize manufacturing proce
 
 ## Setup and Installation
 
-1. Download and Extract from the releases on the rigt side
+1. Download and Extract from the releases on the right side
 2. Simply open the ManOptimize.exe. It should open your browser to 127.0.0.1:5000. If it doesn't, go there on any browser while the app is open.
 3. Follow the onscreen instructions!
 
@@ -41,9 +41,14 @@ Contributions to improve the optimizer are welcome. Please follow these steps:
 
 ## License
 
-[Specify your license here, e.g., MIT License]
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
+
+See the [LICENSE](LICENSE) file for details.
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 ## Acknowledgments
 
 - EVE Online for inspiring this project
 - The Flask and jQuery communities for their excellent documentation
+- StackOverflow for random people somehow having the same obscure problems as me.
