@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 def register_routes(app):
-    # Place all your route definitions here
     @app.route('/')
     def index():
         return render_template('index.html')
@@ -85,20 +84,66 @@ def register_routes(app):
     def add_material():
         try:
             data = request.json
+            logger.info(f"Received material data: {data}")
+            
             material = Material.query.filter_by(name=data['name']).first()
             if material:
+                logger.info(f"Updating existing material: {data['name']}")
                 material.quantity = data['quantity']
             else:
+                logger.info(f"Adding new material: {data['name']}")
                 new_material = Material(name=data['name'], quantity=data['quantity'])
                 db.session.add(new_material)
+            
             db.session.commit()
-            logger.info("Material added successfully")
+            logger.info("Material added/updated successfully")
             return jsonify({"message": "Material updated successfully"}), 200
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error adding material! See the traceback for more info:")
+            logger.error(f"Error adding/updating material: {str(e)}")
             logger.error(traceback.format_exc())
-            return jsonify({"ERROR": "An error occurred while adding the material"}), 500
+            return jsonify({"error": "An error occurred while adding/updating the material"}), 500
+    
+    @app.route('/update_materials', methods=['POST'])
+    def update_materials():
+        try:
+            data = request.json
+            materials = data.get('materials', {})
+            update_type = data.get('updateType', 'replace')
+
+            logger.info(f"Received materials data: {materials}")
+            logger.info(f"Update type: {update_type}")
+
+            if update_type == 'replace':
+                # Clear all existing materials before adding new ones
+                Material.query.delete()
+                db.session.commit()
+                logger.info("All existing materials have been deleted.")
+
+            for name, quantity in materials.items():
+                material = Material.query.filter_by(name=name).first()
+                if material:
+                    if update_type == 'add':
+                        logger.info(f"Adding to existing material: {name}, current quantity: {material.quantity}, adding: {quantity}")
+                        material.quantity += quantity
+                    else:
+                        logger.info(f"Updating material: {name} with quantity: {quantity}")
+                        material.quantity = quantity
+                else:
+                    logger.info(f"Adding new material: {name} with quantity: {quantity}")
+                    new_material = Material(name=name, quantity=quantity)
+                    db.session.add(new_material)
+
+            db.session.commit()
+            logger.info("Materials updated successfully.")
+            return jsonify({"message": "Materials updated successfully"}), 200
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error updating materials: {str(e)}")
+            logger.error(traceback.format_exc())
+            return jsonify({"error": "An error occurred while updating materials"}), 500
+
+
 
     @app.route('/material', methods=['GET'])
     def get_materials():
@@ -196,20 +241,41 @@ def register_routes(app):
         try:
             blueprints = Blueprint.query.all()
             materials = Material.query.all()
+            
+            logger.debug(f"Blueprints: {[{'name': b.name, 'sell_price': b.sell_price, 'material_cost': b.material_cost} for b in blueprints]}")
+            logger.debug(f"Materials: {[{'name': m.name, 'quantity': m.quantity} for m in materials]}")
+
+
+            if not blueprints:
+                logger.error("No blueprints found in the database.")
+                return jsonify({"error": "No blueprints available for optimization."}), 400
+
+            if not materials:
+                logger.error("No materials found in the database.")
+                return jsonify({"error": "No materials available for optimization."}), 400
 
             prob = LpProblem("Modules Optimization", LpMaximize)
 
+            # Define decision variables
             x = {b.name: LpVariable(f"x_{b.name}", lowBound=0, cat='Integer') for b in blueprints}
 
-            prob += lpSum((b.sell_price - b.material_cost) * x[b.name] for b in blueprints)
+            # Set objective function
+            try:
+                prob += lpSum((b.sell_price - (b.material_cost or 0)) * x[b.name] for b in blueprints)
+            except Exception as e:
+                logger.error("Error setting objective function: %s", str(e))
+                return jsonify({"error": "Invalid blueprint data (e.g., missing sell_price or material_cost)."}), 400
 
+            # Add material constraints
             for m in materials:
                 prob += lpSum(b.materials.get(m.name, 0) * x[b.name] for b in blueprints) <= m.quantity
 
+            # Add max constraints for blueprints
             for b in blueprints:
                 if b.max is not None:
                     prob += x[b.name] <= b.max
 
+            # Solve the problem using CBC solver
             prob.solve(PULP_CBC_CMD())
 
             if LpStatus[prob.status] == 'Optimal':
@@ -223,15 +289,20 @@ def register_routes(app):
                             "remaining": m.quantity - sum(b.materials.get(m.name, 0) * value(x[b.name]) for b in blueprints)
                         } for m in materials
                     },
-                    "true_profit": sum((b.sell_price - b.material_cost) * value(x[b.name]) for b in blueprints)
+                    "true_profit": sum((b.sell_price - (b.material_cost or 0)) * value(x[b.name]) for b in blueprints)
                 }
                 logger.info("Optimization completed successfully")
                 logger.info("Results: %s", results)
                 return jsonify(results), 200
+            elif LpStatus[prob.status] == 'Unbounded':
+                logger.error("Optimization problem is unbounded.")
+                return jsonify({"error": "Optimization problem is unbounded. Check your constraints and input data."}), 400
             else:
+                logger.error("No optimal solution found.")
                 return jsonify({"status": "No optimal solution found"}), 400
 
         except Exception as e:
             logger.error("An error occurred during optimization: %s", str(e))
             logger.error(traceback.format_exc())
-            return jsonify({"ERROR": "An error occurred during optimization"}), 500
+            return jsonify({"error": "An error occurred during optimization"}), 500
+

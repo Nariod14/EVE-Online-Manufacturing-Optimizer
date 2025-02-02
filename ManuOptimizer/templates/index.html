@@ -53,24 +53,24 @@
   </div>
   
 
-<h2>Add Material</h2>
-<form id="materialForm">
-    <select id="materialName" required>
-        <option value="Tritanium">Tritanium</option>
-        <option value="Pyerite">Pyerite</option>
-        <option value="Mexallon">Mexallon</option>
-        <option value="Isogen">Isogen</option>
-        <option value="Nocxium">Nocxium</option>
-        <option value="Zydrine">Zydrine</option>
-        <option value="Megacyte">Megacyte</option>
-        <option value="other">Other</option>
-    </select>
-    <input type="text" id="otherMaterialName" placeholder="Other Material Name" style="display: none;">
-    <input type="number" id="materialQuantity" placeholder="Quantity" required>
-    <button type="submit">Add Material</button>
-</form>
-
-<h2>Add Available Materials</h2>
+  <h2>Add Material</h2>
+  <form id="materialForm">
+      <select id="materialName" required>
+          <option value="Tritanium">Tritanium</option>
+          <option value="Pyerite">Pyerite</option>
+          <option value="Mexallon">Mexallon</option>
+          <option value="Isogen">Isogen</option>
+          <option value="Nocxium">Nocxium</option>
+          <option value="Zydrine">Zydrine</option>
+          <option value="Megacyte">Megacyte</option>
+          <option value="other">Other</option>
+      </select>
+      <input type="text" id="otherMaterialName" placeholder="Other Material Name" style="display: none;">
+      <input type="number" id="materialQuantity" placeholder="Quantity" required>
+      <button type="submit">Add Material</button>
+  </form>
+  
+<h2>Add Available Materials From Game</h2>
 <form id="availableMaterialsForm">
     <textarea id="availableMaterialsData" placeholder="Paste available materials here" required></textarea>
     <div>
@@ -84,13 +84,13 @@
     <button type="submit">Update Available Materials</button>
 </form>
 
-<button onclick="optimize()">Optimize Production</button>
-
 <h2>Current Blueprints</h2>
 <div id="blueprintList"></div>
 
 <h2>Current Materials</h2>
 <div id="materialList"></div>
+
+<button class="center-button" onclick="optimize()">Optimize Production</button>
 
 <div id="results"></div>
 

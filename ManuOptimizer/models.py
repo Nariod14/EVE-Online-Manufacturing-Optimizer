@@ -7,7 +7,7 @@ class Blueprint(db.Model):
     materials = db.Column(db.JSON, nullable=False)
     sell_price = db.Column(db.Float, nullable=False)
     max = db.Column(db.Integer, nullable=True)
-    material_cost = db.Column(db.Float, nullable=True, default=0)  # Make this optional
+    material_cost = db.Column(db.Float, nullable=False)
 
 
 class Material(db.Model):
