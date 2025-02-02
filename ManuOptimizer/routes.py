@@ -1,8 +1,13 @@
+import os
+import subprocess
+import sys
 from flask import jsonify, render_template, request
 import logging
 import traceback
+
+import pulp
 from models import db, Blueprint, Material
-from pulp import PULP_CBC_CMD, LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus
+from pulp import LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus, PULP_CBC_CMD
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -244,40 +249,40 @@ def register_routes(app):
             
             logger.debug(f"Blueprints: {[{'name': b.name, 'sell_price': b.sell_price, 'material_cost': b.material_cost} for b in blueprints]}")
             logger.debug(f"Materials: {[{'name': m.name, 'quantity': m.quantity} for m in materials]}")
-
-
+    
             if not blueprints:
                 logger.error("No blueprints found in the database.")
                 return jsonify({"error": "No blueprints available for optimization."}), 400
-
+    
             if not materials:
                 logger.error("No materials found in the database.")
                 return jsonify({"error": "No materials available for optimization."}), 400
-
+        
+    
             prob = LpProblem("Modules Optimization", LpMaximize)
-
+    
             # Define decision variables
             x = {b.name: LpVariable(f"x_{b.name}", lowBound=0, cat='Integer') for b in blueprints}
-
+    
             # Set objective function
             try:
                 prob += lpSum((b.sell_price - (b.material_cost or 0)) * x[b.name] for b in blueprints)
             except Exception as e:
                 logger.error("Error setting objective function: %s", str(e))
                 return jsonify({"error": "Invalid blueprint data (e.g., missing sell_price or material_cost)."}), 400
-
+    
             # Add material constraints
             for m in materials:
                 prob += lpSum(b.materials.get(m.name, 0) * x[b.name] for b in blueprints) <= m.quantity
-
+    
             # Add max constraints for blueprints
             for b in blueprints:
                 if b.max is not None:
                     prob += x[b.name] <= b.max
-
-            # Solve the problem using CBC solver
-            prob.solve(PULP_CBC_CMD())
-
+    
+            
+            prob.solve(PULP_CBC_CMD(msg=False))
+    
             if LpStatus[prob.status] == 'Optimal':
                 results = {
                     "status": "Optimal",
@@ -300,9 +305,8 @@ def register_routes(app):
             else:
                 logger.error("No optimal solution found.")
                 return jsonify({"status": "No optimal solution found"}), 400
-
+    
         except Exception as e:
             logger.error("An error occurred during optimization: %s", str(e))
             logger.error(traceback.format_exc())
             return jsonify({"error": "An error occurred during optimization"}), 500
-

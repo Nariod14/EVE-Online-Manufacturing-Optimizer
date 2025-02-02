@@ -4,7 +4,7 @@
 a = Analysis(
     ['run.py'],
     pathex=[],
-    binaries=[],
+    binaries=[('C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\pulp\\solverdir\\cbc\\win\\64\\cbc.exe', 'pulp\\solverdir\\cbc\\win\\64')],
     datas=[('templates', 'templates'), ('static', 'static')],
     hiddenimports=[],
     hookspath=[],
