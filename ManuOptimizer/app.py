@@ -16,13 +16,30 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-flask_app = Flask(__name__)
-CORS(flask_app)
-flask_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///eve_optimizer.db'
-flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(flask_app)
-
 def create_app():
     from routes import register_routes
+    
+    flask_app = Flask(__name__)
+    CORS(flask_app)
+    
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    instance_path = os.path.join(basedir, 'instances')
+    os.makedirs(instance_path, exist_ok=True)
+    db_path = os.path.join(instance_path, 'eve_optimizer.db')
+
+    flask_app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+    
+    db.init_app(flask_app)
+    
+    with flask_app.app_context():
+        try:
+            db.create_all()
+            logger.info("Database tables created successfully")
+        except Exception as e:
+            logger.error(f"Error creating database tables: {str(e)}")
+            logger.error(traceback.format_exc())
+
+    
     register_routes(flask_app)
+    
     return flask_app
