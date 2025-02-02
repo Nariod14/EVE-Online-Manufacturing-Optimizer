@@ -19,7 +19,7 @@ This project is a web-based application designed to optimize manufacturing proce
 ## Setup and Installation
 
 1. Download and Extract from the releases on the right side
-2. Simply open the ManOptimize.exe. It should open your browser to 127.0.0.1:5000. If it doesn't, go there on any browser while the app is open.
+2. Simply open the EMO.exe. It should open your browser to 127.0.0.1:5000. If it doesn't, go there on any browser while the app is open.
 3. Follow the onscreen instructions!
 
 ## Usage
