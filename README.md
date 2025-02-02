@@ -18,18 +18,9 @@ This project is a web-based application designed to optimize manufacturing proce
 
 ## Setup and Installation
 
-1. Clone the repository
-2. Install required Python packages:
-   ```
-   pip install flask flask-sqlalchemy flask-cors
-   ```
-3. Run the Flask application:
-   ```
-   python app.py
-   ```
-4. Open a web browser and navigate to `http://localhost:5000`
-
-This isnt the most secure server for this project. A future patch will include a proper production WSGI server.
+1. Download and Extract from the releases on the rigt side
+2. Simply open the ManOptimize.exe. It should open your browser to 127.0.0.1:5000. If it doesn't, go there on any browser while the app is open.
+3. Follow the onscreen instructions!
 
 ## Usage
 
