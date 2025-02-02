@@ -46,6 +46,18 @@
         th {
             background-color: #f2f2f2;
         }
+
+        .center-button {
+        display: block;
+        margin: 0 auto;
+        padding: 10px 20px;
+        font-size: 18px;
+        border: none;
+        border-radius: 5px;
+        background-color: #4CAF50;
+        color: #fff;
+        cursor: pointer;
+    }
     </style>
 </head>
 <body>
@@ -108,6 +120,7 @@ $(document).on('click', '.removeMaterialButton', function() {
     $(this).closest('.material-input').remove();
 });
 
+// Handle form submission for adding a blueprint
 $('#blueprintForm').submit(function(e) {
     e.preventDefault();
     var materials = {};
@@ -149,6 +162,49 @@ $('#blueprintForm').submit(function(e) {
     });
 });
 
+// Handle form submission for adding a material
+$(document).ready(function() {
+    // Show/hide other material name input based on selection
+    $('#materialName').change(function() {
+        if ($(this).val() === 'other') {
+            $('#otherMaterialName').show();
+        } else {
+            $('#otherMaterialName').hide();
+        }
+    });
+
+    // Handle form submission
+    $('#materialForm').submit(function(e) {
+        e.preventDefault();
+        
+        var materialName = $('#materialName').val();
+        if (materialName === 'other') {
+            materialName = $('#otherMaterialName').val();
+        }
+        
+        var materialData = {
+            name: materialName,
+            quantity: parseInt($('#materialQuantity').val())
+        };
+
+        $.ajax({
+            url: '/material',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(materialData),
+            success: function(response) {
+                alert('Material added successfully');
+                $('#materialForm')[0].reset();
+                $('#otherMaterialName').hide();
+                loadMaterials();
+            },
+            error: function(xhr, status, error) {
+                console.error("Error adding material:", error);
+                alert('Error adding material: ' + xhr.responseText);
+            }
+        });
+    });
+});
 
 // Function to load and display blueprints
 
@@ -196,6 +252,8 @@ $('#blueprintForm').submit(function(e) {
 
 
 
+
+
 /**
  * Resets the max value for a blueprint.
  * 
@@ -223,6 +281,14 @@ function resetBlueprintMax(id) {
     });
 }
 
+/**
+ * Resets the max value for all blueprints.
+ * 
+ * This function sends an AJAX POST request to the `/blueprints/reset_max` endpoint
+ * to set the max value for all blueprints to null. Upon a successful response, it
+ * shows an alert and reloads the list of blueprints. If there is an error, it shows
+ * an alert with the error message.
+ */
 function resetAllBlueprintMax() {
     console.log("Reset All Max Values button clicked"); // Debug log
     $.ajax({
@@ -276,6 +342,7 @@ function loadMaterials() {
 }
 
 
+// Handles the form submission for adding a blueprint from the game parser
 $('#blueprintParseForm').submit(function(e) {
     e.preventDefault();
     var lines = $('#blueprintParseData').val().split('\n');
@@ -317,6 +384,7 @@ $('#blueprintParseForm').submit(function(e) {
     });
 });
 
+// Handles the form submission for updating materials from the game parser
 $('#availableMaterialsForm').submit(function(e) {
     e.preventDefault();
     var lines = $('#availableMaterialsData').val().split('\n');
@@ -635,12 +703,12 @@ $(document).ready(function() {
             var profitInWords = numberToWords(response.total_profit);
             var trueProfitInWords = numberToWords(response.true_profit);
             var trueProfitPercentage = ((response.true_profit / response.total_profit) * 100).toFixed(2);
-            
+
             resultsHtml += '<p>Total Profit: ' + formattedProfit + ' (' + profitInWords + ') ISK</p>';
             resultsHtml += '<p>True Profit (after material costs): ' + trueProfit + ' (' + trueProfitInWords + ') ISK</p>';
             resultsHtml += '<p>True Profit Percentage: ' + trueProfitPercentage + '%</p>';
-            
-            // Rest of the function remains the same
+
+            // Production Plan
             resultsHtml += '<h4>Production Plan:</h4>';
             resultsHtml += '<table><tr><th>Blueprint</th><th>Quantity</th></tr>';
             for (var blueprint in response.what_to_produce) {
@@ -649,24 +717,26 @@ $(document).ready(function() {
                 }
             }
             resultsHtml += '</table>';
-            
+
+            // Material Usage
             resultsHtml += '<h4>Material Usage:</h4>';
             resultsHtml += '<table><tr><th>Material</th><th>Used</th><th>Remaining</th></tr>';
             for (var material in response.material_usage) {
-                resultsHtml += '<tr><td>' + material + '</td><td>' + 
-                                response.material_usage[material].used.toLocaleString() + '</td><td>' + 
+                resultsHtml += '<tr><td>' + material + '</td><td>' +
+                                response.material_usage[material].used.toLocaleString() + '</td><td>' +
                                 response.material_usage[material].remaining.toLocaleString() + '</td></tr>';
             }
             resultsHtml += '</table>';
-            
+
             $('#results').html(resultsHtml);
         },
         error: function(xhr, status, error) {
-            console.error("Error optimizing:", error);
-            alert('Error during optimization: ' + error);
+            console.error("Error optimizing:", xhr.responseText);
+            alert('Error during optimization: ' + xhr.responseText);
         }
     });
 }
+
 
 
 /**
