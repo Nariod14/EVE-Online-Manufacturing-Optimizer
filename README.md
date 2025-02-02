@@ -13,7 +13,7 @@ This project is a web-based application designed to optimize manufacturing proce
 ## Technologies Used
 
 - Frontend: HTML, CSS, JavaScript, jQuery
-- Backend: Flask
+- Backend: Flask, Waitress, PuLP
 - Database: SQLite, SQLAlchemy
 
 ## Setup and Installation
@@ -24,10 +24,14 @@ This project is a web-based application designed to optimize manufacturing proce
 
 ## Usage
 
-1. **Adding Blueprints**: Use the "Add Blueprint" form to input new blueprints, specifying name, sell price, and required materials.
-2. **Managing Materials**: Add or update available materials using the "Add Material" form.
-3. **Optimizing Production**: Click the "Optimize Production" button to calculate the most profitable manufacturing plan.
-4. **Editing and Deleting**: Use the provided buttons to edit or delete existing blueprints and materials.
+1. **Adding Blueprints**: Use the "Add Blueprint" form to input new blueprints, specifying name, sell price, and required materials. You can also copy the materials needed for any blueprint from your industry tab in game, like so: ![image](https://github.com/user-attachments/assets/cdb64573-7a89-436f-a35e-47bc92cb6c98) Then you can go ahead and paste that in here in addition to the blueprint's name and sell price. You will have to check this price yourself: ![image](https://github.com/user-attachments/assets/bab4d777-cc2b-439c-a66d-179d8410842a)
+
+Also ENSURE YOU HAVE ONLY 1 RUN SELECTED BEFORE YOU COPY THE MATERIAL INFORMATION. Otherwise your blueprints may be inaccurate.
+
+2. **Managing Materials**: Add or update available materials using the "Add Material" form. You can easily just copy your materials from the game by selecting them like this:![image](https://github.com/user-attachments/assets/7ddb2082-4382-4520-a550-f7ed4c613582)
+And then paste them here: ![image](https://github.com/user-attachments/assets/e5009006-cd05-4f06-9167-e1cd82d5861e)
+4. **Optimizing Production**: Click the "Optimize Production" button to calculate the most profitable manufacturing plan.
+5. **Editing and Deleting**: Use the provided buttons to edit or delete existing blueprints and materials.
 
 ## Contributing
 
