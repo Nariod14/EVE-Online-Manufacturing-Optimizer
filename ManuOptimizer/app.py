@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import traceback
 from flask import Flask
@@ -22,8 +23,15 @@ def create_app():
     flask_app = Flask(__name__)
     CORS(flask_app)
     
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    instance_path = os.path.join(basedir, 'instances')
+    if getattr(sys, 'frozen', False):
+        # Running as compiled exe
+        basedir = sys._MEIPASS
+        instance_path = os.path.join(os.path.dirname(sys.executable), 'instances')
+    else:
+        # Running as script
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        instance_path = os.path.join(basedir, 'instances')
+    
     os.makedirs(instance_path, exist_ok=True)
     db_path = os.path.join(instance_path, 'eve_optimizer.db')
 
@@ -39,7 +47,6 @@ def create_app():
             logger.error(f"Error creating database tables: {str(e)}")
             logger.error(traceback.format_exc())
 
-    
     register_routes(flask_app)
     
     return flask_app
