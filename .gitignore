@@ -139,3 +139,4 @@ ManuOptimizer/run.spec
 ManuOptimizer/run.spec
 ManuOptimizer/dist/run/_internal/templates/index.html
 ManuOptimizer/dist/run/_internal/templates/base.html
+ManuOptimizer/instances/eve_optimizer.db
