@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>EVE Online Manufacturing Optimizer</h1>
-<h2>Add Blueprint</h2>
-<h2>Add Blueprint</h2>
+<h2>Add Blueprint (Manually)</h2>
 <form id="blueprintForm">
     <input type="text" id="blueprintName" placeholder="Blueprint Name" required>
     <input type="number" id="blueprintSellPrice" placeholder="Sell Price" required>
@@ -35,7 +34,7 @@
 </form>
 
 
-<h2>Add Blueprint from Game Data</h2>
+<h2>Add Blueprint from Game (Copy/Paste)</h2>
 <form id="blueprintParseForm">
     <input type="text" id="blueprintParseName" placeholder="Blueprint Name" required>
     <input type="number" id="blueprintParseSellPrice" placeholder="Sell Price" required>
@@ -60,7 +59,7 @@
   </div>
   
 
-  <h2>Add Material</h2>
+  <h2>Add Material (Manually)</h2>
   <form id="materialForm">
       <select id="materialName" required>
           <option value="Tritanium">Tritanium</option>
@@ -77,7 +76,7 @@
       <button type="submit">Add Material</button>
   </form>
   
-<h2>Add Available Materials From Game</h2>
+<h2>Add Available Materials From Game (Copy/Paste)</h2>
 <form id="availableMaterialsForm">
     <textarea id="availableMaterialsData" placeholder="Paste available materials here" required></textarea>
     <div>

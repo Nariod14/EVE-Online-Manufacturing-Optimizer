@@ -268,12 +268,18 @@ def register_routes(app):
 
             # Collect all unique materials from blueprints
             all_materials = set()
+            material_categories = {}  # Map material names to their categories
             for b in blueprints:
                 if isinstance(b.materials, dict):
-                    for section in b.materials.values():
-                        all_materials.update(section.keys())
+                    for category, sub_category in b.materials.items():
+                        if isinstance(sub_category, dict):
+                            for material in sub_category.keys():
+                                all_materials.add(material)
+                                material_categories[material] = category  # Map material to its category
                 else:
-                    all_materials.update(b.materials.keys())
+                    for material in b.materials.keys():
+                        all_materials.add(material)
+                        material_categories[material] = "Other"
 
             # Add missing materials to the database with quantity 0
             for material in all_materials:
@@ -292,11 +298,11 @@ def register_routes(app):
             # Helper function to get material quantity from blueprint
             def get_material_quantity(blueprint, material_name):
                 if isinstance(blueprint.materials, dict):
-                    return (
-                        blueprint.materials.get('Minerals', {}).get(material_name, 0) +
-                        blueprint.materials.get('Items', {}).get(material_name, 0) +
-                        blueprint.materials.get('Components', {}).get(material_name, 0)
-                    )
+                    quantity = 0
+                    for sub_category in blueprint.materials.values():
+                        if isinstance(sub_category, dict):
+                            quantity += sub_category.get(material_name, 0)
+                    return quantity
                 return blueprint.materials.get(material_name, 0)
 
             # Material constraints
@@ -319,7 +325,8 @@ def register_routes(app):
                     "material_usage": {
                         m_name: {
                             "used": sum(get_material_quantity(b, m_name) * int(value(x[b.name])) for b in blueprints),
-                            "remaining": m_qty - sum(get_material_quantity(b, m_name) * int(value(x[b.name])) for b in blueprints)
+                            "remaining": m_qty - sum(get_material_quantity(b, m_name) * int(value(x[b.name])) for b in blueprints),
+                            "category": material_categories.get(m_name, "Other(Likely Unused)")
                         } for m_name, m_qty in materials.items()
                     },
                     "true_profit": sum((b.sell_price - b.material_cost) * value(x[b.name]) for b in blueprints)
@@ -327,9 +334,11 @@ def register_routes(app):
                 logger.info("Optimization completed successfully")
                 logger.info("Results: %s", results)
                 return jsonify(results), 200
+
             elif LpStatus[prob.status] == 'Unbounded':
                 logger.error("Optimization problem is unbounded.")
                 return jsonify({"error": "Optimization problem is unbounded. Check your constraints and input data."}), 400
+
             else:
                 logger.error("No optimal solution found.")
                 return jsonify({"status": "No optimal solution found"}), 400

@@ -696,7 +696,7 @@ $(document).ready(function() {
  * Upon successful response, formats the results as a JSON string and displays them
  * in the '#results' element on the page.
  */
- function optimize() {
+function optimize() {
     $.ajax({
         url: '/optimize',
         method: 'GET',
@@ -722,43 +722,46 @@ $(document).ready(function() {
             }
             resultsHtml += '</table>';
 
-            // Material Usage
-            resultsHtml += '<h4>Material Usage:</h4>';
-            
-            // Function to create material usage table
-            function createMaterialTable(materials, title) {
-                var tableHtml = '<h5>' + title + '</h5>';
-                tableHtml += '<table><tr><th>Material</th><th>Used</th><th>Remaining</th></tr>';
-                for (var material in materials) {
-                    tableHtml += '<tr><td>' + material + '</td><td>' +
-                                 materials[material].used.toLocaleString() + '</td><td>' +
-                                 materials[material].remaining.toLocaleString() + '</td></tr>';
-                }
-                tableHtml += '</table>';
-                return tableHtml;
-            }
+            // Material Usage by Category
+            var categorizedMaterials = {
+                'Minerals': {},
+                'Components': {},
+                'Items': {},
+                'Other': {}
+            };
 
-            // Known minerals
+            // Hardcoded list of all minerals
             var knownMinerals = ['Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 'Nocxium', 'Zydrine', 'Megacyte', 'Morphite'];
 
-            // Categorize materials
-            var minerals = {};
-            var otherMaterials = {};
-
+            // Group materials by category
             for (var material in response.material_usage) {
                 if (knownMinerals.includes(material)) {
-                    minerals[material] = response.material_usage[material];
+                    categorizedMaterials['Minerals'][material] = response.material_usage[material];
                 } else {
-                    otherMaterials[material] = response.material_usage[material];
+                    var category = response.material_usage[material].category;
+                    if (category === 'Minerals') {
+                        category = 'Other'; // Override server categorization for non-hardcoded minerals
+                    }
+                    if (!categorizedMaterials[category]) {
+                        categorizedMaterials[category] = {};
+                    }
+                    categorizedMaterials[category][material] = response.material_usage[material];
                 }
             }
 
             // Create tables for each category
-            if (Object.keys(minerals).length > 0) {
-                resultsHtml += createMaterialTable(minerals, 'Minerals');
-            }
-            if (Object.keys(otherMaterials).length > 0) {
-                resultsHtml += createMaterialTable(otherMaterials, 'Other Materials');
+            for (var category in categorizedMaterials) {
+                if (Object.keys(categorizedMaterials[category]).length > 0) {
+                    resultsHtml += '<h5>' + category + ':</h5>';
+                    resultsHtml += '<table><tr><th>Material</th><th>Used</th><th>Remaining</th></tr>';
+                    for (var material in categorizedMaterials[category]) {
+                        var usage = categorizedMaterials[category][material];
+                        resultsHtml += '<tr><td>' + material + '</td><td>' +
+                                       usage.used.toLocaleString() + '</td><td>' +
+                                       usage.remaining.toLocaleString() + '</td></tr>';
+                    }
+                    resultsHtml += '</table>';
+                }
             }
 
             // Bottleneck Materials Section
@@ -793,6 +796,7 @@ $(document).ready(function() {
         }
     });
 }
+
 
 
 /**
