@@ -685,66 +685,6 @@ function deleteMaterial(id) {
     }
 }
 
-/**
- * Runs the optimization algorithm and displays the results.
- * 
- * This function sends a GET request to the '/optimize' endpoint to run the optimization
- * algorithm. Upon success, it displays the results in the #results element, including
- * the total profit, production plan, and material usage.
- */
- function optimize() {
-    $.ajax({
-        url: '/optimize',
-        method: 'GET',
-        success: function(response) {
-            var resultsHtml = '<h3>Optimization Results</h3>';
-            var formattedProfit = response.total_profit.toLocaleString('en-US', {maximumFractionDigits: 2});
-            var trueProfit = response.true_profit.toLocaleString('en-US', {maximumFractionDigits: 2});
-            var profitInWords = numberToWords(response.total_profit);
-            var trueProfitInWords = numberToWords(response.true_profit);
-            var trueProfitPercentage = ((response.true_profit / response.total_profit) * 100).toFixed(2);
-            
-            resultsHtml += '<p>Total Profit: ' + formattedProfit + ' (' + profitInWords + ') ISK</p>';
-            resultsHtml += '<p>True Profit (after material costs): ' + trueProfit + ' (' + trueProfitInWords + ') ISK</p>';
-            resultsHtml += '<p>True Profit Percentage: ' + trueProfitPercentage + '%</p>';
-            
-            // Rest of the function remains the same
-            resultsHtml += '<h4>Production Plan:</h4>';
-            resultsHtml += '<table><tr><th>Blueprint</th><th>Quantity</th></tr>';
-            for (var blueprint in response.what_to_produce) {
-                if (response.what_to_produce[blueprint] > 0) {
-                    resultsHtml += '<tr><td>' + blueprint + '</td><td>' + response.what_to_produce[blueprint] + '</td></tr>';
-                }
-            }
-            resultsHtml += '</table>';
-
-            if (response.limited_blueprints && response.limited_blueprints.length > 0) {
-                resultsHtml += '<h4>Blueprints with Limits:</h4>';
-                resultsHtml += '<ul>';
-                response.limited_blueprints.forEach(function(blueprint) {
-                    resultsHtml += '<li>' + blueprint + '</li>';
-                });
-                resultsHtml += '</ul>';
-            }
-
-            resultsHtml += '<h4>Material Usage:</h4>';
-            resultsHtml += '<table><tr><th>Material</th><th>Used</th><th>Remaining</th></tr>';
-            for (var material in response.material_usage) {
-                resultsHtml += '<tr><td>' + material + '</td><td>' + 
-                                response.material_usage[material].used.toLocaleString() + '</td><td>' + 
-                                response.material_usage[material].remaining.toLocaleString() + '</td></tr>';
-            }
-            resultsHtml += '</table>';
-            
-            $('#results').html(resultsHtml);
-        },
-        error: function(xhr, status, error) {
-            console.error("Error optimizing:", error);
-            alert('Error during optimization: ' + error);
-        }
-    });
-}
-
 // Call these functions when the page loads
 $(document).ready(function() {
     loadBlueprints();
@@ -784,13 +724,42 @@ $(document).ready(function() {
 
             // Material Usage
             resultsHtml += '<h4>Material Usage:</h4>';
-            resultsHtml += '<table><tr><th>Material</th><th>Used</th><th>Remaining</th></tr>';
-            for (var material in response.material_usage) {
-                resultsHtml += '<tr><td>' + material + '</td><td>' +
-                                response.material_usage[material].used.toLocaleString() + '</td><td>' +
-                                response.material_usage[material].remaining.toLocaleString() + '</td></tr>';
+            
+            // Function to create material usage table
+            function createMaterialTable(materials, title) {
+                var tableHtml = '<h5>' + title + '</h5>';
+                tableHtml += '<table><tr><th>Material</th><th>Used</th><th>Remaining</th></tr>';
+                for (var material in materials) {
+                    tableHtml += '<tr><td>' + material + '</td><td>' +
+                                 materials[material].used.toLocaleString() + '</td><td>' +
+                                 materials[material].remaining.toLocaleString() + '</td></tr>';
+                }
+                tableHtml += '</table>';
+                return tableHtml;
             }
-            resultsHtml += '</table>';
+
+            // Known minerals
+            var knownMinerals = ['Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 'Nocxium', 'Zydrine', 'Megacyte', 'Morphite'];
+
+            // Categorize materials
+            var minerals = {};
+            var otherMaterials = {};
+
+            for (var material in response.material_usage) {
+                if (knownMinerals.includes(material)) {
+                    minerals[material] = response.material_usage[material];
+                } else {
+                    otherMaterials[material] = response.material_usage[material];
+                }
+            }
+
+            // Create tables for each category
+            if (Object.keys(minerals).length > 0) {
+                resultsHtml += createMaterialTable(minerals, 'Minerals');
+            }
+            if (Object.keys(otherMaterials).length > 0) {
+                resultsHtml += createMaterialTable(otherMaterials, 'Other Materials');
+            }
 
             // Bottleneck Materials Section
             resultsHtml += '<h4>Bottleneck Materials:</h4>';
