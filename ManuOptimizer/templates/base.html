@@ -85,9 +85,14 @@
  * additional text input for entering a custom material name. A remove button is 
  * also included to allow users to delete the added material input.
  */
-function addBlueprintMaterial() {
-    $('#blueprintMaterials').append(`
+ function addBlueprintMaterial() {
+    var newMaterial = `
         <div class="material-input">
+            <select class="materialSection">
+                <option value="Minerals">Minerals</option>
+                <option value="Items">Items</option>
+                <option value="Components">Components</option>
+            </select>
             <select class="materialName">
                 <option value="Tritanium">Tritanium</option>
                 <option value="Pyerite">Pyerite</option>
@@ -100,11 +105,14 @@ function addBlueprintMaterial() {
             </select>
             <input type="text" class="otherMaterialName" placeholder="Other Material Name" style="display: none;">
             <input type="number" class="materialQuantity" placeholder="Quantity" required>
+            <input type="number" step="0.01" class="materialUnitPrice" placeholder="Unit Price">
             <button type="button" class="removeMaterialButton">Remove</button>
             <hr>
         </div>
-    `);
+    `;
+    $('#blueprintMaterials').append(newMaterial);
 }
+
 
 // Handle material dropdown changes to show/hide "Other Material Name"
 $(document).on('change', '.materialName', function() {
@@ -123,24 +131,40 @@ $(document).on('click', '.removeMaterialButton', function() {
 // Handle form submission for adding a blueprint
 $('#blueprintForm').submit(function(e) {
     e.preventDefault();
-    var materials = {};
+    var materials = {
+        Minerals: {},
+        Items: {},
+        Components: {}
+    };
+    var totalCost = 0;
+
     $('.material-input').each(function() {
         var name = $(this).find('.materialName').val();
         if (name === 'other') {
             name = $(this).find('.otherMaterialName').val();
         }
         var quantity = parseInt($(this).find('.materialQuantity').val());
+        var unitPrice = parseFloat($(this).find('.materialUnitPrice').val()) || 0;
+        var section = $(this).find('.materialSection').val() || 'Minerals'; // Default to Minerals if not specified
+
         if (name && quantity > 0) {
-            materials[name] = (materials[name] || 0) + quantity;
+            materials[section][name] = quantity;
+            totalCost += quantity * unitPrice;
         }
     });
 
-    
+    // Remove empty sections
+    for (var section in materials) {
+        if (Object.keys(materials[section]).length === 0) {
+            delete materials[section];
+        }
+    }
+
     var blueprintData = {
         name: $('#blueprintName').val(),
         materials: materials,
         sell_price: parseFloat($('#blueprintSellPrice').val()),
-        material_cost: parseFloat($('#blueprintMaterialCost').val())
+        material_cost: totalCost
     };
 
     console.log("Submitting blueprint:", blueprintData);  // For debugging
@@ -460,41 +484,101 @@ $('#availableMaterialsForm').submit(function(e) {
       $('#editBlueprintName').val(blueprint.name);
       $('#editBlueprintSellPrice').val(blueprint.sell_price);
       $('#editBlueprintMaterials').empty();
-      
-      for (var material in blueprint.materials) {
-        addEditBlueprintMaterial(material, blueprint.materials[material]);
+
+      // Handle nested materials (Minerals, Items, Components)
+      for (var section in blueprint.materials) {
+        if (blueprint.materials.hasOwnProperty(section)) {
+          var sectionMaterials = blueprint.materials[section];
+          for (var material in sectionMaterials) {
+            if (sectionMaterials.hasOwnProperty(material)) {
+              addEditBlueprintMaterial(section, material, sectionMaterials[material]);
+            }
+          }
+        }
       }
-      
+
       $('#editBlueprintModal').show();
+    },
+    error: function(xhr, status, error) {
+      console.error("Error fetching blueprint:", error);
+      alert('Error fetching blueprint details.');
     }
   });
 }
 
-
-function addEditBlueprintMaterial(name = '', quantity = '') {
-  $('#editBlueprintMaterials').append(`
-    <div class="edit-material-input">
-      <select class="editMaterialName">
-        <option value="Tritanium" ${name === 'Tritanium' ? 'selected' : ''}>Tritanium</option>
-        <option value="Pyerite" ${name === 'Pyerite' ? 'selected' : ''}>Pyerite</option>
-        <option value="Mexallon" ${name === 'Mexallon' ? 'selected' : ''}>Mexallon</option>
-        <option value="Isogen" ${name === 'Isogen' ? 'selected' : ''}>Isogen</option>
-        <option value="Nocxium" ${name === 'Nocxium' ? 'selected' : ''}>Nocxium</option>
-        <option value="Zydrine" ${name === 'Zydrine' ? 'selected' : ''}>Zydrine</option>
-        <option value="Megacyte" ${name === 'Megacyte' ? 'selected' : ''}>Megacyte</option>
-        <option value="other" ${!['Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 'Nocxium', 'Zydrine', 'Megacyte'].includes(name) ? 'selected' : ''}>Other</option>
+function addEditBlueprintMaterial(section = 'Minerals', name = '', quantity = '') {
+  var newMaterial = `
+    <div class="material-input">
+      <select class="editMaterialSection">
+        <option value="Minerals" ${section === 'Minerals' ? 'selected' : ''}>Minerals</option>
+        <option value="Items" ${section === 'Items' ? 'selected' : ''}>Items</option>
+        <option value="Components" ${section === 'Components' ? 'selected' : ''}>Components</option>
       </select>
-      <input type="text" class="editOtherMaterialName" placeholder="Other Material Name" style="display: ${!['Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 'Nocxium', 'Zydrine', 'Megacyte'].includes(name) ? 'inline-block' : 'none'};" value="${name}">
-      <input type="number" class="editMaterialQuantity" placeholder="Quantity" required value="${quantity}">
-      <button type="button" class="removeEditMaterialButton">Remove</button>
+      <input type="text" class="editMaterialName" placeholder="Material Name" value="${name}" required>
+      <input type="number" class="editMaterialQuantity" placeholder="Quantity" value="${quantity}" required>
+      <button type="button" class="removeMaterialButton">Remove</button>
+      <hr>
     </div>
-  `);
+  `;
+  $('#editBlueprintMaterials').append(newMaterial);
 }
+
+$('#editBlueprintForm').submit(function(e) {
+  e.preventDefault();
+
+  var id = $('#editBlueprintId').val();
+  var name = $('#editBlueprintName').val();
+  var sell_price = parseFloat($('#editBlueprintSellPrice').val());
+  var materials = { Minerals: {}, Items: {}, Components: {} };
+
+  // Collect materials
+  $('#editBlueprintMaterials .material-input').each(function() {
+    var section = $(this).find('.editMaterialSection').val();
+    var materialName = $(this).find('.editMaterialName').val();
+    var quantity = parseInt($(this).find('.editMaterialQuantity').val());
+
+    if (materialName && quantity > 0) {
+      materials[section][materialName] = quantity;
+    }
+  });
+
+  // Remove empty sections
+  for (var section in materials) {
+    if (Object.keys(materials[section]).length === 0) {
+      delete materials[section];
+    }
+  }
+
+  var blueprintData = {
+    id: id,
+    name: name,
+    sell_price: sell_price,
+    materials: materials
+  };
+
+  $.ajax({
+    url: '/blueprint/' + id,
+    method: 'PUT',
+    contentType: 'application/json',
+    data: JSON.stringify(blueprintData),
+    success: function(response) {
+      alert('Blueprint updated successfully');
+      closeEditBlueprintModal();
+      loadBlueprints(); // Reload the list of blueprints
+    },
+    error: function(xhr, status, error) {
+      console.error("Error updating blueprint:", error);
+      alert('Error updating blueprint.');
+    }
+  });
+});
 
 function closeEditBlueprintModal() {
   $('#editBlueprintModal').hide();
 }
 
+
+// Toggle the visibility of the 'Other Material Name' input based on the value of the 'Edit Material Name' select
 $(document).on('change', '.editMaterialName', function() {
   if ($(this).val() === 'other') {
     $(this).siblings('.editOtherMaterialName').show();
@@ -503,6 +587,7 @@ $(document).on('change', '.editMaterialName', function() {
   }
 });
 
+// Update the max value for a blueprint
 $(document).on('change', '.blueprint-max', function() {
     var id = $(this).data('id');
     var max = $(this).val();
@@ -745,17 +830,22 @@ $(document).ready(function() {
             }
             resultsHtml += '</table>';
 
-            //Fully Utilized Materials Section
-            resultsHtml += '<h4>Fully Utilized Materials:</h4>';
+            // Bottleneck Materials Section
+            resultsHtml += '<h4>Bottleneck Materials:</h4>';
             resultsHtml += '<ul>';
+            var bottlenecks = [];
             for (var material in response.material_usage) {
-                if (response.material_usage[material].remaining === 0) {
-                    resultsHtml += '<li>' + material + '</li>';
+                var usage = response.material_usage[material];
+                var usagePercentage = (usage.used / (usage.used + usage.remaining)) * 100;
+                if (usagePercentage > 90) {
+                    bottlenecks.push({name: material, percentage: usagePercentage});
                 }
             }
+            bottlenecks.sort((a, b) => b.percentage - a.percentage);
+            bottlenecks.forEach(function(bottleneck) {
+                resultsHtml += '<li>' + bottleneck.name + ' (' + bottleneck.percentage.toFixed(2) + '% used)</li>';
+            });
             resultsHtml += '</ul>';
-
-            $('#results').html(resultsHtml);
 
             $('#results').html(resultsHtml);
         },
