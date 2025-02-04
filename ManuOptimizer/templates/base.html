@@ -342,31 +342,47 @@ function loadMaterials() {
 }
 
 
-// Handles the form submission for adding a blueprint from the game parser
+// Updated parser to handle reaction formulas
 $('#blueprintParseForm').submit(function(e) {
     e.preventDefault();
     var lines = $('#blueprintParseData').val().split('\n');
     var materials = {};
     var totalCost = 0;
+    var currentSection = null;
 
-    for (var i = 2; i < lines.length; i++) {  // Start from 2 to skip header lines
-        var parts = lines[i].split('\t');
-        if (parts.length >= 5) {
-            var name = parts[0];
-            var quantity = parseInt(parts[1]);
-            var unitPrice = parseFloat(parts[3]);
-            materials[name] = quantity;
-            totalCost += quantity * unitPrice;
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (line === '') continue;
+
+        // Detect section headers
+        if (line === 'Minerals' || line === 'Items' || line === 'Components') {
+            currentSection = line;
+            i++; // Skip the next subheader line (e.g., "Item\tRequired...")
+            continue;
+        }
+
+        // Process data lines only if in a valid section
+        if (currentSection) {
+            var parts = line.split('\t');
+            if (parts.length >= 5 && !isNaN(parts[3])) {
+                var name = parts[0];
+                var quantity = parseInt(parts[1]);
+                var unitPrice = parseFloat(parts[3]);
+                if (!isNaN(quantity) && !isNaN(unitPrice)) {
+                    materials[name] = quantity;
+                    totalCost += quantity * unitPrice;
+                }
+            }
         }
     }
 
+    // Submit data
     var blueprintData = {
         name: $('#blueprintParseName').val(),
         materials: materials,
         sell_price: parseFloat($('#blueprintParseSellPrice').val()),
         material_cost: totalCost
     };
-
     $.ajax({
         url: '/blueprint',
         method: 'POST',
