@@ -2,12 +2,17 @@
 {% block content %}
 <h1>EVE Online Manufacturing Optimizer</h1>
 <h2>Add Blueprint</h2>
+<h2>Add Blueprint</h2>
 <form id="blueprintForm">
     <input type="text" id="blueprintName" placeholder="Blueprint Name" required>
     <input type="number" id="blueprintSellPrice" placeholder="Sell Price" required>
-    <input type="number" id="blueprintMaterialCost" placeholder="Material Cost" required>
     <div id="blueprintMaterials">
         <div class="material-input">
+            <select class="materialSection">
+                <option value="Minerals">Minerals</option>
+                <option value="Items">Items</option>
+                <option value="Components">Components</option>
+            </select>
             <select class="materialName">
                 <option value="Tritanium">Tritanium</option>
                 <option value="Pyerite">Pyerite</option>
@@ -20,6 +25,7 @@
             </select>
             <input type="text" class="otherMaterialName" placeholder="Other Material Name" style="display: none;">
             <input type="number" class="materialQuantity" placeholder="Quantity" required>
+            <input type="number" step="0.01" class="materialUnitPrice" placeholder="Unit Price">
             <button type="button" class="removeMaterialButton">Remove</button>
             <hr>
         </div>
@@ -27,6 +33,7 @@
     <button type="button" onclick="addBlueprintMaterial()">Add Another Material</button>
     <button type="submit">Add Blueprint</button>
 </form>
+
 
 <h2>Add Blueprint from Game Data</h2>
 <form id="blueprintParseForm">
@@ -96,18 +103,21 @@
 
 
 <div id="editBlueprintModal" style="display:none; position:fixed; z-index:1; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
-    <div style="background-color:#fefefe; margin:15% auto; padding:20px; border:1px solid #888; width:80%;">
-      <h2>Edit Blueprint</h2>
-      <form id="editBlueprintForm">
-        <input type="hidden" id="editBlueprintId">
-        <input type="text" id="editBlueprintName" placeholder="Blueprint Name" required>
-        <input type="number" id="editBlueprintSellPrice" placeholder="Sell Price" required>
-        <div id="editBlueprintMaterials"></div>
-        <button type="button" onclick="addEditBlueprintMaterial()">Add Material</button>
-        <button type="submit">Save Changes</button>
-        <button type="button" onclick="closeEditBlueprintModal()">Cancel</button>
-      </form>
-    </div>
+  <div style="background-color:#fefefe; margin:15% auto; padding:20px; border:1px solid #888; width:80%;">
+    <h2>Edit Blueprint</h2>
+    <form id="editBlueprintForm">
+      <input type="hidden" id="editBlueprintId">
+      <input type="text" id="editBlueprintName" placeholder="Blueprint Name" required>
+      <input type="number" id="editBlueprintSellPrice" placeholder="Sell Price" required>
+      
+      <div id="editBlueprintMaterials"></div>
+
+      <button type="button" onclick="addEditBlueprintMaterial()">Add Material</button>
+      <button type="submit">Save Changes</button>
+      <button type="button" onclick="closeEditBlueprintModal()">Cancel</button>
+    </form>
   </div>
+</div>
+
   
 {% endblock %}
