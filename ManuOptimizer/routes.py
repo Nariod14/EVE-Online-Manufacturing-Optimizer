@@ -266,6 +266,23 @@ def register_routes(app):
             blueprints = Blueprint.query.all()
             materials = {m.name: m.quantity for m in Material.query.all()}
 
+            # Collect all unique materials from blueprints
+            all_materials = set()
+            for b in blueprints:
+                if isinstance(b.materials, dict):
+                    for section in b.materials.values():
+                        all_materials.update(section.keys())
+                else:
+                    all_materials.update(b.materials.keys())
+
+            # Add missing materials to the database with quantity 0
+            for material in all_materials:
+                if material not in materials:
+                    new_material = Material(name=material, quantity=0)
+                    db.session.add(new_material)
+                    materials[material] = 0
+            db.session.commit()
+
             prob = LpProblem("Modules Optimization", LpMaximize)
             x = {b.name: LpVariable(f"x_{b.name}", lowBound=0, cat='Integer') for b in blueprints}
 
@@ -286,18 +303,6 @@ def register_routes(app):
             for material_name, quantity in materials.items():
                 prob += lpSum(get_material_quantity(b, material_name) * x[b.name] for b in blueprints) <= quantity
                 logger.info(f"Added material constraint for {material_name} with quantity {quantity}")
-
-            # Prevent production of blueprints with unavailable materials
-            for b in blueprints:
-                all_mats = b.materials if isinstance(b.materials, dict) else {b.materials}
-                for section in all_mats.values() if isinstance(all_mats, dict) else [all_mats]:
-                    for mat in section:
-                        if mat not in materials:
-                            prob += x[b.name] == 0
-                            logger.info(f"Set {b.name} production to 0 due to missing material: {mat}")
-                            break
-                    if x[b.name].lowBound == 0:
-                        break
 
             # Max constraints for blueprints
             for b in blueprints:

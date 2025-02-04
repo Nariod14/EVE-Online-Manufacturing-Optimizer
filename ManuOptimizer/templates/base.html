@@ -610,44 +610,6 @@ $(document).on('click', '.removeEditMaterialButton', function() {
   $(this).closest('.edit-material-input').remove();
 });
 
-$('#editBlueprintForm').submit(function(e) {
-  e.preventDefault();
-  var materials = {};
-  $('.edit-material-input').each(function() {
-    var name = $(this).find('.editMaterialName').val();
-    if (name === 'other') {
-      name = $(this).find('.editOtherMaterialName').val();
-    }
-    var quantity = parseInt($(this).find('.editMaterialQuantity').val());
-    if (name && quantity > 0) {
-      materials[name] = (materials[name] || 0) + quantity;
-    }
-  });
-  
-  var blueprintData = {
-    name: $('#editBlueprintName').val(),
-    materials: materials,
-    sell_price: parseFloat($('#editBlueprintSellPrice').val())
-  };
-
-  $.ajax({
-    url: '/blueprint/' + $('#editBlueprintId').val(),
-    method: 'PUT',
-    contentType: 'application/json',
-    data: JSON.stringify(blueprintData),
-    success: function(response) {
-      alert('Blueprint updated successfully');
-      loadBlueprints();
-      closeEditBlueprintModal();
-    },
-    error: function(xhr, status, error) {
-      console.error("Error updating blueprint:", error);
-      alert('Error updating blueprint: ' + error);
-    }
-  });
-});
-
-
 // Function to delete a blueprint
 
 /**
