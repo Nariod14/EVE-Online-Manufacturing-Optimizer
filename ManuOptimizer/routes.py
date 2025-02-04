@@ -29,29 +29,48 @@ def register_routes(app):
         try:
             data = request.json
             name = data['name']
-            materials = data['materials']
+            raw_materials = data['materials']
             sell_price = data['sell_price']
             material_cost = data['material_cost']
 
+            # Convert prefixed keys to sectioned structure
+            normalized_materials = {}
+            for key, quantity in raw_materials.items():
+                if '_' in key:
+                    section, material_name = key.split('_', 1)
+                    if section not in normalized_materials:
+                        normalized_materials[section] = {}
+                    normalized_materials[section][material_name] = quantity
+                else:
+                    # Handle legacy format
+                    normalized_materials[key] = quantity
+
             existing_blueprint = Blueprint.query.filter_by(name=name).first()
             if existing_blueprint:
-                existing_blueprint.materials = materials
+                existing_blueprint.materials = normalized_materials
                 existing_blueprint.sell_price = sell_price
                 existing_blueprint.material_cost = material_cost
                 db.session.commit()
+                logger.info("Blueprint: {name} was updated successfully")
                 return jsonify({"message": "Blueprint updated successfully"}), 200
 
-            new_blueprint = Blueprint(name=name, materials=materials, sell_price=sell_price, material_cost=material_cost)
+            new_blueprint = Blueprint(
+                name=name,
+                materials=normalized_materials,
+                sell_price=sell_price,
+                material_cost=material_cost
+            )
             db.session.add(new_blueprint)
             db.session.commit()
-            logger.info("Blueprint added successfully")
+            logger.info("Blueprint: {name} was added successfully")
             return jsonify({"message": "Blueprint added successfully"}), 201
 
         except Exception as e:
             db.session.rollback()
             logger.error(f"Error adding blueprint! See the traceback for more info:")
             logger.error(traceback.format_exc())
-            return jsonify({"ERROR": "An error occurred while adding the blueprint"}), 500
+            return jsonify({"error": str(e)}), 500
+
 
     @app.route('/blueprint/<int:id>', methods=['GET'])
     def get_blueprint(id):
@@ -245,56 +264,60 @@ def register_routes(app):
     def optimize():
         try:
             blueprints = Blueprint.query.all()
-            materials = Material.query.all()
-            
-            logger.debug(f"Blueprints: {[{'name': b.name, 'sell_price': b.sell_price, 'material_cost': b.material_cost} for b in blueprints]}")
-            logger.debug(f"Materials: {[{'name': m.name, 'quantity': m.quantity} for m in materials]}")
-    
-            if not blueprints:
-                logger.error("No blueprints found in the database.")
-                return jsonify({"error": "No blueprints available for optimization."}), 400
-    
-            if not materials:
-                logger.error("No materials found in the database.")
-                return jsonify({"error": "No materials available for optimization."}), 400
-        
-    
+            materials = {m.name: m.quantity for m in Material.query.all()}
+
             prob = LpProblem("Modules Optimization", LpMaximize)
-    
-            # Define decision variables
             x = {b.name: LpVariable(f"x_{b.name}", lowBound=0, cat='Integer') for b in blueprints}
-    
-            # Set objective function
-            try:
-                prob += lpSum((b.sell_price - (b.material_cost or 0)) * x[b.name] for b in blueprints)
-            except Exception as e:
-                logger.error("Error setting objective function: %s", str(e))
-                return jsonify({"error": "Invalid blueprint data (e.g., missing sell_price or material_cost)."}), 400
-    
-            # Add material constraints
-            for m in materials:
-                prob += lpSum(b.materials.get(m.name, 0) * x[b.name] for b in blueprints) <= m.quantity
-    
-            # Add max constraints for blueprints
+
+            # Objective function
+            prob += lpSum((b.sell_price - b.material_cost) * x[b.name] for b in blueprints)
+
+            # Helper function to get material quantity from blueprint
+            def get_material_quantity(blueprint, material_name):
+                if isinstance(blueprint.materials, dict):
+                    return (
+                        blueprint.materials.get('Minerals', {}).get(material_name, 0) +
+                        blueprint.materials.get('Items', {}).get(material_name, 0) +
+                        blueprint.materials.get('Components', {}).get(material_name, 0)
+                    )
+                return blueprint.materials.get(material_name, 0)
+
+            # Material constraints
+            for material_name, quantity in materials.items():
+                prob += lpSum(get_material_quantity(b, material_name) * x[b.name] for b in blueprints) <= quantity
+                logger.info(f"Added material constraint for {material_name} with quantity {quantity}")
+
+            # Prevent production of blueprints with unavailable materials
+            for b in blueprints:
+                all_mats = b.materials if isinstance(b.materials, dict) else {b.materials}
+                for section in all_mats.values() if isinstance(all_mats, dict) else [all_mats]:
+                    for mat in section:
+                        if mat not in materials:
+                            prob += x[b.name] == 0
+                            logger.info(f"Set {b.name} production to 0 due to missing material: {mat}")
+                            break
+                    if x[b.name].lowBound == 0:
+                        break
+
+            # Max constraints for blueprints
             for b in blueprints:
                 if b.max is not None:
                     prob += x[b.name] <= b.max
-    
-            
+
             prob.solve(PULP_CBC_CMD(msg=False))
-    
+
             if LpStatus[prob.status] == 'Optimal':
                 results = {
                     "status": "Optimal",
                     "total_profit": sum(b.sell_price * value(x[b.name]) for b in blueprints),
                     "what_to_produce": {b.name: value(x[b.name]) for b in blueprints},
                     "material_usage": {
-                        m.name: {
-                            "used": sum(b.materials.get(m.name, 0) * value(x[b.name]) for b in blueprints),
-                            "remaining": m.quantity - sum(b.materials.get(m.name, 0) * value(x[b.name]) for b in blueprints)
-                        } for m in materials
+                        m_name: {
+                            "used": sum(get_material_quantity(b, m_name) * int(value(x[b.name])) for b in blueprints),
+                            "remaining": m_qty - sum(get_material_quantity(b, m_name) * int(value(x[b.name])) for b in blueprints)
+                        } for m_name, m_qty in materials.items()
                     },
-                    "true_profit": sum((b.sell_price - (b.material_cost or 0)) * value(x[b.name]) for b in blueprints)
+                    "true_profit": sum((b.sell_price - b.material_cost) * value(x[b.name]) for b in blueprints)
                 }
                 logger.info("Optimization completed successfully")
                 logger.info("Results: %s", results)
@@ -305,7 +328,7 @@ def register_routes(app):
             else:
                 logger.error("No optimal solution found.")
                 return jsonify({"status": "No optimal solution found"}), 400
-    
+
         except Exception as e:
             logger.error("An error occurred during optimization: %s", str(e))
             logger.error(traceback.format_exc())
