@@ -342,7 +342,7 @@ function loadMaterials() {
 }
 
 
-// Updated parser to handle reaction formulas
+// Blueprint Parser from game data
 $('#blueprintParseForm').submit(function(e) {
     e.preventDefault();
     var lines = $('#blueprintParseData').val().split('\n');
@@ -357,32 +357,33 @@ $('#blueprintParseForm').submit(function(e) {
         // Detect section headers
         if (line === 'Minerals' || line === 'Items' || line === 'Components') {
             currentSection = line;
-            i++; // Skip the next subheader line (e.g., "Item\tRequired...")
+            i++; // Skip subheader
             continue;
         }
 
-        // Process data lines only if in a valid section
         if (currentSection) {
             var parts = line.split('\t');
             if (parts.length >= 5 && !isNaN(parts[3])) {
                 var name = parts[0];
                 var quantity = parseInt(parts[1]);
                 var unitPrice = parseFloat(parts[3]);
+                
                 if (!isNaN(quantity) && !isNaN(unitPrice)) {
-                    materials[name] = quantity;
+                    // Store with section prefix to avoid namespace collisions
+                    materials[`${currentSection}_${name}`] = quantity;
                     totalCost += quantity * unitPrice;
                 }
             }
         }
     }
 
-    // Submit data
     var blueprintData = {
         name: $('#blueprintParseName').val(),
-        materials: materials,
+        materials: materials,  // Now flat dict with prefixed keys
         sell_price: parseFloat($('#blueprintParseSellPrice').val()),
         material_cost: totalCost
     };
+
     $.ajax({
         url: '/blueprint',
         method: 'POST',
@@ -744,15 +745,33 @@ $(document).ready(function() {
             }
             resultsHtml += '</table>';
 
+            //Fully Utilized Materials Section
+            resultsHtml += '<h4>Fully Utilized Materials:</h4>';
+            resultsHtml += '<ul>';
+            for (var material in response.material_usage) {
+                if (response.material_usage[material].remaining === 0) {
+                    resultsHtml += '<li>' + material + '</li>';
+                }
+            }
+            resultsHtml += '</ul>';
+
+            $('#results').html(resultsHtml);
+
             $('#results').html(resultsHtml);
         },
         error: function(xhr, status, error) {
             console.error("Error optimizing:", xhr.responseText);
-            alert('Error during optimization: ' + xhr.responseText);
+            var errorMessage = "Error during optimization";
+            try {
+                var errorObj = JSON.parse(xhr.responseText);
+                errorMessage += ": " + (errorObj.error || "Unknown error");
+            } catch(e) {
+                errorMessage += ": " + xhr.responseText;
+            }
+            alert(errorMessage);
         }
     });
 }
-
 
 
 /**
