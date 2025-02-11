@@ -369,43 +369,13 @@ function loadMaterials() {
 // Blueprint Parser from game data
 $('#blueprintParseForm').submit(function(e) {
     e.preventDefault();
-    var lines = $('#blueprintParseData').val().split('\n');
-    var materials = {};
-    var totalCost = 0;
-    var currentSection = null;
 
-    for (var i = 0; i < lines.length; i++) {
-        var line = lines[i].trim();
-        if (line === '') continue;
-
-        // Detect section headers
-        if (line === 'Minerals' || line === 'Items' || line === 'Components') {
-            currentSection = line;
-            i++; // Skip subheader
-            continue;
-        }
-
-        if (currentSection) {
-            var parts = line.split('\t');
-            if (parts.length >= 5 && !isNaN(parts[3])) {
-                var name = parts[0];
-                var quantity = parseInt(parts[1]);
-                var unitPrice = parseFloat(parts[3]);
-                
-                if (!isNaN(quantity) && !isNaN(unitPrice)) {
-                    // Store with section prefix to avoid namespace collisions
-                    materials[`${currentSection}_${name}`] = quantity;
-                    totalCost += quantity * unitPrice;
-                }
-            }
-        }
-    }
-
+    var rawMaterialText = $('#blueprintParseData').val();  // Get the raw text
     var blueprintData = {
         name: $('#blueprintParseName').val(),
-        materials: materials,  // Now flat dict with prefixed keys
+        materials: rawMaterialText,  // Send the raw text
         sell_price: parseFloat($('#blueprintParseSellPrice').val()),
-        material_cost: totalCost
+        material_cost: 0 //Let the server calculate
     };
 
     $.ajax({
