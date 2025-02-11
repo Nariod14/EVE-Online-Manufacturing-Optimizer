@@ -141,3 +141,11 @@ ManuOptimizer/dist/run/_internal/templates/index.html
 ManuOptimizer/dist/run/_internal/templates/base.html
 ManuOptimizer/instances/eve_optimizer.db
 ManuOptimizer/instances/eve_optimizer.db
+ManuOptimizer/dist/run/_internal/gurobipy/_batch.cp313-win_amd64.pyd
+ManuOptimizer/dist/run/_internal/gurobipy/_core.cp313-win_amd64.pyd
+ManuOptimizer/dist/run/_internal/gurobipy/_exception.cp313-win_amd64.pyd
+ManuOptimizer/dist/run/_internal/gurobipy/_helpers.cp313-win_amd64.pyd
+ManuOptimizer/dist/run/_internal/gurobipy/_matrixapi.cp313-win_amd64.pyd
+ManuOptimizer/dist/run/_internal/gurobipy/_model.cp313-win_amd64.pyd
+ManuOptimizer/dist/run/_internal/gurobipy/gurobi120.dll
+ManuOptimizer/dist/run/_internal/pulp/solverdir/cbc/win/64/cbc.exe

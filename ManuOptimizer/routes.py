@@ -24,45 +24,67 @@ def register_routes(app):
     @app.route('/')
     def index():
         return render_template('index.html')
+    import re
+
     @app.route('/blueprint', methods=['POST'])
     def add_blueprint():
         try:
             data = request.json
             name = data['name']
-            raw_materials = data['materials']
+            raw_materials_text = data['materials']  # This is now the RAW text.
             sell_price = data['sell_price']
-            material_cost = data['material_cost']
 
-            # Convert prefixed keys to sectioned structure
             normalized_materials = {}
-            for key, quantity in raw_materials.items():
-                if '_' in key:
-                    section, material_name = key.split('_', 1)
-                    if section not in normalized_materials:
-                        normalized_materials[section] = {}
-                    normalized_materials[section][material_name] = quantity
-                else:
-                    # Handle legacy format
-                    normalized_materials[key] = quantity
+            current_category = None
+            total_material_cost = 0  # Initialize material cost
+
+            lines = raw_materials_text.splitlines()  # Split into lines
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue  # Skip empty lines
+
+                # Category Detection (Regex)
+                if re.match(r'^[A-Za-z\s]+$', line) and not any(
+                        keyword in line for keyword in ["Item", "Required", "Available", "Est.", "Unit", "typeID"]):
+                    current_category = line  # Set new category
+                    normalized_materials[current_category] = {}  # Initialize if necessary (safety check)
+                    continue
+
+                if current_category:
+                    parts = line.split('\t')
+                    if len(parts) >= 5:
+                        try:
+                            material_name = parts[0].strip()
+                            quantity = int(parts[1])
+                            unit_price = float(parts[3])  # Extract unit price
+                            if current_category not in normalized_materials:
+                                normalized_materials[current_category] = {}  # Safety check.
+                            normalized_materials[current_category][material_name] = quantity
+                            total_material_cost += quantity * unit_price  # Accumulate cost
+                        except (ValueError, IndexError):
+                            # Handle cases where parsing fails for a line. Log it.
+                            logger.warning(f"Skipping unparseable line: {line}")
+                            continue
 
             existing_blueprint = Blueprint.query.filter_by(name=name).first()
             if existing_blueprint:
                 existing_blueprint.materials = normalized_materials
                 existing_blueprint.sell_price = sell_price
-                existing_blueprint.material_cost = material_cost
+                existing_blueprint.material_cost = total_material_cost  # SET the calculated cost
                 db.session.commit()
-                logger.info("Blueprint: {name} was updated successfully")
+                logger.info(f"Blueprint: {name} was updated successfully")
                 return jsonify({"message": "Blueprint updated successfully"}), 200
 
             new_blueprint = Blueprint(
                 name=name,
                 materials=normalized_materials,
                 sell_price=sell_price,
-                material_cost=material_cost
+                material_cost=total_material_cost  # SET the calculated cost
             )
             db.session.add(new_blueprint)
             db.session.commit()
-            logger.info("Blueprint: {name} was added successfully")
+            logger.info(f"Blueprint: {name} was added successfully")
             return jsonify({"message": "Blueprint added successfully"}), 201
 
         except Exception as e:
@@ -70,6 +92,7 @@ def register_routes(app):
             logger.error(f"Error adding blueprint! See the traceback for more info:")
             logger.error(traceback.format_exc())
             return jsonify({"error": str(e)}), 500
+
 
 
     @app.route('/blueprint/<int:id>', methods=['GET'])
@@ -134,30 +157,28 @@ def register_routes(app):
             data = request.json
             materials = data.get('materials', {})
             update_type = data.get('updateType', 'replace')
-
+    
             logger.info(f"Received materials data: {materials}")
             logger.info(f"Update type: {update_type}")
-
+    
             if update_type == 'replace':
                 # Clear all existing materials before adding new ones
                 Material.query.delete()
                 db.session.commit()
                 logger.info("All existing materials have been deleted.")
-
-            for name, quantity in materials.items():
-                material = Material.query.filter_by(name=name).first()
-                if material:
-                    if update_type == 'add':
-                        logger.info(f"Adding to existing material: {name}, current quantity: {material.quantity}, adding: {quantity}")
-                        material.quantity += quantity
-                    else:
-                        logger.info(f"Updating material: {name} with quantity: {quantity}")
+    
+            elif update_type == 'add':
+                # Replace existing materials with the same name and add new ones
+                for name, quantity in materials.items():
+                    material = Material.query.filter_by(name=name).first()
+                    if material:
+                        logger.info(f"Replacing material: {name} with quantity: {quantity}")
                         material.quantity = quantity
-                else:
-                    logger.info(f"Adding new material: {name} with quantity: {quantity}")
-                    new_material = Material(name=name, quantity=quantity)
-                    db.session.add(new_material)
-
+                    else:
+                        logger.info(f"Adding new material: {name} with quantity: {quantity}")
+                        new_material = Material(name=name, quantity=quantity)
+                        db.session.add(new_material)
+    
             db.session.commit()
             logger.info("Materials updated successfully.")
             return jsonify({"message": "Materials updated successfully"}), 200
@@ -166,7 +187,6 @@ def register_routes(app):
             logger.error(f"Error updating materials: {str(e)}")
             logger.error(traceback.format_exc())
             return jsonify({"error": "An error occurred while updating materials"}), 500
-
 
 
     @app.route('/material', methods=['GET'])
@@ -265,6 +285,9 @@ def register_routes(app):
         try:
             blueprints = Blueprint.query.all()
             materials = {m.name: m.quantity for m in Material.query.all()}
+            
+            if not blueprints or not materials:
+                return jsonify({"status": "No optimal solution found"}), 400
 
             # Collect all unique materials from blueprints
             all_materials = set()
@@ -316,6 +339,8 @@ def register_routes(app):
                     prob += x[b.name] <= b.max
 
             prob.solve(PULP_CBC_CMD(msg=False))
+            
+            logger.info("Optimizaiton Status: %s", LpStatus[prob.status])
 
             if LpStatus[prob.status] == 'Optimal':
                 results = {
@@ -326,7 +351,7 @@ def register_routes(app):
                         m_name: {
                             "used": sum(get_material_quantity(b, m_name) * int(value(x[b.name])) for b in blueprints),
                             "remaining": m_qty - sum(get_material_quantity(b, m_name) * int(value(x[b.name])) for b in blueprints),
-                            "category": material_categories.get(m_name, "Other(Likely Unused)")
+                            "category": material_categories.get(m_name, "Other(Likely Unused or other Built Components)")
                         } for m_name, m_qty in materials.items()
                     },
                     "true_profit": sum((b.sell_price - b.material_cost) * value(x[b.name]) for b in blueprints)
