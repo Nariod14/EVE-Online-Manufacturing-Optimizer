@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>EVE Online Manufacturing Optimizer</h1>
+
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/minaplanna.css') }}">
+
 <h2>Add Blueprint (Manually)</h2>
 <form id="blueprintForm">
     <input type="text" id="blueprintName" placeholder="Blueprint Name" required>
@@ -38,6 +42,7 @@
 <form id="blueprintParseForm">
     <input type="text" id="blueprintParseName" placeholder="Blueprint Name" required>
     <input type="number" id="blueprintParseSellPrice" placeholder="Sell Price" required>
+    <input type="number" id="blueprintParseMakeCost" placeholder="Make Cost" required>
     <textarea id="blueprintParseData" placeholder="Paste blueprint data here" required></textarea>
     <button type="submit">Add Blueprint</button>
 </form>

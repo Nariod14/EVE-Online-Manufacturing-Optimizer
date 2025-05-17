@@ -5,9 +5,19 @@ from flask import jsonify, render_template, request
 import logging
 import traceback
 
+
 import pulp
 from models import db, Blueprint, Material
 from pulp import LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus, PULP_CBC_CMD
+
+# Add the ManuOptimizer package to the Python path
+if getattr(sys, 'frozen', False):
+    # Running from EXE
+    sys.path.append(os.path.join(sys._MEIPASS, '..'))
+else:
+    # Running from script
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -19,8 +29,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 def register_routes(app):
+    
+    # Register the mining optimizer flask blueprint
+    
+    # from .MinaOptimizer.routes import mining_planner
+    # app.register_blueprint(mining_planner)
+    
     @app.route('/')
     def index():
         return render_template('index.html')
@@ -33,6 +48,7 @@ def register_routes(app):
             name = data['name']
             raw_materials_text = data['materials']  # This is now the RAW text.
             sell_price = data['sell_price']
+            material_cost = data['material_cost']
 
             normalized_materials = {}
             current_category = None
@@ -51,7 +67,7 @@ def register_routes(app):
                     normalized_materials[current_category] = {}  # Initialize if necessary (safety check)
                     continue
 
-                if current_category:
+                if current_category and material_cost != 0:
                     parts = line.split('\t')
                     if len(parts) >= 5:
                         try:
@@ -80,7 +96,7 @@ def register_routes(app):
                 name=name,
                 materials=normalized_materials,
                 sell_price=sell_price,
-                material_cost=total_material_cost  # SET the calculated cost
+                material_cost= material_cost if material_cost != 0 else total_material_cost
             )
             db.session.add(new_blueprint)
             db.session.commit()
@@ -103,7 +119,8 @@ def register_routes(app):
                 'id': blueprint.id,
                 'name': blueprint.name,
                 'materials': blueprint.materials,
-                'sell_price': blueprint.sell_price    
+                'sell_price': blueprint.sell_price,
+                'material_cost': blueprint.material_cost   
             }), 200
         except Exception as e:
             logger.error(f"Error getting blueprint! See the traceback for more info:")
@@ -119,7 +136,7 @@ def register_routes(app):
             blueprints = Blueprint.query.all()
             logger.info("Blueprints retrieved successfully")
             return jsonify([
-                {"id": b.id, "name": b.name, "materials": b.materials, "sell_price": b.sell_price}
+                {"id": b.id, "name": b.name, "materials": b.materials, "sell_price": b.sell_price, "material_cost": b.material_cost}
                 for b in blueprints
             ]), 200
         except Exception as e:
@@ -130,7 +147,7 @@ def register_routes(app):
     @app.route('/material', methods=['POST'])
     def add_material():
         try:
-            data = request.json
+            data = request.form
             logger.info(f"Received material data: {data}")
             
             material = Material.query.filter_by(name=data['name']).first()
@@ -166,6 +183,12 @@ def register_routes(app):
                 Material.query.delete()
                 db.session.commit()
                 logger.info("All existing materials have been deleted.")
+                # Add new materials
+                for name, quantity in materials.items():
+                    new_material = Material(name=name, quantity=quantity)
+                    db.session.add(new_material)
+                db.session.commit()
+                logger.info("Materials updated successfully.")
     
             elif update_type == 'add':
                 # Replace existing materials with the same name and add new ones
