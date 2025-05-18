@@ -292,6 +292,7 @@ def register_routes(app):
             blueprint.name = data.get('name', blueprint.name)
             blueprint.materials = data.get('materials', blueprint.materials)
             blueprint.sell_price = data.get('sell_price', blueprint.sell_price)
+            blueprint.material_cost = data.get('material_cost', blueprint.material_cost)
             blueprint.max = data.get('max', blueprint.max)
             db.session.commit()
             logger.info("Blueprint updated successfully")
