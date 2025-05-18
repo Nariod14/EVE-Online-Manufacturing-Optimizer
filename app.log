@@ -1,11 +1,13 @@
-2025-05-18 04:32:48,567 - INFO - Database tables created successfully
-2025-05-18 04:32:48,570 - INFO - Starting EVE Online Manufacturing Optimizer
-2025-05-18 04:32:48,571 - INFO - Server is running at: http://127.0.0.1:5000
-2025-05-18 04:32:48,571 - INFO - Opening web browser...
-2025-05-18 04:32:48,654 - INFO - Instructions:
-2025-05-18 04:32:48,656 - INFO - 1. Use the web interface to manage blueprints and materials
-2025-05-18 04:32:48,657 - INFO - 2. Click 'Optimize Production' to calculate the most profitable manufacturing plan
-2025-05-18 04:32:48,658 - INFO - 3. Press Ctrl+C in this terminal to stop the server
-2025-05-18 04:32:48,665 - INFO - Serving on http://127.0.0.1:5000
-2025-05-18 04:32:49,182 - INFO - Blueprints retrieved successfully
-2025-05-18 04:32:49,183 - INFO - Materials retrieved successfully
+2025-05-18 09:15:31,517 - INFO - Database tables created successfully
+2025-05-18 09:15:31,522 - INFO - Starting EVE Online Manufacturing Optimizer
+2025-05-18 09:15:31,522 - INFO - Server is running at: http://127.0.0.1:5000
+2025-05-18 09:15:31,522 - INFO - Opening web browser...
+2025-05-18 09:15:31,594 - INFO - Instructions:
+2025-05-18 09:15:31,595 - INFO - 1. Use the web interface to manage blueprints and materials
+2025-05-18 09:15:31,595 - INFO - 2. Click 'Optimize Production' to calculate the most profitable manufacturing plan
+2025-05-18 09:15:31,595 - INFO - 3. Press Ctrl+C in this terminal to stop the server
+2025-05-18 09:15:31,602 - INFO - Serving on http://127.0.0.1:5000
+2025-05-18 09:15:31,991 - INFO - Blueprints retrieved successfully
+2025-05-18 09:15:31,993 - INFO - Materials retrieved successfully
+2025-05-18 09:16:33,366 - INFO - Blueprint updated successfully
+2025-05-18 09:16:37,237 - INFO - Blueprints retrieved successfully
