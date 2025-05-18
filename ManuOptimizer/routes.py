@@ -67,7 +67,7 @@ def register_routes(app):
                     normalized_materials[current_category] = {}  # Initialize if necessary (safety check)
                     continue
     
-                if current_category:
+                if current_category and not re.match(r'^\s*[A-Za-z\s]+$', line):
                     parts = line.split('\t', 1)
                     if len(parts) >= 2:
                         try:
@@ -84,8 +84,10 @@ def register_routes(app):
                             logger.warning(f"Skipping unparseable line: {line}")
                             continue
     
-            # ... (rest of the code remains the same)
-
+                # Skip lines that don't match the category detection regex when current_category is not None
+                if current_category and re.match(r'^\s*[A-Za-z\s]+$', line):
+                    continue
+    
             existing_blueprint = Blueprint.query.filter_by(name=name).first()
             if existing_blueprint:
                 existing_blueprint.materials = normalized_materials
@@ -94,7 +96,7 @@ def register_routes(app):
                 db.session.commit()
                 logger.info(f"Blueprint: {name} was updated successfully")
                 return jsonify({"message": "Blueprint updated successfully"}), 200
-
+    
             new_blueprint = Blueprint(
                 name=name,
                 materials=normalized_materials,
@@ -105,14 +107,12 @@ def register_routes(app):
             db.session.commit()
             logger.info(f"Blueprint: {name} was added successfully")
             return jsonify({"message": "Blueprint added successfully"}), 201
-
+    
         except Exception as e:
             db.session.rollback()
             logger.error(f"Error adding blueprint! See the traceback for more info:")
             logger.error(traceback.format_exc())
             return jsonify({"error": str(e)}), 500
-
-
 
     @app.route('/blueprint/<int:id>', methods=['GET'])
     def get_blueprint(id):
