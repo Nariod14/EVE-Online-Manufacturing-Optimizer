@@ -1,0 +1,280 @@
+/* Reset and base styles */
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: #141a22;
+    color: #e3eaf7;
+    min-height: 100vh;
+}
+
+h1, h2 {
+    color: #5eb6ff;
+    margin-top: 32px;
+    margin-bottom: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 2.3em;
+    margin-bottom: 24px;
+}
+
+a {
+    color: #5eb6ff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Section styling */
+.section {
+    background: #1b2230;
+    padding: 24px;
+    border-radius: 12px;
+    margin: 32px 0;
+    box-shadow: 0 2px 10px 0 rgba(30,60,120,0.08);
+}
+
+/* Forms */
+form {
+    background: #182136;
+    padding: 18px 24px;
+    border-radius: 10px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 6px 0 rgba(30,60,120,0.10);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 22px;
+    align-items: flex-end;
+}
+
+form input[type="text"],
+form input[type="number"],
+form textarea,
+form select {
+    background: #232f44;
+    color: #e3eaf7;
+    border: 1.5px solid #365b8c;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 1em;
+    margin-bottom: 8px;
+    transition: border 0.2s;
+    outline: none;
+    min-width: 120px;
+}
+
+form input[type="text"]:focus,
+form input[type="number"]:focus,
+form textarea:focus,
+form select:focus {
+    border: 1.5px solid #5eb6ff;
+}
+
+form textarea {
+    min-width: 240px;
+    min-height: 60px;
+    resize: vertical;
+}
+
+form button,
+button,
+.center-button {
+    background: linear-gradient(90deg, #5eb6ff 0%, #3a7bd5 100%);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 18px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 4px 0;
+    box-shadow: 0 1px 4px 0 rgba(30,60,120,0.12);
+    transition: background 0.18s, transform 0.12s;
+}
+
+form button:hover,
+button:hover,
+.center-button:hover {
+    background: linear-gradient(90deg, #79c7ff 0%, #5eb6ff 100%);
+    transform: translateY(-2px) scale(1.03);
+}
+
+.center-button {
+    display: block;
+    margin: 32px auto 18px auto;
+    min-width: 200px;
+}
+
+/* Material input row */
+.material-input {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    align-items: center;
+    margin-bottom: 8px;
+    background: #1e2738;
+    padding: 8px 10px;
+    border-radius: 7px;
+}
+
+.material-input hr {
+    width: 100%;
+    border: none;
+    border-top: 1px solid #2e3c43;
+    margin: 8px 0 0 0;
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 22px;
+    background: #182136;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px 0 rgba(30,60,120,0.10);
+}
+
+th, td {
+    border: 1px solid #2e3c43;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 1em;
+}
+
+th {
+    background: linear-gradient(90deg, #274b6d 0%, #365b8c 100%);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+tr:nth-child(even) {
+    background: #202b3a;
+}
+
+tr:nth-child(odd) {
+    background: #182136;
+}
+
+tr:hover {
+    background: #22304a;
+    transition: background 0.15s;
+}
+
+/* Blueprint action buttons stacked vertically */
+.blueprint-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    align-items: stretch;
+}
+
+.blueprint-actions button {
+    width: 100%;
+    min-width: 80px;
+    padding: 6px 0;
+    font-size: 0.98em;
+    border-radius: 6px;
+    margin: 0;
+}
+
+/* Inputs in table cells */
+input.blueprint-max {
+    background: #232f44;
+    color: #e3eaf7;
+    border: 1.2px solid #365b8c;
+    border-radius: 5px;
+    padding: 4px 0;
+    text-align: center;
+    font-size: 1em;
+    width: 62px;
+    transition: border 0.2s;
+}
+
+input.blueprint-max:focus {
+    border: 1.2px solid #5eb6ff;
+}
+
+/* List styling for materials */
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+ul > li > strong {
+    color: #5eb6ff;
+}
+
+/* Modal Styling */
+#editBlueprintModal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    overflow: auto;
+    background-color: rgba(20, 30, 50, 0.7);
+    animation: fadeIn 0.2s;
+}
+
+#editBlueprintModal > div {
+    background: #1b2230;
+    margin: 60px auto;
+    padding: 28px 36px;
+    border-radius: 12px;
+    border: 1.5px solid #365b8c;
+    width: 90%;
+    max-width: 520px;
+    box-shadow: 0 4px 24px 0 rgba(30,60,120,0.18);
+    color: #e3eaf7;
+}
+
+#editBlueprintModal h2 {
+    color: #5eb6ff;
+    margin-top: 0;
+    margin-bottom: 18px;
+}
+
+#editBlueprintModal button {
+    margin-right: 8px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Results and lists */
+#results, #materialList, #blueprintList {
+    margin-top: 18px;
+    background: #1b2230;
+    border-radius: 10px;
+    padding: 18px 22px;
+    box-shadow: 0 1px 6px 0 rgba(30,60,120,0.10);
+    min-height: 40px;
+}
+
+/* Responsive Design */
+@media (max-width: 700px) {
+    form, table, #editBlueprintModal > div {
+        padding: 12px 4vw;
+    }
+    th, td {
+        padding: 8px 4px;
+        font-size: 0.95em;
+    }
+    .material-input {
+        flex-direction: column;
+        gap: 6px;
+    }
+    #editBlueprintModal > div {
+        max-width: 98vw;
+    }
+}

@@ -71,8 +71,8 @@ def register_routes(app):
                     parts = line.split('\t', 1)
                     if len(parts) >= 2:
                         try:
-                            material_name = parts[0].strip()
-                            quantity = int(parts[1].split('\t')[0])
+                            material_name = parts[0].strip() #Extract mat name
+                            quantity = int(parts[1].split('\t')[0]) #Extract quantity
                             unit_price = float(parts[1].split('\t')[2])  # Extract unit price
                             if current_category not in normalized_materials:
                                 normalized_materials[current_category] = {}  # Safety check.
@@ -101,7 +101,53 @@ def register_routes(app):
                 name=name,
                 materials=normalized_materials,
                 sell_price=sell_price,
-                material_cost= material_cost if material_cost != 0 else total_material_cost
+                material_cost= material_cost if material_cost != -1 else total_material_cost
+            )
+            db.session.add(new_blueprint)
+            db.session.commit()
+            logger.info(f"Blueprint: {name} was added successfully")
+            return jsonify({"message": "Blueprint added successfully"}), 201
+    
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error adding blueprint! See the traceback for more info:")
+            logger.error(traceback.format_exc())
+            return jsonify({"error": str(e)}), 500
+
+    @app.route('/blueprint/manual', methods=['POST'])
+    def add_manual_blueprint():
+        try:
+            data = request.json
+            name = data['name']
+            materials = data['materials']
+            sell_price = data['sell_price']
+            material_cost = data['material_cost']
+    
+            # Initialize the normalized materials dictionary
+            normalized_materials = {}
+    
+            # Loop through the materials and normalize them
+            for category, category_materials in materials.items():
+                normalized_materials[category] = {}
+                for material, quantity in category_materials.items():
+                    normalized_materials[category][material] = quantity
+    
+            # Check if a blueprint with the same name already exists
+            existing_blueprint = Blueprint.query.filter_by(name=name).first()
+            if existing_blueprint:
+                existing_blueprint.materials = normalized_materials
+                existing_blueprint.sell_price = sell_price
+                existing_blueprint.material_cost = material_cost
+                db.session.commit()
+                logger.info(f"Blueprint: {name} was updated successfully")
+                return jsonify({"message": "Blueprint updated successfully"}), 200
+    
+            # Create a new blueprint
+            new_blueprint = Blueprint(
+                name=name,
+                materials=normalized_materials,
+                sell_price=sell_price,
+                material_cost=material_cost
             )
             db.session.add(new_blueprint)
             db.session.commit()

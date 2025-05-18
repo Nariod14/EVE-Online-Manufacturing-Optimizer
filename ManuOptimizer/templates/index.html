@@ -3,12 +3,13 @@
 <h1>EVE Online Manufacturing Optimizer</h1>
 
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/minaplanna.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/manoptimiza.css') }}">
 
 <h2>Add Blueprint (Manually)</h2>
 <form id="blueprintForm">
     <input type="text" id="blueprintName" placeholder="Blueprint Name" required>
     <input type="number" id="blueprintSellPrice" placeholder="Sell Price" required>
+    <input type="number" id="blueprintMaterialCost" placeholder="Material Cost" required>
     <div id="blueprintMaterials">
         <div class="material-input">
             <select class="materialSection">
@@ -16,17 +17,20 @@
                 <option value="Items">Items</option>
                 <option value="Components">Components</option>
             </select>
-            <select class="materialName">
-                <option value="Tritanium">Tritanium</option>
-                <option value="Pyerite">Pyerite</option>
-                <option value="Mexallon">Mexallon</option>
-                <option value="Isogen">Isogen</option>
-                <option value="Nocxium">Nocxium</option>
-                <option value="Zydrine">Zydrine</option>
-                <option value="Megacyte">Megacyte</option>
-                <option value="other">Other</option>
-            </select>
-            <input type="text" class="otherMaterialName" placeholder="Other Material Name" style="display: none;">
+            <div class="mineralSelectContainer" style="display: none;">
+                <select class="materialName">
+                    <option value="Tritanium">Tritanium</option>
+                    <option value="Pyerite">Pyerite</option>
+                    <option value="Mexallon">Mexallon</option>
+                    <option value="Isogen">Isogen</option>
+                    <option value="Nocxium">Nocxium</option>
+                    <option value="Zydrine">Zydrine</option>
+                    <option value="Megacyte">Megacyte</option>
+                    <option value="other">Other</option>
+                </select>
+                <input type="text" class="otherMaterialName" placeholder="Other Material Name" style="display: none;">
+            </div>
+            <input type="text" class="itemName" placeholder="Item Name" style="display: none;">
             <input type="number" class="materialQuantity" placeholder="Quantity" required>
             <input type="number" step="0.01" class="materialUnitPrice" placeholder="Unit Price">
             <button type="button" class="removeMaterialButton">Remove</button>
@@ -41,7 +45,7 @@
 <h2>Add Blueprint from Game (Copy/Paste)</h2>
 <form id="blueprintParseForm">
     <input type="number" id="blueprintParseSellPrice" placeholder="Sell Price" required>
-    <input type="number" id="blueprintParseMakeCost" placeholder="Make Cost" required>
+    <input type="number" id="blueprintParseMakeCost" placeholder="Make Cost (Leave as 0 to use estimated cost)" required>
     <textarea id="blueprintParseData" placeholder="Paste blueprint data here" required></textarea>
     <button type="submit">Add Blueprint</button>
 </form>
