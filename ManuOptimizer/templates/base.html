@@ -249,7 +249,7 @@ function loadBlueprints() {
         url: '/blueprints',
         method: 'GET',
         success: function(response) {
-            var blueprintHtml = '<table><tr><th>Name</th><th>Sell Price</th><th>Material Cost</th><th>Materials</th><th>Max</th><th>Actions</th></tr>';
+            var blueprintHtml = '<table><tr><th>Name</th><th>Sell Price</th><th>Material Cost</th><th>Materials</th><th>Profit %</th><th>Max</th><th>Actions</th></tr>';
             response.forEach(function(blueprint) {
                 blueprintHtml += '<tr>';
                 blueprintHtml += '<td>' + blueprint.name + '</td>';
@@ -258,7 +258,7 @@ function loadBlueprints() {
                 blueprintHtml += '<td>' + formattedSell + '</td>';
                 var materialCost = Math.round(blueprint.material_cost);
                 var formattedCost = materialCost.toLocaleString() + ' | (' + numberToWords(materialCost) + ') isk';
-    
+
                 blueprintHtml += '<td>' + formattedCost + '</td>';
                 blueprintHtml += '<td>';
                 blueprintHtml += '<ul style="list-style: none; padding: 0; margin: 0;">';
@@ -274,6 +274,12 @@ function loadBlueprints() {
                 });
                 blueprintHtml += '</ul>';
                 blueprintHtml += '</td>';
+
+                var profit = sellPrice - materialCost;
+                var profitPercentage = (profit / materialCost) * 100;
+                var formattedProfit = profitPercentage.toFixed(2) + '%';
+                blueprintHtml += '<td style="text-align: center;">' + formattedProfit + '</td>';
+
                 blueprintHtml += '<td style="text-align: center; width: 90px;"><input type="number" class="blueprint-max" data-id="' + blueprint.id + '" value="' + (blueprint.max || '') + '" style="width: 60px; text-align: center;"></td>';
                 blueprintHtml += '<td style="text-align: center; vertical-align: middle; width: 110px;">';
                 blueprintHtml += '<div style="display: flex; flex-direction: column; gap: 6px; align-items: stretch;">';
@@ -294,7 +300,6 @@ function loadBlueprints() {
             $('#resetAllMaxButton').click(function() {
                 resetAllBlueprintMax();
             });
-        
         }
     });
 }
