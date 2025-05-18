@@ -128,15 +128,28 @@ $(document).on('click', '.removeMaterialButton', function() {
     $(this).closest('.material-input').remove();
 });
 
+
+// Handle material dropdown changes to show/hide mineral select
+$('.materialSection').on('change', function() {
+    var selectedSection = $(this).val();
+    if (selectedSection === 'Minerals') {
+        $('.mineralSelectContainer').show();
+        $('.itemName').hide();
+    } else {
+        $('.mineralSelectContainer').hide();
+        $('.itemName').show();
+    }
+});
+
 // Handle form submission for adding a blueprint
 $('#blueprintForm').submit(function(e) {
     e.preventDefault();
+
     var materials = {
         Minerals: {},
         Items: {},
         Components: {}
     };
-    var totalCost = 0;
 
     $('.material-input').each(function() {
         var name = $(this).find('.materialName').val();
@@ -149,35 +162,25 @@ $('#blueprintForm').submit(function(e) {
 
         if (name && quantity > 0) {
             materials[section][name] = quantity;
-            totalCost += quantity * unitPrice;
         }
     });
-
-    // Remove empty sections
-    for (var section in materials) {
-        if (Object.keys(materials[section]).length === 0) {
-            delete materials[section];
-        }
-    }
 
     var blueprintData = {
         name: $('#blueprintName').val(),
         materials: materials,
         sell_price: parseFloat($('#blueprintSellPrice').val()),
-        material_cost: totalCost
+        material_cost: parseFloat($('#blueprintMaterialCost').val())
     };
 
-    console.log("Submitting blueprint:", blueprintData);  // For debugging
-
     $.ajax({
-        url: '/blueprint',
+        url: '/blueprint/manual',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(blueprintData),
         success: function(response) {
             alert('Blueprint added successfully');
             loadBlueprints();
-            $('#blueprintForm')[0].reset();  // Reset the form after successful submission
+            $('#blueprintForm')[0].reset(); // Reset the form after successful submission
         },
         error: function(xhr, status, error) {
             console.error("Error submitting blueprint:", error);
@@ -469,7 +472,7 @@ $('#availableMaterialsForm').submit(function(e) {
  * 
  * @param {number} id The ID of the blueprint to edit.
  */
- function editBlueprint(id) {
+function editBlueprint(id) {
   $.ajax({
     url: '/blueprint/' + id,
     method: 'GET',
