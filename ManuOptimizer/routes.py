@@ -49,39 +49,42 @@ def register_routes(app):
             raw_materials_text = data['materials']  # This is now the RAW text.
             sell_price = data['sell_price']
             material_cost = data['material_cost']
-
+    
             normalized_materials = {}
             current_category = None
             total_material_cost = 0  # Initialize material cost
-
+    
             lines = raw_materials_text.splitlines()  # Split into lines
             for line in lines:
                 line = line.strip()
                 if not line:
                     continue  # Skip empty lines
-
+    
                 # Category Detection (Regex)
-                if re.match(r'^[A-Za-z\s]+$', line) and not any(
+                if re.match(r'^\s*[A-Za-z\s]+$', line) and not any(
                         keyword in line for keyword in ["Item", "Required", "Available", "Est.", "Unit", "typeID"]):
-                    current_category = line  # Set new category
+                    current_category = line.strip()
                     normalized_materials[current_category] = {}  # Initialize if necessary (safety check)
                     continue
-
-                if current_category and material_cost != 0:
-                    parts = line.split('\t')
-                    if len(parts) >= 5:
+    
+                if current_category:
+                    parts = line.split('\t', 1)
+                    if len(parts) >= 2:
                         try:
                             material_name = parts[0].strip()
-                            quantity = int(parts[1])
-                            unit_price = float(parts[3])  # Extract unit price
+                            quantity = int(parts[1].split('\t')[0])
+                            unit_price = float(parts[1].split('\t')[2])  # Extract unit price
                             if current_category not in normalized_materials:
                                 normalized_materials[current_category] = {}  # Safety check.
                             normalized_materials[current_category][material_name] = quantity
-                            total_material_cost += quantity * unit_price  # Accumulate cost
+                            if material_cost == 0:
+                                total_material_cost += quantity * unit_price  # Accumulate cost
                         except (ValueError, IndexError):
                             # Handle cases where parsing fails for a line. Log it.
                             logger.warning(f"Skipping unparseable line: {line}")
                             continue
+    
+            # ... (rest of the code remains the same)
 
             existing_blueprint = Blueprint.query.filter_by(name=name).first()
             if existing_blueprint:
@@ -130,15 +133,24 @@ def register_routes(app):
             }), 500
     
 
-    @app.route('/blueprint', methods=['GET'])
+    @app.route('/blueprints', methods=['GET'])
     def get_blueprints():
         try:
             blueprints = Blueprint.query.all()
             logger.info("Blueprints retrieved successfully")
-            return jsonify([
-                {"id": b.id, "name": b.name, "materials": b.materials, "sell_price": b.sell_price, "material_cost": b.material_cost}
-                for b in blueprints
-            ]), 200
+            response = []
+            for b in blueprints:
+                materials = []
+                for category, quantities in b.materials.items():
+                    materials.append({category: quantities})
+                response.append({
+                    "id": b.id,
+                    "name": b.name,
+                    "materials": materials,
+                    "sell_price": b.sell_price,
+                    "material_cost": b.material_cost
+                })
+            return jsonify(response), 200
         except Exception as e:
             logger.error(f"Error getting blueprints! See the traceback for more info:")
             logger.error(traceback.format_exc())
