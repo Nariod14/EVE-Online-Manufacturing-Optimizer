@@ -52,19 +52,40 @@
 
 
 <div id="editBlueprintModal" style="display:none; position:fixed; z-index:1; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
-    <div style="background-color:#fefefe; margin:15% auto; padding:20px; border:1px solid #888; width:80%;">
-      <h2>Edit Blueprint</h2>
-      <form id="editBlueprintForm">
-        <input type="hidden" id="editBlueprintId">
+  <div class="modal-content">
+    <h2>Edit Blueprint</h2>
+    <form id="editBlueprintForm">
+      <input type="hidden" id="editBlueprintId">
+
+      <div class="form-group">
+        <label for="editBlueprintName" class="bold-label">Blueprint Name</label>
         <input type="text" id="editBlueprintName" placeholder="Blueprint Name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="editBlueprintSellPrice" class="bold-label">Sell Price</label>
         <input type="number" id="editBlueprintSellPrice" placeholder="Sell Price" required>
-        <div id="editBlueprintMaterials"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="editBlueprintCost" class="bold-label">Material Cost</label>
+        <input type="number" id="editBlueprintCost" placeholder="Material Cost" required>
+      </div>
+
+      <h3 class="materials-heading">Materials</h3>
+      <div id="editBlueprintMaterials"></div>
+
+      <div class="modal-actions">
         <button type="button" onclick="addEditBlueprintMaterial()">Add Material</button>
         <button type="submit">Save Changes</button>
         <button type="button" onclick="closeEditBlueprintModal()">Cancel</button>
-      </form>
     </div>
+    </form>
   </div>
+</div>
+
+
+
   
 
   <h2>Add Material (Manually)</h2>
@@ -107,24 +128,6 @@
 <button class="center-button" onclick="optimize()">Optimize Production</button>
 
 <div id="results"></div>
-
-
-<div id="editBlueprintModal" style="display:none; position:fixed; z-index:1; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
-  <div style="background-color:#fefefe; margin:15% auto; padding:20px; border:1px solid #888; width:80%;">
-    <h2>Edit Blueprint</h2>
-    <form id="editBlueprintForm">
-      <input type="hidden" id="editBlueprintId">
-      <input type="text" id="editBlueprintName" placeholder="Blueprint Name" required>
-      <input type="number" id="editBlueprintSellPrice" placeholder="Sell Price" required>
-      
-      <div id="editBlueprintMaterials"></div>
-
-      <button type="button" onclick="addEditBlueprintMaterial()">Add Material</button>
-      <button type="submit">Save Changes</button>
-      <button type="button" onclick="closeEditBlueprintModal()">Cancel</button>
-    </form>
-  </div>
-</div>
 
   
 {% endblock %}

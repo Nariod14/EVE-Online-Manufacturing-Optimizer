@@ -224,7 +224,57 @@ ul > li > strong {
     animation: fadeIn 0.2s;
 }
 
+.materials-heading {
+    color: #5eb6ff;
+    font-weight: 700;
+    margin-top: 24px;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #365b8c;
+    padding-bottom: 4px;
+    letter-spacing: 1px;
+    font-size: 1.2em;
+    text-align: center;
+    width: 100%;
+}
+
+.bold-label {
+    font-weight: 700;
+    color: #5eb6ff;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    display: inline-block;
+    font-size: 1.09em; /* Slightly larger for emphasis */
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;  /* Center the buttons horizontally */
+    gap: 12px;                /* Space between buttons */
+    margin-top: 18px;
+}
+
+.modal-actions button {
+    min-width: 120px;
+    padding: 8px 0;
+    font-size: 1em;
+    border-radius: 7px;
+}
+
+
+
 #editBlueprintModal > div {
+    background: #1b2230;
+    margin: 60px auto;
+    padding: 28px 36px;
+    border-radius: 12px;
+    border: 1.5px solid #365b8c;
+    width: 90%;
+    max-width: 520px;
+    box-shadow: 0 4px 24px 0 rgba(30,60,120,0.18);
+    color: #83aeff;
+}
+
+#editBlueprintModal .modal-content {
     background: #1b2230;
     margin: 60px auto;
     padding: 28px 36px;
