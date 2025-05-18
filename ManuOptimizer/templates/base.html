@@ -481,6 +481,7 @@ function editBlueprint(id) {
       $('#editBlueprintName').val(blueprint.name);
       $('#editBlueprintSellPrice').val(blueprint.sell_price);
       $('#editBlueprintMaterials').empty();
+      $('#editBlueprintCost').val(blueprint.material_cost);
 
       // Handle nested materials (Minerals, Items, Components)
       for (var section in blueprint.materials) {
@@ -520,6 +521,7 @@ function addEditBlueprintMaterial(section = 'Minerals', name = '', quantity = ''
   $('#editBlueprintMaterials').append(newMaterial);
 }
 
+// Handles the form submission for updating a blueprint
 $('#editBlueprintForm').submit(function(e) {
   e.preventDefault();
 
@@ -527,6 +529,7 @@ $('#editBlueprintForm').submit(function(e) {
   var name = $('#editBlueprintName').val();
   var sell_price = parseFloat($('#editBlueprintSellPrice').val());
   var materials = { Minerals: {}, Items: {}, Components: {} };
+  var material_cost = parseFloat($('#editBlueprintCost').val());
 
   // Collect materials
   $('#editBlueprintMaterials .material-input').each(function() {

@@ -1,26 +1,11 @@
-2025-05-18 02:42:27,897 - INFO - Database tables created successfully
-2025-05-18 02:42:27,899 - INFO - Starting EVE Online Manufacturing Optimizer
-2025-05-18 02:42:27,900 - INFO - Server is running at: http://127.0.0.1:5000
-2025-05-18 02:42:27,900 - INFO - Opening web browser...
-2025-05-18 02:42:27,976 - INFO - Instructions:
-2025-05-18 02:42:27,976 - INFO - 1. Use the web interface to manage blueprints and materials
-2025-05-18 02:42:27,976 - INFO - 2. Click 'Optimize Production' to calculate the most profitable manufacturing plan
-2025-05-18 02:42:27,976 - INFO - 3. Press Ctrl+C in this terminal to stop the server
-2025-05-18 02:42:27,980 - INFO - Serving on http://127.0.0.1:5000
-2025-05-18 02:42:28,590 - INFO - Blueprints retrieved successfully
-2025-05-18 02:42:28,592 - INFO - Materials retrieved successfully
-2025-05-18 02:42:32,934 - INFO - Added material constraint for Nocxium with quantity 5345
-2025-05-18 02:42:32,934 - INFO - Added material constraint for Isogen with quantity 466625
-2025-05-18 02:42:32,934 - INFO - Added material constraint for Mexallon with quantity 2391521
-2025-05-18 02:42:32,935 - INFO - Added material constraint for Pyerite with quantity 5070812
-2025-05-18 02:42:32,935 - INFO - Added material constraint for Tritanium with quantity 6525451
-2025-05-18 02:42:32,935 - INFO - Added material constraint for Zydrine with quantity 75
-2025-05-18 02:42:32,935 - INFO - Added material constraint for Megacyte with quantity 1247
-2025-05-18 02:42:32,935 - INFO - Added material constraint for Mechanical Parts with quantity 0
-2025-05-18 02:42:32,935 - INFO - Added material constraint for Photon Microprocessor with quantity 0
-2025-05-18 02:42:32,935 - INFO - Added material constraint for Morphite with quantity 0
-2025-05-18 02:42:32,935 - INFO - Added material constraint for Laser Focusing Crystals with quantity 0
-2025-05-18 02:42:32,936 - DEBUG - C:\Users\nario\AppData\Roaming\Python\Python313\site-packages\pulp\solverdir\cbc\win\64\cbc.exe C:\Users\nario\AppData\Local\Temp\ddb0b8cbfb6e4a4f9143f9f654a4faab-pulp.mps -max -timeMode elapsed -branch -printingOptions all -solution C:\Users\nario\AppData\Local\Temp\ddb0b8cbfb6e4a4f9143f9f654a4faab-pulp.sol 
-2025-05-18 02:42:33,078 - INFO - Optimizaiton Status: Optimal
-2025-05-18 02:42:33,079 - INFO - Optimization completed successfully
-2025-05-18 02:42:33,079 - INFO - Results: {'status': 'Optimal', 'total_profit': 0.0, 'what_to_produce': {'Modulated Strip Miner II': 0.0, 'Industrial Cynosural Field Generator': 0.0}, 'material_usage': {'Nocxium': {'used': 0, 'remaining': 5345, 'category': 'Minerals'}, 'Isogen': {'used': 0, 'remaining': 466625, 'category': 'Minerals'}, 'Mexallon': {'used': 0, 'remaining': 2391521, 'category': 'Minerals'}, 'Pyerite': {'used': 0, 'remaining': 5070812, 'category': 'Minerals'}, 'Tritanium': {'used': 0, 'remaining': 6525451, 'category': 'Minerals'}, 'Zydrine': {'used': 0, 'remaining': 75, 'category': 'Minerals'}, 'Megacyte': {'used': 0, 'remaining': 1247, 'category': 'Minerals'}, 'Mechanical Parts': {'used': 0, 'remaining': 0, 'category': 'Minerals'}, 'Photon Microprocessor': {'used': 0, 'remaining': 0, 'category': 'Components'}, 'Morphite': {'used': 0, 'remaining': 0, 'category': 'Minerals'}, 'Laser Focusing Crystals': {'used': 0, 'remaining': 0, 'category': 'Components'}}, 'true_profit': 0.0}
+2025-05-18 04:32:48,567 - INFO - Database tables created successfully
+2025-05-18 04:32:48,570 - INFO - Starting EVE Online Manufacturing Optimizer
+2025-05-18 04:32:48,571 - INFO - Server is running at: http://127.0.0.1:5000
+2025-05-18 04:32:48,571 - INFO - Opening web browser...
+2025-05-18 04:32:48,654 - INFO - Instructions:
+2025-05-18 04:32:48,656 - INFO - 1. Use the web interface to manage blueprints and materials
+2025-05-18 04:32:48,657 - INFO - 2. Click 'Optimize Production' to calculate the most profitable manufacturing plan
+2025-05-18 04:32:48,658 - INFO - 3. Press Ctrl+C in this terminal to stop the server
+2025-05-18 04:32:48,665 - INFO - Serving on http://127.0.0.1:5000
+2025-05-18 04:32:49,182 - INFO - Blueprints retrieved successfully
+2025-05-18 04:32:49,183 - INFO - Materials retrieved successfully
