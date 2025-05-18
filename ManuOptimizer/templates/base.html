@@ -250,23 +250,35 @@ function loadBlueprints() {
             response.forEach(function(blueprint) {
                 blueprintHtml += '<tr>';
                 blueprintHtml += '<td>' + blueprint.name + '</td>';
-                blueprintHtml += '<td>' + blueprint.sell_price + ' isk</td>';
+                sellPrice = blueprint.sell_price;
+                var formattedSell = sellPrice.toLocaleString() + ' | (' + numberToWords(sellPrice) + ') isk';
+                blueprintHtml += '<td>' + formattedSell + '</td>';
                 var materialCost = Math.round(blueprint.material_cost);
-                blueprintHtml += '<td>' + numberToWords(materialCost) + ' (' + materialCost + ') isk</td>';
+                var formattedCost = materialCost.toLocaleString() + ' | (' + numberToWords(materialCost) + ') isk';
+    
+                blueprintHtml += '<td>' + formattedCost + '</td>';
                 blueprintHtml += '<td>';
+                blueprintHtml += '<ul style="list-style: none; padding: 0; margin: 0;">';
                 blueprint.materials.forEach(function(material) {
                     var category = Object.keys(material)[0];
                     var quantities = material[category];
-                    blueprintHtml += '<strong>' + category + '</strong><br/>';
+                    blueprintHtml += '<li><strong>' + category + '</strong></li>';
+                    blueprintHtml += '<ul style="list-style: none; padding: 0; margin: 0;">';
                     for (var item in quantities) {
-                        blueprintHtml += '&nbsp;&nbsp;' + item + ': ' + quantities[item] + '<br/>';
+                        blueprintHtml += '<li>&nbsp;&nbsp;' + item + ': ' + quantities[item] + '</li>';
                     }
+                    blueprintHtml += '</ul>';
                 });
+                blueprintHtml += '</ul>';
                 blueprintHtml += '</td>';
                 blueprintHtml += '<td style="text-align: center; width: 90px;"><input type="number" class="blueprint-max" data-id="' + blueprint.id + '" value="' + (blueprint.max || '') + '" style="width: 60px; text-align: center;"></td>';
-                blueprintHtml += '<td style="text-align: center;"><button onclick="editBlueprint(' + blueprint.id + ')">Edit</button> ';
-                blueprintHtml += '<button onclick="deleteBlueprint(' + blueprint.id + ')">Delete</button> ';
-                blueprintHtml += '<button onclick="resetBlueprintMax(' + blueprint.id + ')">Reset Max</button></td>';
+                blueprintHtml += '<td style="text-align: center; vertical-align: middle; width: 110px;">';
+                blueprintHtml += '<div style="display: flex; flex-direction: column; gap: 6px; align-items: stretch;">';
+                blueprintHtml += '<button onclick="editBlueprint(' + blueprint.id + ')">Edit</button>';
+                blueprintHtml += '<button onclick="deleteBlueprint(' + blueprint.id + ')">Delete</button>';
+                blueprintHtml += '<button onclick="resetBlueprintMax(' + blueprint.id + ')">Reset Max</button>';
+                blueprintHtml += '</div></td>';
+
                 blueprintHtml += '</tr>';
             });
             blueprintHtml += '</table>';
@@ -283,7 +295,6 @@ function loadBlueprints() {
         }
     });
 }
-
 
 
 
@@ -381,8 +392,11 @@ $('#blueprintParseForm').submit(function(e) {
     e.preventDefault();
 
     var rawMaterialText = $('#blueprintParseData').val();  // Get the raw text
+    var lines = rawMaterialText.split('\n');
+    var blueprintName = lines[0].split('\t')[0].replace(' Blueprint', '');
+
     var blueprintData = {
-        name: $('#blueprintParseName').val(),
+        name: blueprintName,
         materials: rawMaterialText,  // Send the raw text
         sell_price: parseFloat($('#blueprintParseSellPrice').val()),
         material_cost: parseFloat($('#blueprintParseMakeCost').val())
