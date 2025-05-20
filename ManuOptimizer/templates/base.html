@@ -324,20 +324,34 @@ function loadMaterials() {
         url: '/material',
         method: 'GET',
         success: function(response) {
-            var materialHtml = '<table><tr><th>Name</th><th>Quantity</th><th>Actions</th></tr>';
+            // Group materials by category
+            var grouped = {};
             response.forEach(function(material) {
-                materialHtml += '<tr>';
-                materialHtml += '<td>' + material.name + '</td>';
-                materialHtml += '<td>' + material.quantity + '</td>';
-                materialHtml += '<td><button onclick="editMaterial(' + material.id + ')">Edit</button> ';
-                materialHtml += '<button onclick="deleteMaterial(' + material.id + ')">Delete</button></td>';
-                materialHtml += '</tr>';
+                var cat = material.category || "Other";
+                if (!grouped[cat]) grouped[cat] = [];
+                grouped[cat].push(material);
             });
-            materialHtml += '</table>';
+
+            // Build HTML
+            var materialHtml = '';
+            Object.keys(grouped).sort().forEach(function(cat) {
+                materialHtml += '<h3>' + cat + '</h3>';
+                materialHtml += '<table><tr><th>Name</th><th>Quantity</th><th>Actions</th></tr>';
+                grouped[cat].forEach(function(material) {
+                    materialHtml += '<tr>';
+                    materialHtml += '<td>' + material.name + '</td>';
+                    materialHtml += '<td>' + material.quantity + '</td>';
+                    materialHtml += '<td><button onclick="editMaterial(' + material.id + ')">Edit</button> ';
+                    materialHtml += '<button onclick="deleteMaterial(' + material.id + ')">Delete</button></td>';
+                    materialHtml += '</tr>';
+                });
+                materialHtml += '</table>';
+            });
             $('#materialList').html(materialHtml);
         }
     });
 }
+
 
 
 // Blueprint and Invention Parser from game data
