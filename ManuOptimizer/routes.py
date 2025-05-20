@@ -259,14 +259,21 @@ def register_routes(app):
         try:
             materials = Material.query.all()
             logger.info("Materials retrieved successfully")
+            category_lookup = get_material_category_lookup()
             return jsonify([
-                {"id": m.id, "name": m.name, "quantity": m.quantity}
+                {
+                    "id": m.id,
+                    "name": m.name,
+                    "quantity": m.quantity,
+                    "category": category_lookup.get(m.name, "Other")
+                }
                 for m in materials
             ]), 200
         except Exception as e:
             logger.error(f"Error getting materials! See the traceback for more info:")
             logger.error(traceback.format_exc())
             return jsonify({"ERROR": "An error occurred while getting the materials"}), 500
+
         
     @app.route('/blueprint/<int:id>', methods=['PUT'])
     def update_blueprint(id):
@@ -608,6 +615,7 @@ def parse_ingame_format(lines):
     blueprint_name = lines[0].split('\t')[0].replace(' Blueprint', '')
     normalized = {}
     section = None
+    total_cost = 0
     for idx, l in enumerate(lines):
         if l.endswith("materials") or l.endswith("Materials"):
             continue
@@ -617,14 +625,26 @@ def parse_ingame_format(lines):
             continue
         if section and "\t" in l:
             parts = l.split('\t')
-            if len(parts) >= 2:
+            # Look for at least 4 columns: Name, Required, Available, Est. Unit price
+            if len(parts) >= 4:
+                try:
+                    mat = parts[0].strip()
+                    qty = int(float(parts[1].strip()))
+                    unit_price = float(parts[3].replace(",", ""))
+                    normalized[section][mat] = qty
+                    total_cost += qty * unit_price
+                except Exception:
+                    continue
+            # Fallback for lines with only name and required
+            elif len(parts) >= 2:
                 try:
                     mat = parts[0].strip()
                     qty = int(float(parts[1].strip()))
                     normalized[section][mat] = qty
                 except Exception:
                     continue
-    return normalized, blueprint_name, 0
+    return normalized, blueprint_name, total_cost
+
 
 def get_material_category_lookup():
     # Build a lookup: material_name -> category

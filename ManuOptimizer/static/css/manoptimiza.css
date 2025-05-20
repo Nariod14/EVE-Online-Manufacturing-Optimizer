@@ -176,6 +176,14 @@ input[type=number].blueprint-max::-webkit-outer-spin-button {
     margin: 8px 0 0 0;
   }
   
+  #materialList h3 {
+    color: #5eb6ff;
+    margin-top: 24px;
+    margin-bottom: 8px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
   /* === Table Styling === */
   table {
     width: 100%;
