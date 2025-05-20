@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/manoptimiza.css') }}">
 
 <h2>Add Blueprint (Manually)</h2>
-<form id="blueprintForm">
+<form id="blueprintForm" class="blueprint-form">
     <input type="text" id="blueprintName" placeholder="Blueprint Name" required>
     <input type="number" id="blueprintSellPrice" placeholder="Sell Price" required>
     <input type="number" id="blueprintMaterialCost" placeholder="Material Cost" required>
@@ -38,17 +38,35 @@
         </div>
     </div>
     <button type="button" onclick="addBlueprintMaterial()">Add Another Material</button>
-    <button type="submit">Add Blueprint</button>
+    <button type="submit" class="center-button">Add Blueprint</button>
+</form>
 </form>
 
 
-<h2>Add Blueprint from Game (Copy/Paste)</h2>
-<form id="blueprintParseForm">
+<h2>Add Blueprint (Copy/Paste)</h2>
+<div style="display: flex; gap: 24px; flex-wrap: wrap;">
+  <!-- From Game Parser -->
+  <form id="blueprintParseForm" class="blueprint-form" style="flex:1; min-width:300px;">
+    <h3>From Game</h3>
     <input type="number" id="blueprintParseSellPrice" placeholder="Sell Price" required>
-    <input type="number" id="blueprintParseMakeCost" placeholder="Make Cost (Leave as 0 to use estimated cost)" required>
-    <textarea id="blueprintParseData" placeholder="Paste blueprint data here" required></textarea>
-    <button type="submit">Add Blueprint</button>
-</form>
+    <input type="number" id="blueprintParseMakeCost" placeholder="Make Cost (Leave as 0 to use estimated cost)">
+    <div style="display: flex; gap: 12px;">
+      <textarea id="blueprintParseData" placeholder="Paste blueprint data here" required style="flex:1; min-height: 220px; resize: both;"></textarea>
+      <textarea id="blueprintParseInventionData" placeholder="Paste invention data here (optional)" style="flex:1; min-height: 220px; resize: both;"></textarea>
+    </div>
+    <button type="submit" class="center-button">Add Blueprint</button>
+  </form>
+
+  <!-- ISK/Hour Parser -->
+  <form id="iskHourParseForm" class="blueprint-form" style="flex:1; min-width:300px;">
+    <h3>From ISK/Hour</h3>
+    <input type="number" id="iskHourSellPrice" placeholder="Sell Price" required>
+    <input type="number" id="iskHourMakeCost" placeholder="Make Cost (Leave as 0 or blank to use estimated cost)">
+    <textarea id="iskHourParseData" placeholder="Paste ISK/Hour material list here" required style="min-height: 220px; resize: both;"></textarea>
+    <button type="submit" class="center-button">Add Blueprint</button>
+  </form>
+</div>
+
 
 
 <div id="editBlueprintModal" style="display:none; position:fixed; z-index:1; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">

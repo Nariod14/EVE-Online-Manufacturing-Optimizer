@@ -1,4 +1,4 @@
-/* Reset and base styles */
+/* === Reset and Base Styles === */
 html, body {
     margin: 0;
     padding: 0;
@@ -6,225 +6,280 @@ html, body {
     background: #141a22;
     color: #e3eaf7;
     min-height: 100vh;
-}
-
-h1, h2 {
+  }
+  
+  /* === Headings === */
+  h1, h2, h3 {
     color: #5eb6ff;
-    margin-top: 32px;
-    margin-bottom: 16px;
     font-weight: 700;
     letter-spacing: 1px;
-}
-
-h1 {
+  }
+  h1 {
     text-align: center;
-    font-size: 2.3em;
-    margin-bottom: 24px;
-}
-
-a {
+    font-size: 2.4em;
+    margin: 36px 0 18px 0;
+  }
+  h2 {
+    font-size: 1.4em;
+    margin: 36px 0 18px 0;
+  }
+  h3 {
+    font-size: 1.1em;
+    margin: 24px 0 12px 0;
+  }
+  
+  /* === Links === */
+  a {
     color: #5eb6ff;
     text-decoration: none;
-}
-
-a:hover {
+    transition: color 0.18s;
+  }
+  a:hover {
+    color: #79c7ff;
     text-decoration: underline;
-}
-
-/* Section styling */
-.section {
+  }
+  
+  /* === Section Card Styling === */
+  .section {
     background: #1b2230;
-    padding: 24px;
-    border-radius: 12px;
-    margin: 32px 0;
-    box-shadow: 0 2px 10px 0 rgba(30,60,120,0.08);
-}
-
-/* Forms */
-form {
+    padding: 28px 24px;
+    border-radius: 14px;
+    margin: 36px 0;
+    box-shadow: 0 2px 16px 0 rgba(30,60,120,0.10);
+  }
+  
+  /* === Form Styling === */
+  form {
     background: #182136;
-    padding: 18px 24px;
+    padding: 22px 20px;
     border-radius: 10px;
-    margin-bottom: 28px;
-    box-shadow: 0 1px 6px 0 rgba(30,60,120,0.10);
+    margin-bottom: 32px;
+    box-shadow: 0 1px 8px 0 rgba(30,60,120,0.10);
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px 22px;
-    align-items: flex-end;
-}
-
-form input[type="text"],
-form input[type="number"],
-form textarea,
-form select {
+    flex-direction: column;
+    gap: 18px;
+  }
+  
+  form label {
+    font-weight: 600;
+    color: #5eb6ff;
+    margin-bottom: 6px;
+    display: block;
+    letter-spacing: 0.5px;
+  }
+  
+  form input[type="text"],
+  form input[type="number"],
+  form textarea,
+  form select {
+    width: 100%;
+    padding: 11px 14px;
     background: #232f44;
     color: #e3eaf7;
     border: 1.5px solid #365b8c;
-    border-radius: 6px;
-    padding: 8px 10px;
+    border-radius: 7px;
     font-size: 1em;
-    margin-bottom: 8px;
-    transition: border 0.2s;
-    outline: none;
-    min-width: 120px;
-}
-
-form input[type="text"]:focus,
-form input[type="number"]:focus,
-form textarea:focus,
-form select:focus {
+    margin-bottom: 2px;
+    transition: border 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+  
+  form input[type="text"]:focus,
+  form input[type="number"]:focus,
+  form textarea:focus,
+  form select:focus {
     border: 1.5px solid #5eb6ff;
-}
-
-form textarea {
-    min-width: 240px;
-    min-height: 60px;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(94,182,255,0.12);
+  }
+  
+  form textarea {
+    min-height: 90px;
     resize: vertical;
-}
-
-form button,
-button,
-.center-button {
+  }
+  
+  form button,
+  button,
+  .center-button {
     background: linear-gradient(90deg, #5eb6ff 0%, #3a7bd5 100%);
     color: #fff;
     border: none;
-    border-radius: 7px;
-    padding: 8px 18px;
+    border-radius: 8px;
+    padding: 10px 22px;
     font-size: 1em;
     font-weight: 600;
     cursor: pointer;
-    margin: 4px 0;
-    box-shadow: 0 1px 4px 0 rgba(30,60,120,0.12);
+    margin-top: 6px;
+    margin-bottom: 0;
+    box-shadow: 0 1px 6px 0 rgba(30,60,120,0.13);
     transition: background 0.18s, transform 0.12s;
-}
-
-form button:hover,
-button:hover,
-.center-button:hover {
+  }
+  
+  form button:hover,
+  button:hover,
+  .center-button:hover {
     background: linear-gradient(90deg, #79c7ff 0%, #5eb6ff 100%);
-    transform: translateY(-2px) scale(1.03);
+    transform: translateY(-2px) scale(1.04);
+}
+/* Modern number input for Max */
+input.blueprint-max {
+  background: #232f44;
+  color: #e3eaf7;
+  border: 1.5px solid #5eb6ff;
+  border-radius: 7px;
+  padding: 8px 0;
+  text-align: center;
+  font-size: 1.08em;
+  width: 70px;
+  outline: none;
+  box-shadow: 0 1px 4px 0 rgba(94,182,255,0.10);
+  transition: border 0.18s, box-shadow 0.18s;
+  margin: 0 auto;
+  display: block;
 }
 
-.center-button {
+/* On focus: highlight and glow */
+input.blueprint-max:focus {
+  border: 1.5px solid #79c7ff;
+  box-shadow: 0 0 0 2px rgba(94,182,255,0.13);
+}
+
+/* Remove ugly default spinner for Chrome/Safari */
+input[type=number].blueprint-max::-webkit-inner-spin-button,
+input[type=number].blueprint-max::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+  
+  .center-button {
     display: block;
     margin: 32px auto 18px auto;
     min-width: 200px;
-}
-
-/* Material input row */
-.material-input {
+  }
+  
+  /* === Material Input Row === */
+  .material-input {
     display: flex;
     flex-wrap: wrap;
     gap: 10px 18px;
     align-items: center;
     margin-bottom: 8px;
-    background: #1e2738;
-    padding: 8px 10px;
-    border-radius: 7px;
-}
-
-.material-input hr {
+    background: #202a3b;
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+  
+  .material-input hr {
     width: 100%;
     border: none;
     border-top: 1px solid #2e3c43;
     margin: 8px 0 0 0;
-}
-
-/* Table Styling */
-table {
+  }
+  
+  /* === Table Styling === */
+  table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 22px;
     background: #182136;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 12px 0 rgba(30,60,120,0.10);
-}
-
-th, td {
+  }
+  
+  th, td {
     border: 1px solid #2e3c43;
-    padding: 10px 12px;
+    padding: 12px 14px;
     text-align: left;
     font-size: 1em;
-}
-
-th {
+  }
+  
+  th {
     background: linear-gradient(90deg, #274b6d 0%, #365b8c 100%);
     color: #fff;
     font-weight: 700;
     letter-spacing: 0.5px;
-}
-
-tr:nth-child(even) {
-    background: #202b3a;
-}
-
-tr:nth-child(odd) {
-    background: #182136;
-}
-
-tr:hover {
-    background: #22304a;
-    transition: background 0.15s;
-}
-
-/* Blueprint action buttons stacked vertically */
-.blueprint-actions {
+  }
+  
+  tr:nth-child(even) { background: #202b3a; }
+  tr:nth-child(odd)  { background: #182136; }
+  tr:hover           { background: #22304a; transition: background 0.15s; }
+  
+  /* === Blueprint Action Buttons === */
+  .blueprint-actions {
     display: flex;
     flex-direction: column;
     gap: 7px;
     align-items: stretch;
-}
-
-.blueprint-actions button {
+  }
+  .blueprint-actions button {
     width: 100%;
     min-width: 80px;
-    padding: 6px 0;
+    padding: 7px 0;
     font-size: 0.98em;
-    border-radius: 6px;
+    border-radius: 7px;
     margin: 0;
-}
-
-/* Inputs in table cells */
-input.blueprint-max {
-    background: #232f44;
-    color: #e3eaf7;
-    border: 1.2px solid #365b8c;
-    border-radius: 5px;
-    padding: 4px 0;
-    text-align: center;
-    font-size: 1em;
-    width: 62px;
-    transition: border 0.2s;
-}
-
-input.blueprint-max:focus {
-    border: 1.2px solid #5eb6ff;
-}
-
-/* List styling for materials */
-ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-ul > li > strong {
-    color: #5eb6ff;
-}
-
-/* Modal Styling */
-#editBlueprintModal {
+  }
+  
+  /* === Modal Styling === */
+  #editBlueprintModal {
     display: none;
     position: fixed;
     z-index: 100;
     left: 0; top: 0; width: 100vw; height: 100vh;
     overflow: auto;
-    background-color: rgba(20, 30, 50, 0.7);
+    background-color: rgba(20, 30, 50, 0.78);
     animation: fadeIn 0.2s;
-}
-
-.materials-heading {
+  }
+  #editBlueprintModal .modal-content {
+    background: #1b2230;
+    margin: 60px auto;
+    padding: 32px 38px;
+    border-radius: 14px;
+    border: 1.5px solid #365b8c;
+    width: 94%;
+    max-width: 540px;
+    box-shadow: 0 4px 24px 0 rgba(30,60,120,0.18);
+    color: #e3eaf7;
+  }
+  #editBlueprintModal h2 {
+    color: #5eb6ff;
+    margin-top: 0;
+    margin-bottom: 18px;
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 22px;
+  }
+  .modal-actions button {
+    min-width: 120px;
+    padding: 10px 0;
+    font-size: 1em;
+    border-radius: 8px;
+  }
+  
+  /* === Results and Lists === */
+  #results, #materialList, #blueprintList {
+    margin-top: 18px;
+    background: #1b2230;
+    border-radius: 12px;
+    padding: 18px 22px;
+    box-shadow: 0 1px 8px 0 rgba(30,60,120,0.10);
+    min-height: 40px;
+  }
+  
+  /* === Miscellaneous === */
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  ul > li > strong {
+    color: #5eb6ff;
+  }
+  .materials-heading {
     color: #5eb6ff;
     font-weight: 700;
     margin-top: 24px;
@@ -235,96 +290,47 @@ ul > li > strong {
     font-size: 1.2em;
     text-align: center;
     width: 100%;
-}
-
-.bold-label {
+  }
+  .bold-label {
     font-weight: 700;
     color: #5eb6ff;
     letter-spacing: 1px;
     margin-bottom: 6px;
     display: inline-block;
-    font-size: 1.09em; /* Slightly larger for emphasis */
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: center;  /* Center the buttons horizontally */
-    gap: 12px;                /* Space between buttons */
-    margin-top: 18px;
-}
-
-.modal-actions button {
-    min-width: 120px;
-    padding: 8px 0;
-    font-size: 1em;
-    border-radius: 7px;
-}
-
-
-
-#editBlueprintModal > div {
-    background: #1b2230;
-    margin: 60px auto;
-    padding: 28px 36px;
-    border-radius: 12px;
-    border: 1.5px solid #365b8c;
-    width: 90%;
-    max-width: 520px;
-    box-shadow: 0 4px 24px 0 rgba(30,60,120,0.18);
-    color: #83aeff;
-}
-
-#editBlueprintModal .modal-content {
-    background: #1b2230;
-    margin: 60px auto;
-    padding: 28px 36px;
-    border-radius: 12px;
-    border: 1.5px solid #365b8c;
-    width: 90%;
-    max-width: 520px;
-    box-shadow: 0 4px 24px 0 rgba(30,60,120,0.18);
-    color: #e3eaf7;
-}
-
-#editBlueprintModal h2 {
-    color: #5eb6ff;
-    margin-top: 0;
-    margin-bottom: 18px;
-}
-
-#editBlueprintModal button {
-    margin-right: 8px;
-}
-
-@keyframes fadeIn {
+    font-size: 1.09em;
+  }
+  
+  /* === Animations === */
+  @keyframes fadeIn {
     from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Results and lists */
-#results, #materialList, #blueprintList {
-    margin-top: 18px;
-    background: #1b2230;
-    border-radius: 10px;
-    padding: 18px 22px;
-    box-shadow: 0 1px 6px 0 rgba(30,60,120,0.10);
-    min-height: 40px;
-}
-
-/* Responsive Design */
-@media (max-width: 700px) {
-    form, table, #editBlueprintModal > div {
-        padding: 12px 4vw;
+    to   { opacity: 1; }
+  }
+  
+  /* === Responsive Design === */
+  @media (max-width: 900px) {
+    .section {
+      padding: 18px 4vw;
+    }
+    form, table, #editBlueprintModal .modal-content {
+      padding: 12px 2vw;
     }
     th, td {
-        padding: 8px 4px;
-        font-size: 0.95em;
+      padding: 8px 4px;
+      font-size: 0.97em;
     }
     .material-input {
-        flex-direction: column;
-        gap: 6px;
+      flex-direction: column;
+      gap: 7px;
     }
-    #editBlueprintModal > div {
-        max-width: 98vw;
+    #editBlueprintModal .modal-content {
+      max-width: 99vw;
     }
-}
+  }
+  @media (max-width: 600px) {
+    h1 { font-size: 1.4em; }
+    h2 { font-size: 1.1em; }
+    .section { padding: 10px 2vw; }
+    form { padding: 8px 1vw; }
+    .material-input { padding: 7px 4px; }
+  }
+  

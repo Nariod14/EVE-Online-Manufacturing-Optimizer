@@ -4,61 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EVE Online Manufacturing Optimizer</title>
-    <style>
-        /* TODO: Make the CSS pretty. */
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        form {
-            margin-bottom: 20px;
-        }
-        input[type="text"], input[type="number"] {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-
-        .center-button {
-        display: block;
-        margin: 0 auto;
-        padding: 10px 20px;
-        font-size: 18px;
-        border: none;
-        border-radius: 5px;
-        background-color: #4CAF50;
-        color: #fff;
-        cursor: pointer;
-    }
-    </style>
 </head>
 <body>
     {% block content %}{% endblock %}
@@ -395,19 +340,23 @@ function loadMaterials() {
 }
 
 
-// Blueprint Parser from game data
+// Blueprint and Invention Parser from game data
 $('#blueprintParseForm').submit(function(e) {
     e.preventDefault();
 
-    var rawMaterialText = $('#blueprintParseData').val();  // Get the raw text
+    var rawMaterialText = $('#blueprintParseData').val();
+    var rawInventionText = $('#blueprintParseInventionData').val();
     var lines = rawMaterialText.split('\n');
     var blueprintName = lines[0].split('\t')[0].replace(' Blueprint', '');
+    var sellPrice = parseFloat($('#blueprintParseSellPrice').val()) || 0;
+    var makeCost = parseFloat($('#blueprintParseMakeCost').val()) || 0;
 
     var blueprintData = {
         name: blueprintName,
-        materials: rawMaterialText,  // Send the raw text
-        sell_price: parseFloat($('#blueprintParseSellPrice').val()),
-        material_cost: parseFloat($('#blueprintParseMakeCost').val())
+        materials: rawMaterialText,
+        invention_materials: rawInventionText, // NEW FIELD
+        sell_price: sellPrice,
+        material_cost: makeCost
     };
 
     $.ajax({
@@ -426,6 +375,50 @@ $('#blueprintParseForm').submit(function(e) {
         }
     });
 });
+
+
+// Blueprint Parser from ISK per hour
+$('#iskHourParseForm').submit(function(e) {
+    e.preventDefault();
+
+    var rawText = $('#iskHourParseData').val();
+    var sellPrice = parseFloat($('#iskHourSellPrice').val());
+    var makeCost = parseFloat($('#iskHourMakeCost').val());
+
+    // Extract blueprint name from the first line
+    // Example: "Component Material List for 1 Units of 'Coherent Asteroid Mining Crystal Type B II Blueprint' (ME: 2)"
+    var lines = rawText.split('\n');
+    var nameMatch = lines[0].match(/['"]?([^'"]+) Blueprint['"]?/i);
+    var blueprintName = nameMatch ? nameMatch[1] : "Unknown Blueprint";
+
+    // Send to backend for parsing and dependency expansion
+    var blueprintData = {
+        name: blueprintName,
+        materials: rawText, // Send raw text for backend parsing
+        sell_price: sellPrice,
+        material_cost: makeCost
+    };
+
+    $.ajax({
+        url: '/blueprint',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(blueprintData),
+        success: function(response) {
+            alert(response.message || 'Blueprint added successfully');
+            loadBlueprints();
+            $('#iskHourParseForm')[0].reset();
+            if (response.dependencies_needed && response.dependencies_needed.length > 0) {
+                alert("You need to manufacture the following components:\n" + response.dependencies_needed.join('\n'));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error submitting blueprint:", error);
+            alert('Error adding blueprint: ' + error);
+        }
+    });
+});
+
 
 // Handles the form submission for updating materials from the game parser
 $('#availableMaterialsForm').submit(function(e) {
@@ -708,6 +701,8 @@ function optimize() {
         method: 'GET',
         success: function(response) {
             var resultsHtml = '<h3>Optimization Results</h3>';
+
+             // Profit summary
             var formattedProfit = response.total_profit.toLocaleString('en-US', {maximumFractionDigits: 2});
             var trueProfit = response.true_profit.toLocaleString('en-US', {maximumFractionDigits: 2});
             var profitInWords = numberToWords(response.total_profit);
@@ -717,6 +712,16 @@ function optimize() {
             resultsHtml += '<p>Total Profit: ' + formattedProfit + ' (' + profitInWords + ') ISK</p>';
             resultsHtml += '<p>True Profit (after material costs): ' + trueProfit + ' (' + trueProfitInWords + ') ISK</p>';
             resultsHtml += '<p>True Profit Percentage: ' + trueProfitPercentage + '%</p>';
+
+            // Show required component dependencies with quantities
+            if (response.dependencies_needed && Object.keys(response.dependencies_needed).length > 0) {
+                resultsHtml += '<h4>Required Component Production:</h4>';
+                resultsHtml += '<table><tr><th>Component</th><th>Quantity Needed</th></tr>';
+                for (var dep in response.dependencies_needed) {
+                    resultsHtml += '<tr><td>' + dep + '</td><td>' + response.dependencies_needed[dep] + '</td></tr>';
+                }
+                resultsHtml += '</table>';
+            }
 
             // Production Plan
             resultsHtml += '<h4>Production Plan:</h4>';
@@ -741,18 +746,14 @@ function optimize() {
 
             // Group materials by category
             for (var material in response.material_usage) {
+                var usage = response.material_usage[material];
+                var category = usage.category;
                 if (knownMinerals.includes(material)) {
-                    categorizedMaterials['Minerals'][material] = response.material_usage[material];
-                } else {
-                    var category = response.material_usage[material].category;
-                    if (category === 'Minerals') {
-                        category = 'Other'; // Override server categorization for non-hardcoded minerals
-                    }
-                    if (!categorizedMaterials[category]) {
-                        categorizedMaterials[category] = {};
-                    }
-                    categorizedMaterials[category][material] = response.material_usage[material];
+                    category = 'Minerals';
+                } else if (!categorizedMaterials[category]) {
+                    category = 'Other';
                 }
+                categorizedMaterials[category][material] = usage;
             }
 
             // Create tables for each category
@@ -781,7 +782,7 @@ function optimize() {
                     bottlenecks.push({name: material, percentage: usagePercentage});
                 }
             }
-            bottlenecks.sort((a, b) => b.percentage - a.percentage);
+            bottlenecks.sort(function(a, b) { return b.percentage - a.percentage; });
             bottlenecks.forEach(function(bottleneck) {
                 resultsHtml += '<li>' + bottleneck.name + ' (' + bottleneck.percentage.toFixed(2) + '% used)</li>';
             });
