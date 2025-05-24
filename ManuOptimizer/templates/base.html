@@ -805,7 +805,12 @@ function optimize() {
             });
             resultsHtml += '</ul>';
 
+            // Display results
             $('#results').html(resultsHtml);
+
+            //Reload materials and blueprints
+            loadMaterials();
+            loadBlueprints();
         },
         error: function(xhr, status, error) {
             console.error("Error optimizing:", xhr.responseText);

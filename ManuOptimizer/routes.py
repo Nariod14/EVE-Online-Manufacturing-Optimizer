@@ -611,67 +611,63 @@ def parse_ingame_invention_text(raw_text):
 
 
 def parse_ingame_format(lines):
-    # The first line is the blueprint name
     blueprint_name = lines[0].split('\t')[0].replace(' Blueprint', '')
     normalized = {}
-    section = None
+    current_section = None
     total_cost = 0
-    for idx, l in enumerate(lines):
-        if l.endswith("materials") or l.endswith("Materials"):
+
+    for line in lines[1:]:  # Skip the first line (blueprint name)
+        clean_line = line.strip()
+        if not clean_line:
             continue
-        if l in ["Items", "Minerals", "Components", "Planetary materials"]:
-            section = l
-            normalized[section] = {}
+
+        # If the line does not contain tabs, treat it as a section header
+        if '\t' not in clean_line:
+            current_section = clean_line
+            normalized[current_section] = {}
             continue
-        if section and "\t" in l:
-            parts = l.split('\t')
-            # Look for at least 4 columns: Name, Required, Available, Est. Unit price
-            if len(parts) >= 4:
-                try:
-                    mat = parts[0].strip()
-                    qty = int(float(parts[1].strip()))
+
+        # If the line looks like a column header, skip it
+        if clean_line.lower().startswith('item\t') or clean_line.lower().startswith('material\t'):
+            continue
+
+        # Parse material lines
+        if current_section and '\t' in clean_line:
+            parts = [p.strip() for p in clean_line.split('\t')]
+            if len(parts) < 2:
+                continue
+            try:
+                mat_name = parts[0]
+                quantity = int(float(parts[1]))
+                normalized[current_section][mat_name] = quantity
+
+                # Calculate cost if available (4th column)
+                if len(parts) >= 4 and parts[3]:
                     unit_price = float(parts[3].replace(",", ""))
-                    normalized[section][mat] = qty
-                    total_cost += qty * unit_price
-                except Exception:
-                    continue
-            # Fallback for lines with only name and required
-            elif len(parts) >= 2:
-                try:
-                    mat = parts[0].strip()
-                    qty = int(float(parts[1].strip()))
-                    normalized[section][mat] = qty
-                except Exception:
-                    continue
+                    total_cost += quantity * unit_price
+            except Exception:
+                continue
+
     return normalized, blueprint_name, total_cost
 
 
 def get_material_category_lookup():
-    # Build a lookup: material_name -> category
-    """
-    Constructs a lookup dictionary mapping material names to their respective categories.
-
-    Retrieves all blueprints and iterates through their materials to populate the
-    lookup dictionary with material names and their first found category. Additionally,
-    known minerals are explicitly categorized under "Minerals".
-
-    Returns:
-        dict: A dictionary where keys are material names and values are their categories.
-    """
-
     lookup = {}
     blueprints = Blueprint.query.all()
-    known_minerals = {'Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 'Nocxium', 'Zydrine', 'Megacyte', 'Morphite'}
-    for bp in blueprints:
-        if isinstance(bp.materials, dict):
-            for category, subdict in bp.materials.items():
-                if isinstance(subdict, dict):
-                    for material in subdict:
-                        # Prefer first found category
-                        if material not in lookup:
-                            lookup[material] = category
-    # Add minerals
+    
+    # First pass: Add known minerals
+    known_minerals = {'Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 
+                     'Nocxium', 'Zydrine', 'Megacyte', 'Morphite'}
     for mineral in known_minerals:
         lookup[mineral] = "Minerals"
+        
+    # Second pass: Add blueprint materials (newer entries overwrite older ones)
+    for bp in reversed(blueprints):  # Reverse to prioritize newer entries
+        if isinstance(bp.materials, dict):
+            for category, materials in bp.materials.items():
+                if isinstance(materials, dict):
+                    for mat in materials:
+                        lookup[mat] = category
     return lookup
+
 
