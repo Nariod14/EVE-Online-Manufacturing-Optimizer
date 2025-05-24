@@ -40,3 +40,8 @@ if __name__ == '__main__':
     finally:
         logger.info("Application shutting down")
         input("Press Enter to exit...")
+
+from models import db
+from flask_migrate import Migrate
+
+migrate = Migrate(app, db)
