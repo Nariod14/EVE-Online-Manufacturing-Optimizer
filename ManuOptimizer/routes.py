@@ -648,6 +648,17 @@ def parse_ingame_format(lines):
 
 def get_material_category_lookup():
     # Build a lookup: material_name -> category
+    """
+    Constructs a lookup dictionary mapping material names to their respective categories.
+
+    Retrieves all blueprints and iterates through their materials to populate the
+    lookup dictionary with material names and their first found category. Additionally,
+    known minerals are explicitly categorized under "Minerals".
+
+    Returns:
+        dict: A dictionary where keys are material names and values are their categories.
+    """
+
     lookup = {}
     blueprints = Blueprint.query.all()
     known_minerals = {'Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 'Nocxium', 'Zydrine', 'Megacyte', 'Morphite'}

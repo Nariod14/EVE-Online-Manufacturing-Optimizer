@@ -523,6 +523,7 @@ function addEditBlueprintMaterial(section = 'Minerals', name = '', quantity = ''
         <option value="Minerals" ${section === 'Minerals' ? 'selected' : ''}>Minerals</option>
         <option value="Items" ${section === 'Items' ? 'selected' : ''}>Items</option>
         <option value="Components" ${section === 'Components' ? 'selected' : ''}>Components</option>
+        <option value="Invention Materials" ${section === 'Invention Materials' ? 'selected' : ''}>Invention Materials</option>
       </select>
       <input type="text" class="editMaterialName" placeholder="Material Name" value="${name}" required>
       <input type="number" class="editMaterialQuantity" placeholder="Quantity" value="${quantity}" required>
@@ -540,10 +541,10 @@ $('#editBlueprintForm').submit(function(e) {
   var id = $('#editBlueprintId').val();
   var name = $('#editBlueprintName').val();
   var sell_price = parseFloat($('#editBlueprintSellPrice').val());
-  var materials = { Minerals: {}, Items: {}, Components: {} };
+  var materials = { Minerals: {}, Items: {}, Components: {}, 'Invention Materials': {} };
   var material_cost = parseFloat($('#editBlueprintCost').val());
 
-  // Collect materials
+  // Collect material inputs
   $('#editBlueprintMaterials .material-input').each(function() {
     var section = $(this).find('.editMaterialSection').val();
     var materialName = $(this).find('.editMaterialName').val();
@@ -561,6 +562,7 @@ $('#editBlueprintForm').submit(function(e) {
     }
   }
 
+  // Create the blueprintData object
   var blueprintData = {
     id: id,
     name: name,
@@ -752,6 +754,7 @@ function optimize() {
                 'Minerals': {},
                 'Components': {},
                 'Items': {},
+                'Invention Materials': {},
                 'Other': {}
             };
 

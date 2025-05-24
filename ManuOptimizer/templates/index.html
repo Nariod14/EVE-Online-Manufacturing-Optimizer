@@ -8,8 +8,8 @@
 <h2>Add Blueprint (Manually)</h2>
 <form id="blueprintForm" class="blueprint-form">
     <input type="text" id="blueprintName" placeholder="Blueprint Name" required>
-    <input type="number" id="blueprintSellPrice" placeholder="Sell Price" required>
-    <input type="number" id="blueprintMaterialCost" placeholder="Material Cost" required>
+    <input type="number" id="blueprintSellPrice" placeholder="Sell Price" step="0.01" required>
+    <input type="number" id="blueprintMaterialCost" placeholder="Material Cost" step="0.01" required>
     <div id="blueprintMaterials">
         <div class="material-input">
             <select class="materialSection">
@@ -82,12 +82,12 @@
 
       <div class="form-group">
         <label for="editBlueprintSellPrice" class="bold-label">Sell Price</label>
-        <input type="number" id="editBlueprintSellPrice" placeholder="Sell Price" required>
+        <input type="number" id="editBlueprintSellPrice" placeholder="Sell Price" step="0.01" required>
       </div>
 
       <div class="form-group">
         <label for="editBlueprintCost" class="bold-label">Material Cost</label>
-        <input type="number" id="editBlueprintCost" placeholder="Material Cost" required>
+        <input type="number" id="editBlueprintCost" placeholder="Material Cost" step="0.01" required>
       </div>
 
       <h3 class="materials-heading">Materials</h3>
