@@ -153,3 +153,7 @@ ManuOptimizer/dist/run/_internal/pulp/solverdir/cbc/win/64/cbc.exe
 ManuOptimizer/dist/run.exe
 app.log
 app.log
+ManuOptimizer/instances/backuip/eve_optimizer.db
+ManuOptimizer/instances/eve_optimizer.db
+/ManuOptimizer/migrations
+/ManuOptimizer/instances

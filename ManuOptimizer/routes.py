@@ -9,7 +9,7 @@ import re
 
 
 import pulp
-from models import db, Blueprint, Material
+from models import BlueprintT2, db, Blueprint, Material
 from pulp import LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus, PULP_CBC_CMD
 
 # Add the ManuOptimizer package to the Python path
@@ -51,43 +51,66 @@ def register_routes(app):
             raw_invention_text = data.get('invention_materials', '')
             sell_price = data['sell_price']
             material_cost = data['material_cost']
+            blueprint_tier = data.get('tier', 'T1')
+            invention_chance = data.get('invention_chance', None)
 
             category_lookup = get_material_category_lookup()
-
-            # Parse the main blueprint
             normalized_materials, name, detected_material_cost = parse_blueprint_text(raw_materials_text, category_lookup)
 
-            # Parse invention data (if present)
+            # T2 invention cost calculation
             invention_materials_dict = {}
             invention_cost = 0
-            if raw_invention_text.strip():
+            if blueprint_tier == "T2" and raw_invention_text.strip():
                 invention_materials_dict, invention_cost = parse_ingame_invention_text(raw_invention_text)
-                # Merge invention materials into normalized_materials under the right category
                 if invention_materials_dict:
                     if "Invention Materials" not in normalized_materials:
                         normalized_materials["Invention Materials"] = {}
                     normalized_materials["Invention Materials"].update(invention_materials_dict)
-                detected_material_cost += invention_cost
+                # Refined invention cost calculation
+                if invention_chance and invention_chance > 0:
+                    detected_invention_cost = invention_cost / (invention_chance * 10)
+                else:
+                    detected_invention_cost = 0
+                detected_material_cost += detected_invention_cost
 
-            # Use detected cost if user left it blank/0
             if material_cost == 0 or material_cost is None:
                 material_cost = detected_material_cost
 
-            # Save/update blueprint as before
-            existing_blueprint = Blueprint.query.filter_by(name=name).first()
-            if existing_blueprint:
-                existing_blueprint.materials = normalized_materials
-                existing_blueprint.sell_price = sell_price
-                existing_blueprint.material_cost = material_cost
-                db.session.commit()
-                return jsonify({"message": "Blueprint updated successfully"}), 200
-
-            new_blueprint = Blueprint(
-                name=name,
-                materials=normalized_materials,
-                sell_price=sell_price,
-                material_cost=material_cost
-            )
+            # Save/update logic
+            if blueprint_tier == "T2":
+                existing = BlueprintT2.query.filter_by(name=name).first()
+                if existing:
+                    existing.materials = normalized_materials
+                    existing.sell_price = sell_price
+                    existing.material_cost = material_cost
+                    existing.invention_chance = invention_chance,
+                    existing.tier = blueprint_tier
+                    db.session.commit()
+                    return jsonify({"message": "Blueprint updated successfully"}), 200
+                new_blueprint = BlueprintT2(
+                    name=name,
+                    materials=normalized_materials,
+                    sell_price=sell_price,
+                    material_cost=material_cost,
+                    invention_chance=invention_chance,
+                    tier= blueprint_tier
+                )
+            else:
+                existing = Blueprint.query.filter_by(name=name).first()
+                if existing:
+                    existing.materials = normalized_materials
+                    existing.sell_price = sell_price
+                    existing.material_cost = material_cost,
+                    existing.tier = blueprint_tier
+                    db.session.commit()
+                    return jsonify({"message": "Blueprint updated successfully"}), 200
+                new_blueprint = Blueprint(
+                    name=name,
+                    materials=normalized_materials,
+                    sell_price=sell_price,
+                    material_cost=material_cost,
+                    tier= blueprint_tier
+                )
             db.session.add(new_blueprint)
             db.session.commit()
             return jsonify({"message": "Blueprint added successfully"}), 201
@@ -95,6 +118,7 @@ def register_routes(app):
         except Exception as e:
             db.session.rollback()
             return jsonify({"error": str(e)}), 500
+
 
 
 
@@ -148,20 +172,26 @@ def register_routes(app):
     def get_blueprint(id):
         try:
             blueprint = Blueprint.query.get_or_404(id)
-            return jsonify({
+            logger.info(f"Blueprint {id} retrieved successfully")
+            # Prepare base response
+            response = {
                 'id': blueprint.id,
                 'name': blueprint.name,
                 'materials': blueprint.materials,
                 'sell_price': blueprint.sell_price,
-                'material_cost': blueprint.material_cost   
-            }), 200
+                'material_cost': blueprint.material_cost,
+                'tier': blueprint.tier
+            }
+            # If T2, add invention_chance
+            if blueprint.tier == "T2":
+                response['invention_chance'] = getattr(blueprint, 'invention_chance', None)
+            return jsonify(response), 200
         except Exception as e:
             logger.error(f"Error getting blueprint! See the traceback for more info:")
             logger.error(traceback.format_exc())
             return jsonify({
                 'error': 'An error occurred while getting the blueprint'
             }), 500
-    
 
     @app.route('/blueprints', methods=['GET'])
     def get_blueprints():
@@ -173,18 +203,23 @@ def register_routes(app):
                 materials = []
                 for category, quantities in b.materials.items():
                     materials.append({category: quantities})
-                response.append({
+                bp_dict = {
                     "id": b.id,
                     "name": b.name,
                     "materials": materials,
                     "sell_price": b.sell_price,
-                    "material_cost": b.material_cost
-                })
+                    "material_cost": b.material_cost,
+                    "tier": b.tier
+                }
+                if b.tier == "T2":
+                    bp_dict["invention_chance"] = getattr(b, "invention_chance", None)
+                response.append(bp_dict)
             return jsonify(response), 200
         except Exception as e:
             logger.error(f"Error getting blueprints! See the traceback for more info:")
             logger.error(traceback.format_exc())
             return jsonify({"ERROR": "An error occurred while getting the blueprints"}), 500
+
 
     @app.route('/material', methods=['POST'])
     def add_material():
@@ -285,6 +320,12 @@ def register_routes(app):
             blueprint.sell_price = data.get('sell_price', blueprint.sell_price)
             blueprint.material_cost = data.get('material_cost', blueprint.material_cost)
             blueprint.max = data.get('max', blueprint.max)
+            blueprint.tier = data.get('tier', blueprint.tier)
+            # Only set invention_chance if blueprint is T2
+            if blueprint.tier == 'T2':
+                blueprint.invention_chance = data.get('invention_chance', blueprint.invention_chance)
+            else:
+                blueprint.invention_chance = None
             db.session.commit()
             logger.info("Blueprint updated successfully")
             return jsonify({'message': 'Blueprint updated successfully'}), 200
@@ -293,6 +334,7 @@ def register_routes(app):
             logger.error(f"Error updating blueprint! See the traceback for more info:")
             logger.error(traceback.format_exc())
             return jsonify({"ERROR": "An error occurred while updating the blueprint"}), 500
+
     
     @app.route('/blueprints/reset_max', methods=['POST'])
     def reset_all_blueprint_max():

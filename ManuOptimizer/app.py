@@ -6,6 +6,7 @@ from flask import Flask
 from flask_cors import CORS
 from models import db
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.DEBUG,
@@ -39,13 +40,13 @@ def create_app():
     
     db.init_app(flask_app)
     
-    with flask_app.app_context():
-        try:
-            db.create_all()
-            logger.info("Database tables created successfully")
-        except Exception as e:
-            logger.error(f"Error creating database tables: {str(e)}")
-            logger.error(traceback.format_exc())
+    # with flask_app.app_context():
+    #     try:
+    #         db.create_all()
+    #         logger.info("Database tables created successfully")
+    #     except Exception as e:
+    #         logger.error(f"Error creating database tables: {str(e)}")
+    #         logger.error(traceback.format_exc())
 
     register_routes(flask_app)
     
