@@ -1,11 +1,17 @@
-2025-05-22 10:46:02,794 - INFO - Database tables created successfully
-2025-05-22 10:46:02,800 - INFO - Starting EVE Online Manufacturing Optimizer
-2025-05-22 10:46:02,800 - INFO - Server is running at: http://127.0.0.1:5000
-2025-05-22 10:46:02,800 - INFO - Opening web browser...
-2025-05-22 10:46:02,889 - INFO - Instructions:
-2025-05-22 10:46:02,889 - INFO - 1. Use the web interface to manage blueprints and materials
-2025-05-22 10:46:02,889 - INFO - 2. Click 'Optimize Production' to calculate the most profitable manufacturing plan
-2025-05-22 10:46:02,889 - INFO - 3. Press Ctrl+C in this terminal to stop the server
-2025-05-22 10:46:02,905 - INFO - Serving on http://127.0.0.1:5000
-2025-05-22 10:46:03,443 - INFO - Blueprints retrieved successfully
-2025-05-22 10:46:03,443 - INFO - Materials retrieved successfully
+2025-05-24 09:32:54,835 - INFO - Database tables created successfully
+2025-05-24 09:32:54,839 - INFO - Starting EVE Online Manufacturing Optimizer
+2025-05-24 09:32:54,840 - INFO - Server is running at: http://127.0.0.1:5000
+2025-05-24 09:32:54,840 - INFO - Opening web browser...
+2025-05-24 09:32:54,909 - INFO - Instructions:
+2025-05-24 09:32:54,909 - INFO - 1. Use the web interface to manage blueprints and materials
+2025-05-24 09:32:54,910 - INFO - 2. Click 'Optimize Production' to calculate the most profitable manufacturing plan
+2025-05-24 09:32:54,910 - INFO - 3. Press Ctrl+C in this terminal to stop the server
+2025-05-24 09:32:54,915 - INFO - Serving on http://127.0.0.1:5000
+2025-05-24 09:32:55,270 - INFO - Materials retrieved successfully
+2025-05-24 09:32:55,270 - INFO - Blueprints retrieved successfully
+2025-05-24 09:33:01,846 - INFO - Received materials data: {'Pyerite': 11410456, 'Tritanium': 4432772, 'Mexallon': 2649802, 'Isogen': 217468, 'Nocxium': 32822, 'Zydrine': 19127, 'Megacyte': 16327, 'Hypersynaptic Fibers': 10000, 'Laser Focusing Crystals': 6000, 'Morphite': 5123, 'Electronic Parts': 5000, 'Photon Microprocessor': 3000}
+2025-05-24 09:33:01,846 - INFO - Update type: replace
+2025-05-24 09:33:01,851 - INFO - All existing materials have been deleted.
+2025-05-24 09:33:01,864 - INFO - Materials updated successfully.
+2025-05-24 09:33:01,864 - INFO - Materials updated successfully.
+2025-05-24 09:33:03,243 - INFO - Materials retrieved successfully
