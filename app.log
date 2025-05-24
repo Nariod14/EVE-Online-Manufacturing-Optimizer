@@ -1,17 +1,11 @@
-2025-05-20 03:43:43,690 - INFO - Database tables created successfully
-2025-05-20 03:43:43,695 - INFO - Starting EVE Online Manufacturing Optimizer
-2025-05-20 03:43:43,695 - INFO - Server is running at: http://127.0.0.1:5000
-2025-05-20 03:43:43,696 - INFO - Opening web browser...
-2025-05-20 03:43:43,776 - INFO - Instructions:
-2025-05-20 03:43:43,776 - INFO - 1. Use the web interface to manage blueprints and materials
-2025-05-20 03:43:43,776 - INFO - 2. Click 'Optimize Production' to calculate the most profitable manufacturing plan
-2025-05-20 03:43:43,776 - INFO - 3. Press Ctrl+C in this terminal to stop the server
-2025-05-20 03:43:43,782 - INFO - Serving on http://127.0.0.1:5000
-2025-05-20 03:43:44,366 - INFO - Blueprints retrieved successfully
-2025-05-20 03:43:44,366 - INFO - Materials retrieved successfully
-2025-05-20 03:45:15,079 - INFO - Blueprints retrieved successfully
-2025-05-20 03:45:29,853 - DEBUG - C:\Users\nario\AppData\Roaming\Python\Python313\site-packages\pulp\solverdir\cbc\win\64\cbc.exe C:\Users\nario\AppData\Local\Temp\ced20fd02151493394ddd3237a33fbb4-pulp.mps -max -timeMode elapsed -branch -printingOptions all -solution C:\Users\nario\AppData\Local\Temp\ced20fd02151493394ddd3237a33fbb4-pulp.sol 
-2025-05-20 03:45:29,884 - INFO - Optimization Status: Optimal
-2025-05-20 03:45:29,887 - INFO - Optimization completed successfully
-2025-05-20 03:45:29,887 - INFO - Results: {'status': 'Optimal', 'total_profit': 26000000.0, 'what_to_produce': {'Modulated Strip Miner II': 0, 'Industrial Cynosural Field Generator': 0, 'Gas Cloud Harvester II': 0, 'Photon Microprocessor': 0, 'Covert Cynosural Field Generator I': 2}, 'material_usage': {'Nocxium': {'used': 1690, 'remaining': 31774, 'category': 'Minerals'}, 'Isogen': {'used': 4032, 'remaining': 214898, 'category': 'Minerals'}, 'Mexallon': {'used': 3708, 'remaining': 2604665, 'category': 'Minerals'}, 'Pyerite': {'used': 14306, 'remaining': 5626596, 'category': 'Minerals'}, 'Tritanium': {'used': 23792, 'remaining': 2134, 'category': 'Minerals'}, 'Zydrine': {'used': 3736, 'remaining': 15252, 'category': 'Minerals'}, 'Megacyte': {'used': 2022, 'remaining': 14201, 'category': 'Minerals'}, 'Mechanical Parts': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Photon Microprocessor': {'used': 0, 'remaining': 0, 'category': 'Components'}, 'Morphite': {'used': 0, 'remaining': 500, 'category': 'Minerals'}, 'Laser Focusing Crystals': {'used': 0, 'remaining': 0, 'category': 'Components'}, 'Deep Core Mining Laser I': {'used': 0, 'remaining': 0, 'category': 'Other(Likely Unused or other Built Components)'}, 'Deep Core Mining Laser I Blueprint Copy': {'used': 0, 'remaining': 0, 'category': 'Other(Likely Unused or other Built Components)'}, 'Datacore - Mechanical Engineering': {'used': 0, 'remaining': 0, 'category': 'Invention Materials'}, 'Electronic Parts': {'used': 0, 'remaining': 0, 'category': 'Other'}, 'Gas Cloud Harvester I': {'used': 0, 'remaining': 0, 'category': 'Other'}, 'R.A.M.- Energy Tech': {'used': 0, 'remaining': 0, 'category': 'Other'}, 'Datacore - Laser Physics': {'used': 0, 'remaining': 0, 'category': 'Invention Materials'}, 'Process Decryptor': {'used': 0, 'remaining': 0, 'category': 'Invention Materials'}, 'Gas Cloud Harvester I Blueprint Copy': {'used': 0, 'remaining': 0, 'category': 'Invention Materials'}, 'Silicon': {'used': 0, 'remaining': 0, 'category': 'Items'}}, 'true_profit': 2500225.079999998, 'dependencies_needed': {}}
-2025-05-20 03:46:09,243 - INFO - Application shutting down
+2025-05-22 10:46:02,794 - INFO - Database tables created successfully
+2025-05-22 10:46:02,800 - INFO - Starting EVE Online Manufacturing Optimizer
+2025-05-22 10:46:02,800 - INFO - Server is running at: http://127.0.0.1:5000
+2025-05-22 10:46:02,800 - INFO - Opening web browser...
+2025-05-22 10:46:02,889 - INFO - Instructions:
+2025-05-22 10:46:02,889 - INFO - 1. Use the web interface to manage blueprints and materials
+2025-05-22 10:46:02,889 - INFO - 2. Click 'Optimize Production' to calculate the most profitable manufacturing plan
+2025-05-22 10:46:02,889 - INFO - 3. Press Ctrl+C in this terminal to stop the server
+2025-05-22 10:46:02,905 - INFO - Serving on http://127.0.0.1:5000
+2025-05-22 10:46:03,443 - INFO - Blueprints retrieved successfully
+2025-05-22 10:46:03,443 - INFO - Materials retrieved successfully
