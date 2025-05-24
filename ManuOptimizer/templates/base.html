@@ -307,7 +307,7 @@ $(document).ready(function() {
                     var formattedProfit = profitPercentage.toFixed(2) + '%';
                     html += `<tr>
                         <td>${blueprint.name}</td>
-                        <td>${blueprint.invention_chance ? (blueprint.invention_chance * 100).toFixed(1) + '%' : '-'}</td>
+                        <td>${blueprint.invention_chance ? blueprint.invention_chance.toFixed(1) + '%' : '-'}</td>
                         <td>${formattedSell}</td>
                         <td>${formattedCost}</td>
                         <td>
