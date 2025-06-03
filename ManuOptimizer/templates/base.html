@@ -4,61 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EVE Online Manufacturing Optimizer</title>
-    <style>
-        /* TODO: Make the CSS pretty. */
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        form {
-            margin-bottom: 20px;
-        }
-        input[type="text"], input[type="number"] {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-
-        .center-button {
-        display: block;
-        margin: 0 auto;
-        padding: 10px 20px;
-        font-size: 18px;
-        border: none;
-        border-radius: 5px;
-        background-color: #4CAF50;
-        color: #fff;
-        cursor: pointer;
-    }
-    </style>
 </head>
 <body>
     {% block content %}{% endblock %}
@@ -128,15 +73,43 @@ $(document).on('click', '.removeMaterialButton', function() {
     $(this).closest('.material-input').remove();
 });
 
-// Handle form submission for adding a blueprint
+// Handle blueprint type changes to show/hide invention fields
+$('#blueprintParseTier').on('change', function() {
+    if ($(this).val() === 'T2') {
+        $('#inventionFields').show();
+        $('#blueprintParseInventionData').prop('required', true);
+        $('#blueprintParseInventionChance').prop('required', true);
+    } else {
+        $('#inventionFields').hide();
+        $('#blueprintParseInventionData').prop('required', false);
+        $('#blueprintParseInventionChance').prop('required', false);
+        $('#blueprintParseInventionChance').val(''); // Optionally clear the field for T1
+    }
+});
+
+
+// Handle material dropdown changes to show/hide mineral select
+$('.materialSection').on('change', function() {
+    var selectedSection = $(this).val();
+    if (selectedSection === 'Minerals') {
+        $('.mineralSelectContainer').show();
+        $('.itemName').hide();
+    } else {
+        $('.mineralSelectContainer').hide();
+        $('.itemName').show();
+    }
+});
+
+// Handle form submission for adding a blueprint manually
+//TODO: update this to parser levels
 $('#blueprintForm').submit(function(e) {
     e.preventDefault();
+
     var materials = {
         Minerals: {},
         Items: {},
         Components: {}
     };
-    var totalCost = 0;
 
     $('.material-input').each(function() {
         var name = $(this).find('.materialName').val();
@@ -149,35 +122,25 @@ $('#blueprintForm').submit(function(e) {
 
         if (name && quantity > 0) {
             materials[section][name] = quantity;
-            totalCost += quantity * unitPrice;
         }
     });
-
-    // Remove empty sections
-    for (var section in materials) {
-        if (Object.keys(materials[section]).length === 0) {
-            delete materials[section];
-        }
-    }
 
     var blueprintData = {
         name: $('#blueprintName').val(),
         materials: materials,
         sell_price: parseFloat($('#blueprintSellPrice').val()),
-        material_cost: totalCost
+        material_cost: parseFloat($('#blueprintMaterialCost').val())
     };
 
-    console.log("Submitting blueprint:", blueprintData);  // For debugging
-
     $.ajax({
-        url: '/blueprint',
+        url: '/blueprint/manual',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(blueprintData),
         success: function(response) {
             alert('Blueprint added successfully');
             loadBlueprints();
-            $('#blueprintForm')[0].reset();  // Reset the form after successful submission
+            $('#blueprintForm')[0].reset(); // Reset the form after successful submission
         },
         error: function(xhr, status, error) {
             console.error("Error submitting blueprint:", error);
@@ -243,37 +206,197 @@ $(document).ready(function() {
  */
  function loadBlueprints() {
     $.ajax({
-        url: '/blueprint',
+        url: '/blueprints',
         method: 'GET',
         success: function(response) {
-            var blueprintHtml = '<table><tr><th>Name</th><th>Sell Price</th><th>Material Cost</th><th>Materials</th><th>Max</th><th>Actions</th></tr>';
+            // Separate blueprints by tier
+            var t1Blueprints = [];
+            var t2Blueprints = [];
             response.forEach(function(blueprint) {
-                blueprintHtml += '<tr>';
-                blueprintHtml += '<td>' + blueprint.name + '</td>';
-                blueprintHtml += '<td>' + blueprint.sell_price + '</td>';
-                blueprintHtml += '<td>' + blueprint['material_cost'] + '</td>';
-                blueprintHtml += '<td>' + JSON.stringify(blueprint.materials) + '</td>';
-                blueprintHtml += '<td style="text-align: center; width: 90px;"><input type="number" class="blueprint-max" data-id="' + blueprint.id + '" value="' + (blueprint.max || '') + '" style="width: 60px; text-align: center;"></td>';
-                blueprintHtml += '<td style="text-align: center;"><button onclick="editBlueprint(' + blueprint.id + ')">Edit</button> ';
-                blueprintHtml += '<button onclick="deleteBlueprint(' + blueprint.id + ')">Delete</button> ';
-                blueprintHtml += '<button onclick="resetBlueprintMax(' + blueprint.id + ')">Reset Max</button></td>';
-                blueprintHtml += '</tr>';
+                if (blueprint.tier === 'T2') {
+                    t2Blueprints.push(blueprint);
+                } else {
+                    t1Blueprints.push(blueprint);
+                }
             });
-            blueprintHtml += '</table>';
 
-            // Add a button to reset all max values
-            blueprintHtml += '<button id="resetAllMaxButton">Reset All Max Values</button>';
+            // Helper: build T1 table (no invention chance), wrapped in .blueprint-section.t1
+            function buildT1Table(blueprints) {
+                var html = `<div class="blueprint-section t1">
+                  <table class="blueprint-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Sell Price</th>
+                        <th>Material Cost</th>
+                        <th>Materials</th>
+                        <th>Profit %</th>
+                        <th>Max</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>`;
+                blueprints.forEach(function(blueprint) {
+                    var sellPrice = blueprint.sell_price;
+                    var formattedSell = sellPrice.toLocaleString() + ' | (' + numberToWords(sellPrice) + ') isk';
+                    var materialCost = Math.round(blueprint.material_cost);
+                    var formattedCost = materialCost.toLocaleString() + ' | (' + numberToWords(materialCost) + ') isk';
+                    var profit = sellPrice - materialCost;
+                    var profitPercentage = (profit / materialCost) * 100;
+                    var formattedProfit = profitPercentage.toFixed(2) + '%';
+                    html += `<tr>
+                        <td>${blueprint.name}</td>
+                        <td>${formattedSell}</td>
+                        <td>${formattedCost}</td>
+                        <td>
+                          <ul style="list-style: none; padding: 0; margin: 0;">`;
+                    blueprint.materials.forEach(function(material) {
+                        var category = Object.keys(material)[0];
+                        var quantities = material[category];
+                        html += `<li><strong>${category}</strong></li>
+                                 <ul style="list-style: none; padding: 0; margin: 0;">`;
+                        for (var item in quantities) {
+                            html += `<li>&nbsp;&nbsp;${item}: ${quantities[item]}</li>`;
+                        }
+                        html += `</ul>`;
+                    });
+                    html += `</ul>
+                        </td>
+                        <td style="text-align: center;">${formattedProfit}</td>
+                        <td style="text-align: center; width: 90px;">
+                          <input type="number" class="blueprint-max" data-id="${blueprint.id}" value="${blueprint.max || ''}" style="width: 60px; text-align: center;">
+                        </td>
+                        <td style="text-align: center; vertical-align: middle; width: 110px;">
+                          <div style="display: flex; flex-direction: column; gap: 6px; align-items: stretch;">
+                            <button onclick="editBlueprint(${blueprint.id})">Edit</button>
+                            <button onclick="deleteBlueprint(${blueprint.id})">Delete</button>
+                            <button onclick="resetBlueprintMax(${blueprint.id})">Reset Max</button>
+                          </div>
+                        </td>
+                      </tr>`;
+                });
+                html += `</tbody>
+                  </table>
+                  <button class="resetAllMaxButton">Reset All Max Values</button>
+                </div>`;
+                return html;
+            }
 
-            $('#blueprintList').html(blueprintHtml);
+            // Helper: build T2 table (with invention chance), wrapped in .blueprint-section.t2
+            function buildT2Table(blueprints) {
+                var html = `<div class="blueprint-section t2">
+                  <table class="blueprint-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Invention Chance</th>
+                        <th>Sell Price</th>
+                        <th>Material Cost</th>
+                        <th>Materials</th>
+                        <th>Profit %</th>
+                        <th>Max</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>`;
+                blueprints.forEach(function(blueprint) {
+                    var sellPrice = blueprint.sell_price;
+                    var formattedSell = sellPrice.toLocaleString() + ' | (' + numberToWords(sellPrice) + ') isk';
+                    var fullMaterialCost = Math.round(blueprint.full_material_cost);
+                    var formattedCost = fullMaterialCost.toLocaleString() + ' | (' + numberToWords(fullMaterialCost) + ') isk';
+                    var profit = sellPrice - fullMaterialCost;
+                    var profitPercentage = (profit / fullMaterialCost) * 100;
+                    var formattedProfit = profitPercentage.toFixed(2) + '%';
+                    html += `<tr>
+                        <td>${blueprint.name}</td>
+                        <td>${blueprint.invention_chance ? (blueprint.invention_chance * 100).toFixed(1) + '%' : '-'}</td>
+                        <td>${formattedSell}</td>
+                        <td>${formattedCost}</td>
+                        <td>
+                          <ul style="list-style: none; padding: 0; margin: 0;">`;
+                    blueprint.materials.forEach(function(material) {
+                        var category = Object.keys(material)[0];
+                        var quantities = material[category];
+                        html += `<li><strong>${category}</strong></li>
+                                 <ul style="list-style: none; padding: 0; margin: 0;">`;
+                        for (var item in quantities) {
+                            html += `<li>&nbsp;&nbsp;${item}: ${quantities[item]}</li>`;
+                        }
+                        html += `</ul>`;
+                    });
+                    html += `</ul>
+                        </td>
+                        <td style="text-align: center;">${formattedProfit}</td>
+                        <td style="text-align: center; width: 90px;">
+                          <input type="number" class="blueprint-max" data-id="${blueprint.id}" value="${blueprint.max || ''}" style="width: 60px; text-align: center;">
+                        </td>
+                        <td style="text-align: center; vertical-align: middle; width: 110px;">
+                          <div style="display: flex; flex-direction: column; gap: 6px; align-items: stretch;">
+                            <button onclick="editBlueprint(${blueprint.id})">Edit</button>
+                            <button onclick="deleteBlueprint(${blueprint.id})">Delete</button>
+                            <button onclick="resetBlueprintMax(${blueprint.id})">Reset Max</button>
+                          </div>
+                        </td>
+                      </tr>`;
+                });
+                html += `</tbody>
+                  </table>
+                  <button class="resetAllMaxButton">Reset All Max Values</button>
+                </div>`;
+                return html;
+            }
 
-            // Bind click event for Reset All Max Values button
-            $('#resetAllMaxButton').click(function() {
+            // Accordion HTML, now with blueprint-section wrapping the tables
+            var html = `
+            <div class="blueprint-accordion">
+
+              <div class="accordion-item t1">
+                <button class="accordion-header" aria-expanded="true">
+                  <span class="tier-label t1">Tier 1 Blueprints</span>
+                  <span class="accordion-icon">&#9660;</span>
+                </button>
+                <div class="accordion-content" style="display: block;">
+                  ${t1Blueprints.length ? buildT1Table(t1Blueprints) : '<div style="padding:18px;">No Tier 1 blueprints found.</div>'}
+                </div>
+              </div>
+
+              <div class="accordion-item t2">
+                <button class="accordion-header" aria-expanded="true">
+                  <span class="tier-label t2">Tier 2 Blueprints</span>
+                  <span class="accordion-icon">&#9660;</span>
+                </button>
+                <div class="accordion-content" style="display: block;">
+                  ${t2Blueprints.length ? buildT2Table(t2Blueprints) : '<div style="padding:18px;">No Tier 2 blueprints found.</div>'}
+                </div>
+              </div>
+
+            </div>`;
+
+            $('#blueprintList').html(html);
+
+            // Accordion expand/collapse logic
+            $('.accordion-header').off('click').on('click', function() {
+                var expanded = $(this).attr('aria-expanded') === 'true';
+                $(this).attr('aria-expanded', !expanded);
+                var content = $(this).closest('.accordion-item').find('.accordion-content');
+                if (!expanded) {
+                    content.slideDown(200);
+                    $(this).find('.accordion-icon').html('&#9660;');
+                } else {
+                    content.slideUp(200);
+                    $(this).find('.accordion-icon').html('&#9654;');
+                }
+            });
+
+            // Bind click event for all Reset All Max Values buttons
+            $('.resetAllMaxButton').off('click').on('click', function() {
                 resetAllBlueprintMax();
             });
-        
         }
     });
 }
+
+
 
 
 
@@ -351,32 +474,68 @@ function loadMaterials() {
         url: '/material',
         method: 'GET',
         success: function(response) {
-            var materialHtml = '<table><tr><th>Name</th><th>Quantity</th><th>Actions</th></tr>';
+            // Group materials by category
+            var grouped = {};
             response.forEach(function(material) {
-                materialHtml += '<tr>';
-                materialHtml += '<td>' + material.name + '</td>';
-                materialHtml += '<td>' + material.quantity + '</td>';
-                materialHtml += '<td><button onclick="editMaterial(' + material.id + ')">Edit</button> ';
-                materialHtml += '<button onclick="deleteMaterial(' + material.id + ')">Delete</button></td>';
-                materialHtml += '</tr>';
+                var cat = material.category || "Other";
+                if (!grouped[cat]) grouped[cat] = [];
+                grouped[cat].push(material);
             });
-            materialHtml += '</table>';
+
+            // Build HTML
+            var materialHtml = '';
+            Object.keys(grouped).sort().forEach(function(cat) {
+                materialHtml += '<h3>' + cat + '</h3>';
+                materialHtml += '<table><tr><th>Name</th><th>Quantity</th><th>Actions</th></tr>';
+                grouped[cat].forEach(function(material) {
+                    materialHtml += '<tr>';
+                    materialHtml += '<td>' + material.name + '</td>';
+                    materialHtml += '<td>' + material.quantity + '</td>';
+                    materialHtml += '<td><button onclick="editMaterial(' + material.id + ')">Edit</button> ';
+                    materialHtml += '<button onclick="deleteMaterial(' + material.id + ')">Delete</button></td>';
+                    materialHtml += '</tr>';
+                });
+                materialHtml += '</table>';
+            });
             $('#materialList').html(materialHtml);
         }
     });
 }
 
 
-// Blueprint Parser from game data
+
+// Blueprint and Invention Parser from game data
 $('#blueprintParseForm').submit(function(e) {
     e.preventDefault();
 
-    var rawMaterialText = $('#blueprintParseData').val();  // Get the raw text
+    var rawMaterialText = $('#blueprintParseData').val();
+    var rawInventionText = $('#blueprintParseInventionData').val();
+    var lines = rawMaterialText.split('\n');
+    var blueprintName = lines[0].split('\t')[0].replace(' Blueprint', '');
+    var sellPrice = parseFloat($('#blueprintParseSellPrice').val()) || 0;
+    var makeCost = parseFloat($('#blueprintParseMakeCost').val()) || 0;
+    var inventionChance = parseFloat($('#blueprintParseInventionChance').val())/100 || null;
+    var tier = $('#blueprintParseTier').val();
+    var runs = $('#blueprintParseRunsPerCopy').val();
+
+    var inventionChanceField = $('#blueprintParseInventionChance');
+
+    if (tier === 'T2' && (!inventionChance || isNaN(parseFloat(inventionChance)))) {
+        inventionChance = 1;
+        inventionChanceField.val(100); // Update the field visually too
+    }
+
+    
+
     var blueprintData = {
-        name: $('#blueprintParseName').val(),
-        materials: rawMaterialText,  // Send the raw text
-        sell_price: parseFloat($('#blueprintParseSellPrice').val()),
-        material_cost: parseFloat($('#blueprintParseMakeCost').val())
+        name: blueprintName,
+        materials: rawMaterialText,
+        invention_materials: rawInventionText,
+        sell_price: sellPrice,
+        material_cost: makeCost,
+        invention_chance: inventionChance,
+        tier: tier,
+        runs_per_copy: runs
     };
 
     $.ajax({
@@ -388,6 +547,7 @@ $('#blueprintParseForm').submit(function(e) {
             alert('Blueprint added successfully');
             loadBlueprints();
             $('#blueprintParseForm')[0].reset();
+            $('#blueprintParseTier').trigger('change');
         },
         error: function(xhr, status, error) {
             console.error("Error submitting blueprint:", error);
@@ -395,6 +555,50 @@ $('#blueprintParseForm').submit(function(e) {
         }
     });
 });
+
+
+// Blueprint Parser from ISK per hour
+$('#iskHourParseForm').submit(function(e) {
+    e.preventDefault();
+
+    var rawText = $('#iskHourParseData').val();
+    var sellPrice = parseFloat($('#iskHourSellPrice').val());
+    var makeCost = parseFloat($('#iskHourMakeCost').val());
+
+    // Extract blueprint name from the first line
+    // Example: "Component Material List for 1 Units of 'Coherent Asteroid Mining Crystal Type B II Blueprint' (ME: 2)"
+    var lines = rawText.split('\n');
+    var nameMatch = lines[0].match(/['"]?([^'"]+) Blueprint['"]?/i);
+    var blueprintName = nameMatch ? nameMatch[1] : "Unknown Blueprint";
+
+    // Send to backend for parsing and dependency expansion
+    var blueprintData = {
+        name: blueprintName,
+        materials: rawText, // Send raw text for backend parsing
+        sell_price: sellPrice,
+        material_cost: makeCost
+    };
+
+    $.ajax({
+        url: '/blueprint',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(blueprintData),
+        success: function(response) {
+            alert(response.message || 'Blueprint added successfully');
+            loadBlueprints();
+            $('#iskHourParseForm')[0].reset();
+            if (response.dependencies_needed && response.dependencies_needed.length > 0) {
+                alert("You need to manufacture the following components:\n" + response.dependencies_needed.join('\n'));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error submitting blueprint:", error);
+            alert('Error adding blueprint: ' + error);
+        }
+    });
+});
+
 
 // Handles the form submission for updating materials from the game parser
 $('#availableMaterialsForm').submit(function(e) {
@@ -446,36 +650,58 @@ $('#availableMaterialsForm').submit(function(e) {
  * 
  * @param {number} id The ID of the blueprint to edit.
  */
- function editBlueprint(id) {
-  $.ajax({
-    url: '/blueprint/' + id,
-    method: 'GET',
-    success: function(blueprint) {
-      $('#editBlueprintId').val(blueprint.id);
-      $('#editBlueprintName').val(blueprint.name);
-      $('#editBlueprintSellPrice').val(blueprint.sell_price);
-      $('#editBlueprintMaterials').empty();
+function editBlueprint(id) {
+    $.ajax({
+        url: '/blueprint/' + id,
+        method: 'GET',
+        success: function(blueprint) {
+        $('#editBlueprintId').val(blueprint.id);
+        $('#editBlueprintName').val(blueprint.name);
+        $('#editBlueprintSellPrice').val(blueprint.sell_price);
+        $('#editBlueprintMaterials').empty();
+        $('#editBlueprintCost').val(blueprint.material_cost);
 
-      // Handle nested materials (Minerals, Items, Components)
-      for (var section in blueprint.materials) {
-        if (blueprint.materials.hasOwnProperty(section)) {
-          var sectionMaterials = blueprint.materials[section];
-          for (var material in sectionMaterials) {
-            if (sectionMaterials.hasOwnProperty(material)) {
-              addEditBlueprintMaterial(section, material, sectionMaterials[material]);
-            }
-          }
+        // Set tier
+        $('#editBlueprintTier').val(blueprint.tier || 'T1');
+        if (blueprint.tier === 'T2') {
+            $('#inventionChanceGroup').show();
+            $('#editBlueprintInventionChance').val(blueprint.invention_chance ? (blueprint.invention_chance * 100) : '');
+        } else {
+            $('#inventionChanceGroup').hide();
+            $('#editBlueprintInventionChance').val('');
         }
-      }
 
-      $('#editBlueprintModal').show();
-    },
-    error: function(xhr, status, error) {
-      console.error("Error fetching blueprint:", error);
-      alert('Error fetching blueprint details.');
-    }
-  });
+        // Handle nested materials
+        for (var section in blueprint.materials) {
+            if (blueprint.materials.hasOwnProperty(section)) {
+            var sectionMaterials = blueprint.materials[section];
+            for (var material in sectionMaterials) {
+                if (sectionMaterials.hasOwnProperty(material)) {
+                addEditBlueprintMaterial(section, material, sectionMaterials[material]);
+                }
+            }
+            }
+        }
+
+        $('#editBlueprintModal').show();
+        },
+        error: function(xhr, status, error) {
+        console.error("Error fetching blueprint:", error);
+        alert('Error fetching blueprint details.');
+        }
+    });
 }
+
+// Show/hide invention chance field on tier change
+$('#editBlueprintTier').on('change', function() {
+if ($(this).val() === 'T2') {
+    $('#inventionChanceGroup').show();
+} else {
+    $('#inventionChanceGroup').hide();
+    $('#editBlueprintInventionChance').val('');
+}
+});
+
 
 function addEditBlueprintMaterial(section = 'Minerals', name = '', quantity = '') {
   var newMaterial = `
@@ -484,6 +710,7 @@ function addEditBlueprintMaterial(section = 'Minerals', name = '', quantity = ''
         <option value="Minerals" ${section === 'Minerals' ? 'selected' : ''}>Minerals</option>
         <option value="Items" ${section === 'Items' ? 'selected' : ''}>Items</option>
         <option value="Components" ${section === 'Components' ? 'selected' : ''}>Components</option>
+        <option value="Invention Materials" ${section === 'Invention Materials' ? 'selected' : ''}>Invention Materials</option>
       </select>
       <input type="text" class="editMaterialName" placeholder="Material Name" value="${name}" required>
       <input type="number" class="editMaterialQuantity" placeholder="Quantity" value="${quantity}" required>
@@ -494,15 +721,28 @@ function addEditBlueprintMaterial(section = 'Minerals', name = '', quantity = ''
   $('#editBlueprintMaterials').append(newMaterial);
 }
 
+// Handles the form submission for updating a blueprint
 $('#editBlueprintForm').submit(function(e) {
   e.preventDefault();
 
   var id = $('#editBlueprintId').val();
   var name = $('#editBlueprintName').val();
   var sell_price = parseFloat($('#editBlueprintSellPrice').val());
-  var materials = { Minerals: {}, Items: {}, Components: {} };
+  var materials = { Minerals: {}, Items: {}, Components: {}};
+  var material_cost = parseFloat($('#editBlueprintCost').val());
+  var blueprintTier = $('#editBlueprintTier').val();
+  
+  
 
-  // Collect materials
+  if (blueprintTier === 'T2') {
+    materials['Invention Materials'] = {};
+    var inventionChanceValue = parseFloat($('#editBlueprintInventionChance').val());
+    var true_invention_chance = inventionChanceValue ? inventionChanceValue / 100 : null;
+    var runs_per_copy = parseInt($('#editBlueprintRunsPerCopy').val());
+  }
+  
+
+  // Collect material inputs
   $('#editBlueprintMaterials .material-input').each(function() {
     var section = $(this).find('.editMaterialSection').val();
     var materialName = $(this).find('.editMaterialName').val();
@@ -520,11 +760,16 @@ $('#editBlueprintForm').submit(function(e) {
     }
   }
 
+  // Create the blueprintData object
   var blueprintData = {
     id: id,
     name: name,
     sell_price: sell_price,
-    materials: materials
+    materials: materials,
+    material_cost: material_cost,
+    blueprint_tier: blueprintTier,
+    invention_chance: true_invention_chance,
+    runs_per_copy: runs_per_copy
   };
 
   $.ajax({
@@ -673,6 +918,8 @@ function optimize() {
         method: 'GET',
         success: function(response) {
             var resultsHtml = '<h3>Optimization Results</h3>';
+
+             // Profit summary
             var formattedProfit = response.total_profit.toLocaleString('en-US', {maximumFractionDigits: 2});
             var trueProfit = response.true_profit.toLocaleString('en-US', {maximumFractionDigits: 2});
             var profitInWords = numberToWords(response.total_profit);
@@ -682,6 +929,16 @@ function optimize() {
             resultsHtml += '<p>Total Profit: ' + formattedProfit + ' (' + profitInWords + ') ISK</p>';
             resultsHtml += '<p>True Profit (after material costs): ' + trueProfit + ' (' + trueProfitInWords + ') ISK</p>';
             resultsHtml += '<p>True Profit Percentage: ' + trueProfitPercentage + '%</p>';
+
+            // Show required component dependencies with quantities
+            if (response.dependencies_needed && Object.keys(response.dependencies_needed).length > 0) {
+                resultsHtml += '<h4>Required Component Production:</h4>';
+                resultsHtml += '<table><tr><th>Component</th><th>Quantity Needed</th></tr>';
+                for (var dep in response.dependencies_needed) {
+                    resultsHtml += '<tr><td>' + dep + '</td><td>' + response.dependencies_needed[dep] + '</td></tr>';
+                }
+                resultsHtml += '</table>';
+            }
 
             // Production Plan
             resultsHtml += '<h4>Production Plan:</h4>';
@@ -698,6 +955,7 @@ function optimize() {
                 'Minerals': {},
                 'Components': {},
                 'Items': {},
+                'Invention Materials': {},
                 'Other': {}
             };
 
@@ -706,18 +964,14 @@ function optimize() {
 
             // Group materials by category
             for (var material in response.material_usage) {
+                var usage = response.material_usage[material];
+                var category = usage.category;
                 if (knownMinerals.includes(material)) {
-                    categorizedMaterials['Minerals'][material] = response.material_usage[material];
-                } else {
-                    var category = response.material_usage[material].category;
-                    if (category === 'Minerals') {
-                        category = 'Other'; // Override server categorization for non-hardcoded minerals
-                    }
-                    if (!categorizedMaterials[category]) {
-                        categorizedMaterials[category] = {};
-                    }
-                    categorizedMaterials[category][material] = response.material_usage[material];
+                    category = 'Minerals';
+                } else if (!categorizedMaterials[category]) {
+                    category = 'Other';
                 }
+                categorizedMaterials[category][material] = usage;
             }
 
             // Create tables for each category
@@ -746,13 +1000,18 @@ function optimize() {
                     bottlenecks.push({name: material, percentage: usagePercentage});
                 }
             }
-            bottlenecks.sort((a, b) => b.percentage - a.percentage);
+            bottlenecks.sort(function(a, b) { return b.percentage - a.percentage; });
             bottlenecks.forEach(function(bottleneck) {
                 resultsHtml += '<li>' + bottleneck.name + ' (' + bottleneck.percentage.toFixed(2) + '% used)</li>';
             });
             resultsHtml += '</ul>';
 
+            // Display results
             $('#results').html(resultsHtml);
+
+            //Reload materials and blueprints
+            loadMaterials();
+            loadBlueprints();
         },
         error: function(xhr, status, error) {
             console.error("Error optimizing:", xhr.responseText);
