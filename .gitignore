@@ -149,3 +149,5 @@ ManuOptimizer/dist/run/_internal/gurobipy/_matrixapi.cp313-win_amd64.pyd
 ManuOptimizer/dist/run/_internal/gurobipy/_model.cp313-win_amd64.pyd
 ManuOptimizer/dist/run/_internal/gurobipy/gurobi120.dll
 ManuOptimizer/dist/run/_internal/pulp/solverdir/cbc/win/64/cbc.exe
+/ManuOptimizer/instances
+/ManuOptimizer/migrations
