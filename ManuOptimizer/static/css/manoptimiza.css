@@ -1,0 +1,616 @@
+/* === Reset and Base Styles === */
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: #141a22;
+    color: #e3eaf7;
+    min-height: 100vh;
+  }
+  
+  /* === Headings === */
+  h1, h2, h3 {
+    color: #5eb6ff;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 2.4em;
+    margin: 36px 0 18px 0;
+  }
+  h2 {
+    font-size: 1.4em;
+    margin: 36px 0 18px 0;
+  }
+  h3 {
+    font-size: 1.1em;
+    margin: 24px 0 12px 0;
+  }
+  
+  /* === Links === */
+  a {
+    color: #5eb6ff;
+    text-decoration: none;
+    transition: color 0.18s;
+  }
+  a:hover {
+    color: #79c7ff;
+    text-decoration: underline;
+  }
+  
+  /* === Section Card Styling === */
+  .section {
+    background: #1b2230;
+    padding: 28px 24px;
+    border-radius: 14px;
+    margin: 36px 0;
+    box-shadow: 0 2px 16px 0 rgba(30,60,120,0.10);
+  }
+  
+  /* === Form Styling === */
+  form {
+    background: #182136;
+    padding: 22px 20px;
+    border-radius: 10px;
+    margin-bottom: 32px;
+    box-shadow: 0 1px 8px 0 rgba(30,60,120,0.10);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  
+  form label {
+    font-weight: 600;
+    color: #5eb6ff;
+    margin-bottom: 6px;
+    display: block;
+    letter-spacing: 0.5px;
+  }
+  
+  form input[type="text"],
+  form input[type="number"],
+  form textarea,
+  form select {
+    width: 100%;
+    padding: 11px 14px;
+    background: #232f44;
+    color: #e3eaf7;
+    border: 1.5px solid #365b8c;
+    border-radius: 7px;
+    font-size: 1em;
+    margin-bottom: 2px;
+    transition: border 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+  
+  form input[type="text"]:focus,
+  form input[type="number"]:focus,
+  form textarea:focus,
+  form select:focus {
+    border: 1.5px solid #5eb6ff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(94,182,255,0.12);
+  }
+  
+  form textarea {
+    min-height: 90px;
+    resize: vertical;
+  }
+  
+  form button,
+  button,
+  .center-button {
+    background: linear-gradient(90deg, #5eb6ff 0%, #3a7bd5 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+    margin-bottom: 0;
+    box-shadow: 0 1px 6px 0 rgba(30,60,120,0.13);
+    transition: background 0.18s, transform 0.12s;
+  }
+  
+  form button:hover,
+  button:hover,
+  .center-button:hover {
+    background: linear-gradient(90deg, #79c7ff 0%, #5eb6ff 100%);
+    transform: translateY(-2px) scale(1.04);
+}
+/* Modern number input for Max */
+input.blueprint-max {
+  background: #232f44;
+  color: #e3eaf7;
+  border: 1.5px solid #5eb6ff;
+  border-radius: 7px;
+  padding: 8px 0;
+  text-align: center;
+  font-size: 1.08em;
+  width: 70px;
+  outline: none;
+  box-shadow: 0 1px 4px 0 rgba(94,182,255,0.10);
+  transition: border 0.18s, box-shadow 0.18s;
+  margin: 0 auto;
+  display: block;
+}
+
+/* On focus: highlight and glow */
+input.blueprint-max:focus {
+  border: 1.5px solid #79c7ff;
+  box-shadow: 0 0 0 2px rgba(94,182,255,0.13);
+}
+
+/* Remove ugly default spinner for Chrome/Safari */
+input[type=number].blueprint-max::-webkit-inner-spin-button,
+input[type=number].blueprint-max::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+  
+  .center-button {
+    display: block;
+    margin: 32px auto 18px auto;
+    min-width: 200px;
+  }
+  
+  /* === Material Input Row === */
+  .material-input {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    align-items: center;
+    margin-bottom: 8px;
+    background: #202a3b;
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+  
+  .material-input hr {
+    width: 100%;
+    border: none;
+    border-top: 1px solid #2e3c43;
+    margin: 8px 0 0 0;
+  }
+  
+  #materialList h3 {
+    color: #5eb6ff;
+    margin-top: 24px;
+    margin-bottom: 8px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+  /* === Table Styling === */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 22px;
+    background: #182136;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px 0 rgba(30,60,120,0.10);
+  }
+  
+  th, td {
+    border: 1px solid #2e3c43;
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 1em;
+  }
+  
+  th {
+    background: linear-gradient(90deg, #274b6d 0%, #365b8c 100%);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  
+  tr:nth-child(even) { background: #202b3a; }
+  tr:nth-child(odd)  { background: #182136; }
+  tr:hover           { background: #22304a; transition: background 0.15s; }
+  
+  /* === Blueprint Action Buttons === */
+  .blueprint-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    align-items: stretch;
+  }
+  .blueprint-actions button {
+    width: 100%;
+    min-width: 80px;
+    padding: 7px 0;
+    font-size: 0.98em;
+    border-radius: 7px;
+    margin: 0;
+  }
+  
+  /* === Modal Styling === */
+  #editBlueprintModal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    overflow: auto;
+    background-color: rgba(20, 30, 50, 0.78);
+    animation: fadeIn 0.2s;
+  }
+  #editBlueprintModal .modal-content {
+    background: #1b2230;
+    margin: 60px auto;
+    padding: 32px 38px;
+    border-radius: 14px;
+    border: 1.5px solid #365b8c;
+    width: 94%;
+    max-width: 540px;
+    box-shadow: 0 4px 24px 0 rgba(30,60,120,0.18);
+    color: #e3eaf7;
+  }
+  #editBlueprintModal h2 {
+    color: #5eb6ff;
+    margin-top: 0;
+    margin-bottom: 18px;
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 22px;
+  }
+  .modal-actions button {
+    min-width: 120px;
+    padding: 10px 0;
+    font-size: 1em;
+    border-radius: 8px;
+  }
+  
+  /* === Results and Lists === */
+  #results, #materialList, #blueprintList {
+    margin-top: 18px;
+    background: #1b2230;
+    border-radius: 12px;
+    padding: 18px 22px;
+    box-shadow: 0 1px 8px 0 rgba(30,60,120,0.10);
+    min-height: 40px;
+  }
+  
+  /* === Miscellaneous === */
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  ul > li > strong {
+    color: #5eb6ff;
+  }
+  .materials-heading {
+    color: #5eb6ff;
+    font-weight: 700;
+    margin-top: 24px;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #365b8c;
+    padding-bottom: 4px;
+    letter-spacing: 1px;
+    font-size: 1.2em;
+    text-align: center;
+    width: 100%;
+  }
+  .bold-label {
+    font-weight: 700;
+    color: #5eb6ff;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    display: inline-block;
+    font-size: 1.09em;
+  }
+  
+  /* === Animations === */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  
+  /* === Responsive Design === */
+  @media (max-width: 900px) {
+    .section {
+      padding: 18px 4vw;
+    }
+    form, table, #editBlueprintModal .modal-content {
+      padding: 12px 2vw;
+    }
+    th, td {
+      padding: 8px 4px;
+      font-size: 0.97em;
+    }
+    .material-input {
+      flex-direction: column;
+      gap: 7px;
+    }
+    #editBlueprintModal .modal-content {
+      max-width: 99vw;
+    }
+  }
+  @media (max-width: 600px) {
+    h1 { font-size: 1.4em; }
+    h2 { font-size: 1.1em; }
+    .section { padding: 10px 2vw; }
+    form { padding: 8px 1vw; }
+    .material-input { padding: 7px 4px; }
+  }
+  
+/* === Blueprint Tier Sections === */
+.blueprint-section.t1 {
+  border-left: 8px solid #5eb6ff;   /* Light blue */
+  background: #1a253a;
+  box-shadow: 0 4px 20px 0 rgba(30,96,200,0.10);
+  margin-bottom: 38px;
+  border-radius: 12px;
+  padding: 20px 14px 28px 14px;
+  transition: box-shadow 0.2s;
+}
+
+.blueprint-section.t2 {
+  border-left: 8px solid #ff9800;   /* Orange */
+  background: #2d1e13;
+  box-shadow: 0 4px 20px 0 rgba(200,120,30,0.13);
+  margin-bottom: 38px;
+  border-radius: 12px;
+  padding: 20px 14px 28px 14px;
+  transition: box-shadow 0.2s;
+}
+
+/* Headings for each tier */
+.blueprint-section.t1 h3 {
+  color: #5eb6ff;
+  text-shadow: 0 2px 8px #1a233a88;
+  letter-spacing: 1.2px;
+  font-size: 1.18em;
+}
+.blueprint-section.t2 h3 {
+  color: #ff9800;
+  text-shadow: 0 2px 8px #2d1e1388;
+  letter-spacing: 1.2px;
+  font-size: 1.18em;
+}
+
+/* Table containers */
+.blueprint-section.t1 .blueprint-table,
+.blueprint-section.t2 .blueprint-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px 0 rgba(30,60,120,0.10);
+}
+
+/* Table headers for each tier */
+.blueprint-section.t1 th {
+  background: linear-gradient(90deg, #274b6d 0%, #5eb6ff 100%);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #5eb6ff;
+}
+.blueprint-section.t2 th {
+  background: linear-gradient(90deg, #b45f04 0%, #ff9800 100%);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #ff9800;
+}
+
+/* Table rows and cells */
+.blueprint-section.t1 td,
+.blueprint-section.t1 th {
+  border: 1px solid #3e5a7c;
+  background: #18233a;
+}
+.blueprint-section.t2 td,
+.blueprint-section.t2 th {
+  border: 1px solid #b45f04;
+  background: #2d1e13;
+}
+
+/* Alternate row backgrounds for clarity */
+.blueprint-section.t1 tr:nth-child(even) { background: #22304a; }
+.blueprint-section.t1 tr:nth-child(odd)  { background: #18233a; }
+.blueprint-section.t2 tr:nth-child(even) { background: #3a2718; }
+.blueprint-section.t2 tr:nth-child(odd)  { background: #2d1e13; }
+
+/* Row hover effect */
+.blueprint-section.t1 tr:hover { background: #29436a; transition: background 0.15s; }
+.blueprint-section.t2 tr:hover { background: #a75e0a; transition: background 0.15s; }
+
+/* Inputs and buttons inside tables */
+.blueprint-section.t1 input.blueprint-max {
+  border: 1.5px solid #5eb6ff;
+  background: #22304a;
+  color: #e3eaf7;
+}
+.blueprint-section.t2 input.blueprint-max {
+  border: 1.5px solid #ff9800;
+  background: #3a2718;
+  color: #fff3e0;
+}
+
+/* Action buttons */
+.blueprint-section.t1 button,
+.blueprint-section.t1 .resetAllMaxButton {
+  background: linear-gradient(90deg, #3a7bd5 0%, #5eb6ff 100%);
+  color: #fff;
+}
+.blueprint-section.t2 button,
+.blueprint-section.t2 .resetAllMaxButton {
+  background: linear-gradient(90deg, #ff9800 0%, #b45f04 100%);
+  color: #fff;
+}
+.blueprint-section.t1 button:hover,
+.blueprint-section.t1 .resetAllMaxButton:hover {
+  background: linear-gradient(90deg, #79c7ff 0%, #5eb6ff 100%);
+  transform: translateY(-2px) scale(1.04);
+}
+.blueprint-section.t2 button:hover,
+.blueprint-section.t2 .resetAllMaxButton:hover {
+  background: linear-gradient(90deg, #ffb74d 0%, #ff9800 100%);
+  transform: translateY(-2px) scale(1.04);
+}
+
+/* Materials list styling */
+.blueprint-section.t1 ul > li > strong {
+  color: #5eb6ff;
+}
+.blueprint-section.t2 ul > li > strong {
+  color: #ff9800;
+}
+
+/* Responsive tweaks */
+@media (max-width: 900px) {
+  .blueprint-section.t1, .blueprint-section.t2 {
+    padding: 10px 2vw;
+  }
+  .blueprint-section.t1 th, .blueprint-section.t2 th,
+  .blueprint-section.t1 td, .blueprint-section.t2 td {
+    padding: 8px 4px;
+    font-size: 0.97em;
+  }
+}
+
+
+/* Tier 1 Table Headers - Light Blue Gradient */
+.blueprint-section.t1 th {
+  background: linear-gradient(135deg, #4a90e2 0%, #5eb6ff 50%, #a0d1ff 100%);
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  border-bottom: 3px solid #3a7bd5;
+  transition: background 0.3s ease;
+}
+
+/* Tier 2 Table Headers - Orange Gradient */
+.blueprint-section.t2 th {
+  background: linear-gradient(135deg, #ffb347 0%, #ff9800 50%, #ffcc80 100%);
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  border-bottom: 3px solid #cc7a00;
+  transition: background 0.3s ease;
+}
+
+/* Optional: Add subtle hover effect on headers */
+.blueprint-section.t1 th:hover {
+  background: linear-gradient(135deg, #5eb6ff 0%, #7fc3ff 50%, #c0e0ff 100%);
+  cursor: default;
+}
+
+.blueprint-section.t2 th:hover {
+  background: linear-gradient(135deg, #ff9800 0%, #ffb347 50%, #ffd699 100%);
+  cursor: default;
+}
+
+
+
+.blueprint-accordion {
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+.accordion-item {
+  margin-bottom: 18px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px 0 rgba(30,60,120,0.13);
+}
+
+.accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.25em;
+  font-weight: 700;
+  padding: 22px 30px;
+  border: none;
+  cursor: pointer;
+  background: none;
+  outline: none;
+  transition: background 0.18s;
+}
+
+.accordion-header .tier-label {
+  font-size: 1.1em;
+  letter-spacing: 1.2px;
+  text-shadow: 0 2px 8px #0003;
+}
+
+.accordion-header .accordion-icon {
+  font-size: 1.3em;
+  transition: transform 0.2s;
+}
+
+.accordion-item.t1 .accordion-header {
+  background: linear-gradient(90deg, #274b6d 0%, #5eb6ff 100%);
+  color: #fff;
+  border-left: 10px solid #5eb6ff;
+}
+.accordion-item.t2 .accordion-header {
+  background: linear-gradient(90deg, #b45f04 0%, #ff9800 100%);
+  color: #fff8e1;
+  border-left: 10px solid #ff9800;
+}
+
+.accordion-item.t1 .tier-label { color: #5eb6ff; }
+.accordion-item.t2 .tier-label { color: #ff9800; }
+
+.accordion-content {
+  background: #1a253a;
+  padding: 0 0 18px 0;
+  transition: max-height 0.3s cubic-bezier(0.4,0,0.2,1), padding 0.2s;
+}
+
+.accordion-item.t2 .accordion-content {
+  background: #2d1e13;
+}
+
+.accordion-header:hover {
+  transform: none !important;
+  background: inherit; /* Or keep your intended background */
+}
+
+
+/* Table styling (reuse your previous CSS for .blueprint-section.t1/.t2) */
+
+/* Rotate icon when collapsed */
+.accordion-header[aria-expanded="false"] .accordion-icon {
+  transform: rotate(-90deg);
+}
+
+
+
+/* Make reset buttons stand out */
+.resetAllMaxButton {
+  margin-top: 18px;
+  margin-bottom: 0;
+  background: linear-gradient(90deg, #3a7bd5 0%, #5eb6ff 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 24px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 6px 0 rgba(30,60,120,0.13);
+  transition: background 0.18s, transform 0.12s;
+}
+.resetAllMaxButton:hover {
+  background: linear-gradient(90deg, #79c7ff 0%, #5eb6ff 100%);
+  transform: translateY(-2px) scale(1.04);
+}
+
+  
