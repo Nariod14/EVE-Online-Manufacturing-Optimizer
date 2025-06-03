@@ -53,6 +53,8 @@ def register_routes(app):
             material_cost = data['material_cost']
             blueprint_tier = data.get('tier', 'T1')
             invention_chance = data.get('invention_chance', None)
+            runs_per_copy = int(data.get('runs_per_copy', 10))
+    
 
             category_lookup = get_material_category_lookup()
             normalized_materials, name, detected_material_cost = parse_blueprint_text(raw_materials_text, category_lookup)
@@ -68,10 +70,12 @@ def register_routes(app):
                     normalized_materials["Invention Materials"].update(invention_materials_dict)
                 # Refined invention cost calculation
                 if invention_chance and invention_chance > 0:
-                    detected_invention_cost = invention_cost / (invention_chance * 10)
+                    detected_invention_cost = invention_cost / (invention_chance * runs_per_copy)
                 else:
                     detected_invention_cost = 0
-                detected_material_cost += detected_invention_cost
+                
+                
+                full_material_cost = detected_material_cost + detected_invention_cost
 
             if material_cost == 0 or material_cost is None:
                 material_cost = detected_material_cost
@@ -83,24 +87,32 @@ def register_routes(app):
                     existing.materials = normalized_materials
                     existing.sell_price = sell_price
                     existing.material_cost = material_cost
-                    existing.invention_chance = invention_chance,
+                    existing.full_material_cost = full_material_cost
+                    existing.invention_chance = invention_chance
+                    existing.invention_cost = invention_cost
                     existing.tier = blueprint_tier
+                    existing.runs_per_copy = runs_per_copy
+                    
                     db.session.commit()
                     return jsonify({"message": "Blueprint updated successfully"}), 200
                 new_blueprint = BlueprintT2(
                     name=name,
                     materials=normalized_materials,
                     sell_price=sell_price,
-                    material_cost=material_cost,
+                    material_cost= material_cost,
+                    full_material_cost=full_material_cost,
                     invention_chance=invention_chance,
-                    tier= blueprint_tier
+                    invention_cost= invention_cost,
+                    tier= blueprint_tier,
+                    runs_per_copy=runs_per_copy
+                    
                 )
             else:
                 existing = Blueprint.query.filter_by(name=name).first()
                 if existing:
                     existing.materials = normalized_materials
                     existing.sell_price = sell_price
-                    existing.material_cost = material_cost,
+                    existing.material_cost = material_cost
                     existing.tier = blueprint_tier
                     db.session.commit()
                     return jsonify({"message": "Blueprint updated successfully"}), 200
@@ -113,10 +125,13 @@ def register_routes(app):
                 )
             db.session.add(new_blueprint)
             db.session.commit()
+            logger.info(f"Blueprint: {name} was added successfully")
             return jsonify({"message": "Blueprint added successfully"}), 201
 
         except Exception as e:
             db.session.rollback()
+            logger.error(f"Error adding blueprint! See the traceback for more info:")
+            logger.error(traceback.format_exc())
             return jsonify({"error": str(e)}), 500
 
 
@@ -180,11 +195,15 @@ def register_routes(app):
                 'materials': blueprint.materials,
                 'sell_price': blueprint.sell_price,
                 'material_cost': blueprint.material_cost,
-                'tier': blueprint.tier
+                'tier': blueprint.tier,
+                'invention_chance': getattr(blueprint, 'invention_chance', None),
+                'invention_cost': getattr(blueprint, 'invention_cost', None)
             }
             # If T2, add invention_chance
             if blueprint.tier == "T2":
                 response['invention_chance'] = getattr(blueprint, 'invention_chance', None)
+                response['invention_cost'] = getattr(blueprint, 'invention_cost', None)
+                response['full_material_cost'] = getattr(blueprint, 'full_material_cost', None)
             return jsonify(response), 200
         except Exception as e:
             logger.error(f"Error getting blueprint! See the traceback for more info:")
@@ -213,6 +232,8 @@ def register_routes(app):
                 }
                 if b.tier == "T2":
                     bp_dict["invention_chance"] = getattr(b, "invention_chance", None)
+                    bp_dict["invention_cost"] = getattr(b, "invention_cost", None)
+                    bp_dict["full_material_cost"] = getattr(b, "full_material_cost", None)
                 response.append(bp_dict)
             return jsonify(response), 200
         except Exception as e:
@@ -315,17 +336,34 @@ def register_routes(app):
         try:
             blueprint = Blueprint.query.get_or_404(id)
             data = request.json
+
             blueprint.name = data.get('name', blueprint.name)
             blueprint.materials = data.get('materials', blueprint.materials)
             blueprint.sell_price = data.get('sell_price', blueprint.sell_price)
             blueprint.material_cost = data.get('material_cost', blueprint.material_cost)
             blueprint.max = data.get('max', blueprint.max)
             blueprint.tier = data.get('tier', blueprint.tier)
-            # Only set invention_chance if blueprint is T2
+            blueprint.runs_per_copy = data.get('runs_per_copy', 10)
+
             if blueprint.tier == 'T2':
-                blueprint.invention_chance = data.get('invention_chance', blueprint.invention_chance)
+                # Always update invention_chance and invention_cost if provided
+                if 'invention_chance' in data and data['invention_chance'] is not None:
+                    blueprint.invention_chance = data['invention_chance']
+                if 'invention_cost' in data and data['invention_cost'] is not None:
+                    blueprint.invention_cost = data['invention_cost']
+
+                # Always recalculate material_cost to include the new invention cost per run
+                base_material_cost = data.get('material_cost', blueprint.material_cost)
+                if blueprint.invention_chance and blueprint.invention_cost:
+                    invention_cost_per_run = blueprint.invention_cost / (blueprint.invention_chance * blueprint.runs_per_copy)
+                    blueprint.full_material_cost = base_material_cost + invention_cost_per_run
+                else:
+                    blueprint.material_cost = base_material_cost
             else:
                 blueprint.invention_chance = None
+                blueprint.invention_cost = None
+
+
             db.session.commit()
             logger.info("Blueprint updated successfully")
             return jsonify({'message': 'Blueprint updated successfully'}), 200
@@ -334,6 +372,7 @@ def register_routes(app):
             logger.error(f"Error updating blueprint! See the traceback for more info:")
             logger.error(traceback.format_exc())
             return jsonify({"ERROR": "An error occurred while updating the blueprint"}), 500
+
 
     
     @app.route('/blueprints/reset_max', methods=['POST'])
@@ -404,22 +443,6 @@ def register_routes(app):
             if not blueprints or not materials:
                 return jsonify({"status": "No optimal solution found"}), 400
 
-            # --- Helper: Recursively expand all materials for a blueprint ---
-            def expand_materials(bp):
-                expanded = defaultdict(int)
-                for section in bp.materials.values():
-                    for mat, qty in section.items():
-                        sub_bp = next((b for b in blueprints if b.name == mat), None)
-                        if sub_bp:
-                            sub_mats = expand_materials(sub_bp)
-                            for sm, sq in sub_mats.items():
-                                expanded[sm] += sq * qty
-                            # Count the dependency itself (for tracking how many of this component are needed)
-                            expanded[mat] += qty
-                        else:
-                            expanded[mat] += qty
-                return expanded
-
             # --- Collect all unique materials and their categories ---
             all_materials = set()
             material_categories = {}
@@ -451,27 +474,14 @@ def register_routes(app):
 
             # --- Material constraints using expanded dependencies ---
             all_required_materials = defaultdict(lambda: 0)
+            t1_dependencies = defaultdict(float)
             for b in blueprints:
-                expanded = expand_materials(b)
+                expanded = expand_materials(b, blueprints, quantity=1, t1_dependencies=t1_dependencies)
                 for mat, qty in expanded.items():
                     all_required_materials[mat] += qty * x[b.name]
 
             for mat, quantity in materials.items():
                 prob += all_required_materials[mat] <= quantity
-
-            # --- Helper: Get material quantity from blueprint (for reporting) ---
-            def get_material_quantity(blueprint, material_name):
-                if isinstance(blueprint.materials, dict):
-                    quantity = 0
-                    for sub_category in blueprint.materials.values():
-                        if isinstance(sub_category, dict):
-                            quantity += sub_category.get(material_name, 0)
-                    return quantity
-                return blueprint.materials.get(material_name, 0)
-
-            # --- Material constraints (legacy, can be removed if using expanded only) ---
-            # for material_name, quantity in materials.items():
-            #     prob += lpSum(get_material_quantity(b, material_name) * x[b.name] for b in blueprints) <= quantity
 
             # --- Max constraints for blueprints ---
             for b in blueprints:
@@ -483,17 +493,24 @@ def register_routes(app):
             logger.info("Optimization Status: %s", LpStatus[prob.status])
 
             if LpStatus[prob.status] == 'Optimal':
-                # --- Calculate dependency quantities ---
-                dependency_quantities = defaultdict(int)
-                blueprint_names = {bp.name for bp in blueprints}
+                dependencies_needed = defaultdict(float)
                 for b in blueprints:
                     n_to_produce = int(value(x[b.name]) or 0)
                     if n_to_produce == 0:
                         continue
-                    expanded = expand_materials(b)
-                    for mat, qty in expanded.items():
-                        if mat in blueprint_names:
-                            dependency_quantities[mat] += qty * n_to_produce
+                    t1_deps = defaultdict(float)
+                    expand_materials(b, blueprints, quantity=n_to_produce, t1_dependencies=t1_deps)
+                    for t1_name, qty in t1_deps.items():
+                        dependencies_needed[t1_name] += qty
+
+                def get_material_quantity(blueprint, material_name):
+                    if isinstance(blueprint.materials, dict):
+                        quantity = 0
+                        for sub_category in blueprint.materials.values():
+                            if isinstance(sub_category, dict):
+                                quantity += sub_category.get(material_name, 0)
+                        return quantity
+                    return blueprint.materials.get(material_name, 0)
 
                 results = {
                     "status": "Optimal",
@@ -507,7 +524,7 @@ def register_routes(app):
                         } for m_name, m_qty in materials.items()
                     },
                     "true_profit": sum((b.sell_price - b.material_cost) * value(x[b.name]) for b in blueprints),
-                    "dependencies_needed": dict(dependency_quantities)  # <-- {name: qty}
+                    "dependencies_needed": {k: int(v) for k, v in dependencies_needed.items() if v > 0}
                 }
                 logger.info("Optimization completed successfully")
                 logger.info("Results: %s", results)
@@ -526,7 +543,31 @@ def register_routes(app):
             logger.error(traceback.format_exc())
             return jsonify({"error": "An error occurred during optimization"}), 500
 
-
+    # --- Helper: Recursively expand all materials for a blueprint ---
+def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None):
+    expanded = defaultdict(float)
+    for section_name, section in bp.materials.items():
+        for mat, qty in section.items():
+            sub_bp = next((b for b in blueprints if b.name == mat), None)
+            if section_name == "Invention Materials" and hasattr(bp, "invention_chance") and bp.invention_chance and hasattr(bp, "runs_per_copy") and bp.runs_per_copy:
+                attempts_needed = quantity / (bp.runs_per_copy * bp.invention_chance)
+                expanded[mat] += qty * attempts_needed
+            elif sub_bp:
+                if getattr(sub_bp, "tier", "T1") == "T1":
+                    # Log T1 dependency
+                    if t1_dependencies is not None:
+                        t1_dependencies[mat] = t1_dependencies.get(mat, 0) + qty * quantity
+                    sub_mats = expand_materials(sub_bp, blueprints, qty * quantity, t1_dependencies)
+                    for sm, sq in sub_mats.items():
+                        expanded[sm] += sq
+                else:
+                    sub_mats = expand_materials(sub_bp, blueprints, qty * quantity, t1_dependencies)
+                    for sm, sq in sub_mats.items():
+                        expanded[sm] += sq
+                    expanded[mat] += qty * quantity
+            else:
+                expanded[mat] += qty * quantity
+    return expanded
 
 
 

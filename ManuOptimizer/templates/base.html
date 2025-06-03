@@ -78,11 +78,12 @@ $('#blueprintParseTier').on('change', function() {
     if ($(this).val() === 'T2') {
         $('#inventionFields').show();
         $('#blueprintParseInventionData').prop('required', true);
-        $('#inventionChance').prop('required', true);
+        $('#blueprintParseInventionChance').prop('required', true);
     } else {
         $('#inventionFields').hide();
         $('#blueprintParseInventionData').prop('required', false);
-        $('#inventionChance').prop('required', false);
+        $('#blueprintParseInventionChance').prop('required', false);
+        $('#blueprintParseInventionChance').val(''); // Optionally clear the field for T1
     }
 });
 
@@ -99,7 +100,8 @@ $('.materialSection').on('change', function() {
     }
 });
 
-// Handle form submission for adding a blueprint
+// Handle form submission for adding a blueprint manually
+//TODO: update this to parser levels
 $('#blueprintForm').submit(function(e) {
     e.preventDefault();
 
@@ -300,14 +302,14 @@ $(document).ready(function() {
                 blueprints.forEach(function(blueprint) {
                     var sellPrice = blueprint.sell_price;
                     var formattedSell = sellPrice.toLocaleString() + ' | (' + numberToWords(sellPrice) + ') isk';
-                    var materialCost = Math.round(blueprint.material_cost);
-                    var formattedCost = materialCost.toLocaleString() + ' | (' + numberToWords(materialCost) + ') isk';
-                    var profit = sellPrice - materialCost;
-                    var profitPercentage = (profit / materialCost) * 100;
+                    var fullMaterialCost = Math.round(blueprint.full_material_cost);
+                    var formattedCost = fullMaterialCost.toLocaleString() + ' | (' + numberToWords(fullMaterialCost) + ') isk';
+                    var profit = sellPrice - fullMaterialCost;
+                    var profitPercentage = (profit / fullMaterialCost) * 100;
                     var formattedProfit = profitPercentage.toFixed(2) + '%';
                     html += `<tr>
                         <td>${blueprint.name}</td>
-                        <td>${blueprint.invention_chance ? blueprint.invention_chance.toFixed(1) + '%' : '-'}</td>
+                        <td>${blueprint.invention_chance ? (blueprint.invention_chance * 100).toFixed(1) + '%' : '-'}</td>
                         <td>${formattedSell}</td>
                         <td>${formattedCost}</td>
                         <td>
@@ -512,8 +514,18 @@ $('#blueprintParseForm').submit(function(e) {
     var blueprintName = lines[0].split('\t')[0].replace(' Blueprint', '');
     var sellPrice = parseFloat($('#blueprintParseSellPrice').val()) || 0;
     var makeCost = parseFloat($('#blueprintParseMakeCost').val()) || 0;
-    var inventionChance = parseFloat($('#blueprintParseInventionChance').val()) || null;
+    var inventionChance = parseFloat($('#blueprintParseInventionChance').val())/100 || null;
     var tier = $('#blueprintParseTier').val();
+    var runs = $('#blueprintParseRunsPerCopy').val();
+
+    var inventionChanceField = $('#blueprintParseInventionChance');
+
+    if (tier === 'T2' && (!inventionChance || isNaN(parseFloat(inventionChance)))) {
+        inventionChance = 1;
+        inventionChanceField.val(100); // Update the field visually too
+    }
+
+    
 
     var blueprintData = {
         name: blueprintName,
@@ -522,7 +534,8 @@ $('#blueprintParseForm').submit(function(e) {
         sell_price: sellPrice,
         material_cost: makeCost,
         invention_chance: inventionChance,
-        tier: tier
+        tier: tier,
+        runs_per_copy: runs
     };
 
     $.ajax({
@@ -534,6 +547,7 @@ $('#blueprintParseForm').submit(function(e) {
             alert('Blueprint added successfully');
             loadBlueprints();
             $('#blueprintParseForm')[0].reset();
+            $('#blueprintParseTier').trigger('change');
         },
         error: function(xhr, status, error) {
             console.error("Error submitting blueprint:", error);
@@ -717,13 +731,14 @@ $('#editBlueprintForm').submit(function(e) {
   var materials = { Minerals: {}, Items: {}, Components: {}};
   var material_cost = parseFloat($('#editBlueprintCost').val());
   var blueprintTier = $('#editBlueprintTier').val();
-  var inventionChance = null;
+  
   
 
   if (blueprintTier === 'T2') {
     materials['Invention Materials'] = {};
     var inventionChanceValue = parseFloat($('#editBlueprintInventionChance').val());
     var true_invention_chance = inventionChanceValue ? inventionChanceValue / 100 : null;
+    var runs_per_copy = parseInt($('#editBlueprintRunsPerCopy').val());
   }
   
 
@@ -752,8 +767,9 @@ $('#editBlueprintForm').submit(function(e) {
     sell_price: sell_price,
     materials: materials,
     material_cost: material_cost,
-    blueprintTier: blueprintTier,
-    inventionChance: inventionChance
+    blueprint_tier: blueprintTier,
+    invention_chance: true_invention_chance,
+    runs_per_copy: runs_per_copy
   };
 
   $.ajax({

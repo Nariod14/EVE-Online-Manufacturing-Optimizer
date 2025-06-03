@@ -19,6 +19,9 @@ class BlueprintT2(Blueprint):
     __tablename__ = 'blueprint_t2'
     id = db.Column(db.Integer, db.ForeignKey('blueprint.id'), primary_key=True)
     invention_chance = db.Column(db.Float, nullable=False)
+    invention_cost = db.Column(db.Float, nullable=False, server_default="0")
+    full_material_cost = db.Column(db.Float, nullable=False, server_default="0")
+    runs_per_copy = db.Column(db.Integer, nullable=False, server_default="10")
     __mapper_args__ = {
         "polymorphic_identity": "T2",
     }
