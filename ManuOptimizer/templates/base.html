@@ -133,7 +133,7 @@ $('#blueprintForm').submit(function(e) {
     };
 
     $.ajax({
-        url: '/blueprint/manual',
+        url: '/api/blueprints/blueprint/manual',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(blueprintData),
@@ -175,7 +175,7 @@ $(document).ready(function() {
         };
 
         $.ajax({
-            url: '/material',
+            url: ' /api/materials/material',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(materialData),
@@ -206,7 +206,7 @@ $(document).ready(function() {
  */
  function loadBlueprints() {
     $.ajax({
-        url: '/blueprints',
+        url: '/api/blueprints/blueprints',
         method: 'GET',
         success: function(response) {
             // Separate blueprints by tier
@@ -414,7 +414,7 @@ $(document).ready(function() {
  */
 function resetBlueprintMax(id) {
     $.ajax({
-        url: `/blueprint/${id}`,
+        url: `/api/blueprints/blueprint/${id}`,
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify({ max: null }),
@@ -440,7 +440,7 @@ function resetBlueprintMax(id) {
 function resetAllBlueprintMax() {
     console.log("Reset All Max Values button clicked"); // Debug log
     $.ajax({
-        url: '/blueprints/reset_max',
+        url: '/api/blueprints/blueprints/reset_max',
         method: 'POST',
         success: function(response) {
             console.log("Response from server:", response); // Debug log
@@ -471,7 +471,7 @@ function resetAllBlueprintMax() {
  */
 function loadMaterials() {
     $.ajax({
-        url: '/material',
+        url: '/api/materials/material',
         method: 'GET',
         success: function(response) {
             // Group materials by category
@@ -539,7 +539,7 @@ $('#blueprintParseForm').submit(function(e) {
     };
 
     $.ajax({
-        url: '/blueprint',
+        url: '/api/blueprints/blueprint',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(blueprintData),
@@ -580,7 +580,7 @@ $('#iskHourParseForm').submit(function(e) {
     };
 
     $.ajax({
-        url: '/blueprint',
+        url: '/api/blueprints/blueprint',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(blueprintData),
@@ -619,7 +619,7 @@ $('#availableMaterialsForm').submit(function(e) {
     });
 
     $.ajax({
-        url: '/update_materials',
+        url: '/api/materials/update_materials',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({
@@ -652,7 +652,7 @@ $('#availableMaterialsForm').submit(function(e) {
  */
 function editBlueprint(id) {
     $.ajax({
-        url: '/blueprint/' + id,
+        url: '/api/blueprints/blueprint/' + id,
         method: 'GET',
         success: function(blueprint) {
         $('#editBlueprintId').val(blueprint.id);
@@ -773,7 +773,7 @@ $('#editBlueprintForm').submit(function(e) {
   };
 
   $.ajax({
-    url: '/blueprint/' + id,
+    url: '/api/blueprints/blueprint/' + id,
     method: 'PUT',
     contentType: 'application/json',
     data: JSON.stringify(blueprintData),
@@ -808,7 +808,7 @@ $(document).on('change', '.blueprint-max', function() {
     var id = $(this).data('id');
     var max = $(this).val();
     $.ajax({
-        url: '/blueprint/' + id,
+        url: '/api/blueprints/blueprint/' + id,
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify({ max: max }),
@@ -841,7 +841,7 @@ $(document).on('click', '.removeEditMaterialButton', function() {
 function deleteBlueprint(id) {
     if (confirm("Are you sure you want to delete this blueprint?")) {
         $.ajax({
-            url: '/blueprint/' + id,
+            url: '/api/blueprints/blueprint/' + id,
             method: 'DELETE',
             success: function(response) {
                 alert('Blueprint deleted successfully');
@@ -864,7 +864,7 @@ function editMaterial(id) {
     var newQuantity = prompt("Enter new quantity for material:");
     if (newQuantity) {
         $.ajax({
-            url: '/material/' + id,
+            url: '/api/materials/material' + id,
             method: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify({
@@ -891,7 +891,7 @@ function editMaterial(id) {
 function deleteMaterial(id) {
     if (confirm("Are you sure you want to delete this material?")) {
         $.ajax({
-            url: '/material/' + id,
+            url: '/api/materials/material' + id,
             method: 'DELETE',
             success: function(response) {
                 alert('Material deleted successfully');
@@ -914,7 +914,7 @@ $(document).ready(function() {
  */
 function optimize() {
     $.ajax({
-        url: '/optimize',
+        url: '/api/blueprints/optimize',
         method: 'GET',
         success: function(response) {
             var resultsHtml = '<h3>Optimization Results</h3>';

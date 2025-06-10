@@ -2,9 +2,13 @@ import os
 import sys
 import logging
 import traceback
-from flask import Flask
+from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
 from models import db
+from flask_migrate import Migrate
+from routes.materials import materials_bp
+from routes.blueprints import blueprints_bp
+
 
 
 # Configure logging
@@ -19,7 +23,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def create_app():
-    from routes import register_routes
     
     flask_app = Flask(__name__)
     CORS(flask_app)
@@ -39,6 +42,7 @@ def create_app():
     flask_app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
     
     db.init_app(flask_app)
+    migrate = Migrate(flask_app, db)
     
     # with flask_app.app_context():
     #     try:
@@ -48,6 +52,17 @@ def create_app():
     #         logger.error(f"Error creating database tables: {str(e)}")
     #         logger.error(traceback.format_exc())
 
-    register_routes(flask_app)
+    flask_app.register_blueprint(materials_bp)
+    flask_app.register_blueprint(blueprints_bp)
+    
+    
+    @flask_app.route('/')
+    def index():
+        return render_template('index.html')
+    
+    @flask_app.errorhandler(404)
+    def not_found_error(error):
+        logger.error(f"404 Not Found: {request.method} {request.path}")
+        return jsonify({"error": "Not found"}), 404
     
     return flask_app

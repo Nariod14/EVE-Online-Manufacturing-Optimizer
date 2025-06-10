@@ -6,6 +6,9 @@ from flask import jsonify, render_template, request
 import logging
 import traceback
 import re
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 
 import pulp
@@ -753,4 +756,125 @@ def get_material_category_lookup():
                         lookup[mat] = category
     return lookup
 
+# Add this helper function to routes.py
+def create_esi_session():
+    session = requests.Session()
+    retry = Retry(
+        total=5,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504]
+    )
+    session.mount('https://', HTTPAdapter(max_retries=retry))
+    return session
 
+def fetch_jita_price(blueprint_name):
+    session = create_esi_session()
+    region_id = 10000002  # The Forge (Jita)
+    location_id = 60003760  # Jita 4-4 station
+    
+    try:
+        # Get type ID
+        type_resp = session.post(
+            "https://esi.evetech.net/latest/universe/ids/",
+            json=[blueprint_name]
+        )
+        type_resp.raise_for_status()
+        type_data = type_resp.json()
+        
+        if not type_data.get('inventory_types'):
+            return None
+            
+        type_id = type_data['inventory_types'][0]['id']
+        
+        # Get market orders
+        orders = []
+        page = 1
+        while True:
+            orders_resp = session.get(
+                f"https://esi.evetech.net/latest/markets/{region_id}/orders/",
+                params={
+                    'type_id': type_id,
+                    'order_type': 'sell',
+                    'page': page
+                }
+            )
+            orders_resp.raise_for_status()
+            page_orders = orders_resp.json()
+            orders.extend(page_orders)
+            
+            if len(page_orders) < 1000:
+                break
+            page += 1
+        
+        # Filter Jita 4-4 orders and find lowest price
+        jita_orders = [o for o in orders if o['location_id'] == location_id]
+        if not jita_orders:
+            return None
+            
+        return min(o['price'] for o in jita_orders)
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"ESI request failed: {str(e)}")
+        return None
+
+# Price fetching updates
+def fetch_market_price(blueprint_name, region_id, station_id=None, use_region=False):
+    session = create_esi_session()
+    try:
+        # Validate station exists if provided
+        if station_id and not use_region:
+            station_resp = session.get(
+                f"https://esi.evetech.net/latest/universe/stations/{station_id}/"
+            )
+            if station_resp.status_code != 200:
+                return None
+
+        # Get type ID (cached implementation recommended for production)
+        type_resp = session.post(
+            "https://esi.evetech.net/latest/universe/ids/",
+            json=[blueprint_name]
+        )
+        type_resp.raise_for_status()
+        type_data = type_resp.json()
+        type_id = type_data['inventory_types'][0]['id']
+
+        # Market orders query
+        orders = []
+        page = 1
+        while True:
+            params = {
+                'type_id': type_id,
+                'order_type': 'sell',
+                'page': page
+            }
+            
+            if use_region:
+                endpoint = f"markets/{region_id}/orders/"
+            else:
+                endpoint = f"markets/structures/{station_id}/"
+
+            orders_resp = session.get(
+                f"https://esi.evetech.net/latest/{endpoint}",
+                params=params
+            )
+            
+            if orders_resp.status_code == 403:
+                raise ValueError("Structure market access not allowed")
+                
+            orders_resp.raise_for_status()
+            page_orders = orders_resp.json()
+            orders.extend(page_orders)
+
+            if len(page_orders) < 1000:
+                break
+            page += 1
+
+        # Price determination logic
+        if use_region:
+            return min(o['price'] for o in orders if o['location_id'] == station_id) if station_id else min(o['price'] for o in orders)
+        else:
+            return min(o['price'] for o in orders) if orders else None
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Market price fetch failed: {str(e)}")
+        return None
