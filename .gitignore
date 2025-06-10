@@ -158,3 +158,10 @@ ManuOptimizer/instances/eve_optimizer.db
 /ManuOptimizer/migrations
 /ManuOptimizer/instances
 app.log
+app.log
+ManuOptimizer/__pycache__/app.cpython-313.pyc
+ManuOptimizer/__pycache__/models.cpython-313.pyc
+ManuOptimizer/instances/eve_optimizer.db
+ManuOptimizer/test/routes.txt
+ManuOptimizer/test/nackupdp/eve_optimizer.db
+ManuOptimizer/test/nackupdp/eve_optimizer.db - Shortcut.lnk
