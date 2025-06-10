@@ -3,5 +3,8 @@
     "cSpell.words": [
         "Bluep",
         "NOXIUM"
+    ],
+    "python.analysis.extraPaths": [
+        "./ManuOptimizer/routes"
     ]
 }

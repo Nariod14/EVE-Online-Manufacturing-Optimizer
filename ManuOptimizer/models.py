@@ -14,6 +14,10 @@ class Blueprint(db.Model):
         "polymorphic_identity": "T1",
         "polymorphic_on": tier
     }
+    region_id = db.Column(db.Integer, nullable=True, default=10000002)  # Default to The Forge
+    station_id = db.Column(db.Integer, nullable=True)  # Nullable for region-only lookups
+    use_region_orders = db.Column(db.Boolean, default=False, nullable=True)  # Region vs station
+    
 
 class BlueprintT2(Blueprint):
     __tablename__ = 'blueprint_t2'
@@ -30,3 +34,14 @@ class Material(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
+
+class Region(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    region_id = db.Column(db.Integer, unique=True, nullable=False)
+
+class Station(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    station_id = db.Column(db.Integer, unique=True, nullable=False)
+    region_id = db.Column(db.Integer, nullable=False)

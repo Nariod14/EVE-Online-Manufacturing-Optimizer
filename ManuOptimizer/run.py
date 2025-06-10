@@ -38,6 +38,7 @@ if __name__ == '__main__':
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
     finally:
+
         logger.info("Application shutting down")
         input("Press Enter to exit...")
 
