@@ -139,6 +139,46 @@
   </div>
 </div>
 
+<div id="editMaterialModal" style="display:none; position:fixed; z-index:100; left:0; top:0; width:100vw; height:100vh; overflow:auto; background-color:rgba(20,30,50,0.78); animation:fadeIn 0.2s;">
+  <div class="modal-content">
+    <h2>Edit Material</h2>
+    <form id="editMaterialForm">
+      <input type="hidden" id="editMaterialId" />
+
+      <div class="form-group">
+        <label for="editMaterialQuantity" class="bold-label">Quantity</label>
+        <input type="number" id="editMaterialQuantity" placeholder="Quantity" required />
+      </div>
+
+      <div class="form-group">
+        <label for="editMaterialTypeID" class="bold-label">Type ID</label>
+        <input type="number" id="editMaterialTypeID" placeholder="Type ID (optional)" />
+      </div>
+
+      <div class="form-group">
+        <label for="editMaterialCategorySelect" class="bold-label">Category</label>
+        <select id="editMaterialCategorySelect">
+          <!-- Example categories; you can dynamically populate these -->
+          <option value="Minerals">Minerals</option>
+          <option value="Items">Items</option>
+          <option value="Components">Components</option>
+          <option value="Invention Materials">Invention Materials</option>
+          <option value="Reaction Materials">Reaction Materials</option>
+          <option value="Other">Other</option>
+        </select>
+        
+        <input type="text" id="editMaterialCategoryManual" placeholder="Enter category" style="display:none; margin-top:8px;" />
+      </div>      
+
+      <div class="modal-actions">
+        <button type="submit">Save Changes</button>
+        <button type="button" onclick="$('#editMaterialModal').hide()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
 
 
   

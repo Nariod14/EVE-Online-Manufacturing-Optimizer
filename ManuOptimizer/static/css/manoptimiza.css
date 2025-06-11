@@ -267,6 +267,63 @@ input[type=number].blueprint-max::-webkit-outer-spin-button {
     font-size: 1em;
     border-radius: 8px;
   }
+
+
+#editMaterialModal {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  left: 0; 
+  top: 0; 
+  width: 100vw; 
+  height: 100vh;
+  overflow: auto;
+  background-color: rgba(20, 30, 50, 0.78);
+  animation: fadeIn 0.2s;
+}
+
+#editMaterialModal .modal-content {
+  background: #1b2230;
+  margin: 60px auto;
+  padding: 32px 38px;
+  border-radius: 14px;
+  border: 1.5px solid #365b8c;
+  width: 94%;
+  max-width: 540px;
+  box-shadow: 0 4px 24px 0 rgba(30, 60, 120, 0.18);
+  color: #e3eaf7;
+}
+
+#editMaterialModal h2 {
+  color: #5eb6ff;
+  margin-top: 0;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.modal-actions button {
+  min-width: 120px;
+  padding: 10px 0;
+  font-size: 1em;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  background-color: #365b8c;
+  color: #e3eaf7;
+  transition: background-color 0.2s ease;
+}
+
+.modal-actions button:hover {
+  background-color: #5eb6ff;
+}
+
   
   /* === Results and Lists === */
   #results, #materialList, #blueprintList {
@@ -613,4 +670,294 @@ input[type=number].blueprint-max::-webkit-outer-spin-button {
   transform: translateY(-2px) scale(1.04);
 }
 
-  
+  /* === Optimize Results Container === */
+#results .optimize-container {
+  background: linear-gradient(135deg, #182136 70%, #1b2230 100%);
+  border-radius: 22px;
+  box-shadow: 0 4px 32px 0 rgba(30,60,120,0.22), 0 1.5px 8px 0 rgba(30,60,120,0.10);
+  padding: 38px 32px 32px 32px;
+  margin: 40px auto 48px auto;
+  max-width: 900px;
+  color: #e3eaf7;
+  position: relative;
+  overflow: hidden;
+}
+
+#results .optimize-container h2,
+#results .optimize-container h3,
+#results .optimize-container h4,
+#results .optimize-container h5 {
+  color: #5eb6ff;
+  letter-spacing: 1.5px;
+  margin-top: 1.5em;
+  margin-bottom: 0.6em;
+  font-weight: 700;
+}
+
+#results .optimize-container h2 {
+  font-size: 2em;
+  margin-top: 0;
+}
+
+#results .optimize-container .summary-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 1.5em;
+}
+
+#results .optimize-container .summary-row > div {
+  background: #202a3c;
+  border-radius: 14px;
+  padding: 18px 26px;
+  box-shadow: 0 2px 12px 0 rgba(30,60,120,0.08);
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #e3eaf7;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#results .optimize-container .summary-row .profit {
+  color: #5eb6ff;
+}
+#results .optimize-container .summary-row .true-profit {
+  color: #79ffb2;
+}
+#results .optimize-container .summary-row .percent {
+  color: #ffe25e;
+}
+
+/* === Tables === */
+#results .optimize-container table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 1.8em;
+  background: #161d29;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px 0 rgba(30,60,120,0.09);
+}
+
+#results .optimize-container th,
+#results .optimize-container td {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 1em;
+}
+
+#results .optimize-container th {
+  background: #22304a;
+  color: #5eb6ff;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  border-bottom: 2px solid #27406b;
+}
+
+#results .optimize-container tr:nth-child(even) td {
+  background: #192233;
+}
+
+#results .optimize-container tr:hover td {
+  background: #25304a;
+  transition: background 0.15s;
+}
+
+/* === Fancy Circular Badges === */
+#results .optimize-container .badge {
+  display: inline-block;
+  min-width: 38px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3a7bd5 0%, #5eb6ff 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.98em;
+  box-shadow: 0 1px 6px 0 rgba(30,60,120,0.13);
+  margin-left: 8px;
+  letter-spacing: 0.5px;
+}
+
+#results .optimize-container .badge-danger {
+  background: linear-gradient(90deg, #ff5e5e 0%, #c94b4b 100%);
+}
+
+#results .optimize-container .badge-warning {
+  background: linear-gradient(90deg, #ffe25e 0%, #ffb347 100%);
+  color: #1b2230;
+}
+
+/* === Highlight Negative Remaining === */
+#results .optimize-container .neg {
+  color: #ff5e5e;
+  font-weight: bold;
+  background: rgba(255,94,94,0.08);
+  border-radius: 8px;
+  padding: 0 8px;
+}
+
+/* === Bottleneck List === */
+#results .optimize-container ul.bottleneck-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5em 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#results .optimize-container ul.bottleneck-list li {
+  background: #22304a;
+  border-radius: 14px;
+  padding: 10px 22px;
+  color: #ffe25e;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0;
+  box-shadow: 0 1px 6px 0 rgba(30,60,120,0.10);
+}
+
+#results .optimize-container ul.bottleneck-list li .badge {
+  margin-left: 0;
+}
+
+/* === Responsive === */
+@media (max-width: 700px) {
+  #results .optimize-container {
+    padding: 18px 6px;
+    max-width: 98vw;
+  }
+  #results .optimize-container table th, 
+  #results .optimize-container table td {
+    padding: 8px 4px;
+    font-size: 0.95em;
+  }
+  #results .optimize-container .summary-row > div {
+    padding: 10px 10px;
+    font-size: 1em;
+  }
+}
+
+/* === Subtle Glow/Accent === */
+#results .optimize-container {
+  box-shadow: 0 0 40px 0 #3a7bd5a0, 0 4px 32px 0 rgba(30,60,120,0.22);
+}
+
+/* Usage badges for bottlenecks */
+#results .optimize-container .badge-danger {
+  background: linear-gradient(90deg, #ff3333 0%, #b60000 100%);
+  color: #fff;
+}
+#results .optimize-container .badge-warning {
+  background: linear-gradient(90deg, #ffd966 0%, #ff9900 100%);
+  color: #222;
+}
+#results .optimize-container .badge-critical {
+  background: linear-gradient(90deg, #ffe25e 0%, #ff5e5e 100%);
+  color: #222;
+}
+#results .optimize-container .badge-caution {
+  background: linear-gradient(90deg, #5eb6ff 0%, #ffe25e 100%);
+  color: #222;
+}
+#results .optimize-container .badge-normal {
+  background: linear-gradient(90deg, #3a7bd5 0%, #5eb6ff 100%);
+  color: #fff;
+}
+
+
+/* === Accordion Container === */
+.material-accordion .accordion-item {
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  background: #1b2230;
+  box-shadow: 0 2px 10px rgba(30, 60, 120, 0.1);
+}
+
+/* === Accordion Header === */
+.material-accordion .accordion-header {
+  width: 100%;
+  padding: 16px 20px;
+  background: #232f44;
+  color: #5eb6ff;
+  font-weight: 600;
+  font-size: 1.1em;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.material-accordion .accordion-header:hover {
+  background: #2d3c57;
+}
+
+.material-accordion .accordion-icon {
+  font-size: 1.2em;
+  color: #79c7ff;
+  transition: transform 0.3s ease;
+}
+
+/* === Accordion Content === */
+.material-accordion .accordion-content {
+  display: none;
+  padding: 14px 18px 18px 18px;
+  background: #141a22;
+  color: #e3eaf7;
+  border-top: 1px solid #2c3a52;
+}
+
+/* === Table Inside Accordion === */
+.material-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 0.95em;
+}
+
+.material-table th,
+.material-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #2b3a52;
+}
+
+.material-table th {
+  background-color: #182136;
+  color: #5eb6ff;
+  font-weight: 600;
+}
+
+.material-table tr:hover {
+  background-color: #1f2b3e;
+}
+
+/* === Action Buttons === */
+.material-table button {
+  background: linear-gradient(90deg, #5eb6ff 0%, #3a7bd5 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.9em;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: background 0.18s, transform 0.12s;
+  box-shadow: 0 1px 6px rgba(30, 60, 120, 0.13);
+}
+
+.material-table button:hover {
+  background: linear-gradient(90deg, #79c7ff 0%, #5eb6ff 100%);
+  transform: translateY(-1px) scale(1.03);
+}
