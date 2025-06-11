@@ -351,21 +351,21 @@ $(document).ready(function() {
             <div class="blueprint-accordion">
 
               <div class="accordion-item t1">
-                <button class="accordion-header" aria-expanded="true">
+                <button class="accordion-header" aria-expanded="false">
                   <span class="tier-label t1">Tier 1 Blueprints</span>
                   <span class="accordion-icon">&#9660;</span>
                 </button>
-                <div class="accordion-content" style="display: block;">
+                <div class="accordion-content" style="display: none;">
                   ${t1Blueprints.length ? buildT1Table(t1Blueprints) : '<div style="padding:18px;">No Tier 1 blueprints found.</div>'}
                 </div>
               </div>
 
               <div class="accordion-item t2">
-                <button class="accordion-header" aria-expanded="true">
+                <button class="accordion-header" aria-expanded="fasle">
                   <span class="tier-label t2">Tier 2 Blueprints</span>
                   <span class="accordion-icon">&#9660;</span>
                 </button>
-                <div class="accordion-content" style="display: block;">
+                <div class="accordion-content" style="display: none;">
                   ${t2Blueprints.length ? buildT2Table(t2Blueprints) : '<div style="padding:18px;">No Tier 2 blueprints found.</div>'}
                 </div>
               </div>
@@ -469,38 +469,79 @@ function resetAllBlueprintMax() {
  * action buttons for editing and deleting each material, and updates the
  * '#materialList' element with this table.
  */
-function loadMaterials() {
-    $.ajax({
-        url: '/api/materials/material',
-        method: 'GET',
-        success: function(response) {
-            // Group materials by category
-            var grouped = {};
-            response.forEach(function(material) {
-                var cat = material.category || "Other";
-                if (!grouped[cat]) grouped[cat] = [];
-                grouped[cat].push(material);
-            });
+ function loadMaterials() {
+  $.ajax({
+    url: '/api/materials/material',
+    method: 'GET',
+    success: function (response) {
+      // Group materials by category
+      const grouped = {};
+      response.forEach((material) => {
+        const cat = material.category || 'Other';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(material);
+      });
 
-            // Build HTML
-            var materialHtml = '';
-            Object.keys(grouped).sort().forEach(function(cat) {
-                materialHtml += '<h3>' + cat + '</h3>';
-                materialHtml += '<table><tr><th>Name</th><th>Quantity</th><th>Actions</th></tr>';
-                grouped[cat].forEach(function(material) {
-                    materialHtml += '<tr>';
-                    materialHtml += '<td>' + material.name + '</td>';
-                    materialHtml += '<td>' + material.quantity + '</td>';
-                    materialHtml += '<td><button onclick="editMaterial(' + material.id + ')">Edit</button> ';
-                    materialHtml += '<button onclick="deleteMaterial(' + material.id + ')">Delete</button></td>';
-                    materialHtml += '</tr>';
-                });
-                materialHtml += '</table>';
-            });
-            $('#materialList').html(materialHtml);
+      // Build Accordion HTML
+      let html = '<div class="material-accordion">';
+
+      Object.keys(grouped).sort().forEach((cat) => {
+        html += `
+          <div class="accordion-item">
+            <button class="accordion-header" aria-expanded="false">
+              <span class="category-label">${cat}</span>
+              <span class="accordion-icon">&#9654;</span>
+            </button>
+            <div class="accordion-content" style="display: none;">
+              <table class="material-table">
+                <thead>
+                  <tr><th>Name</th><th>Quantity</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+        `;
+
+        grouped[cat].forEach((material) => {
+          html += `
+            <tr>
+              <td>${material.name}</td>
+              <td>${material.quantity}</td>
+              <td>
+                <button onclick="editMaterial(${material.id})">Edit</button>
+                <button onclick="deleteMaterial(${material.id})">Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+
+        html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      });
+
+      html += '</div>'; // Close .material-accordion
+
+      $('#materialList').html(html);
+
+      // Accordion logic
+      $('.accordion-header').off('click').on('click', function () {
+        const expanded = $(this).attr('aria-expanded') === 'true';
+        $(this).attr('aria-expanded', !expanded);
+        const content = $(this).closest('.accordion-item').find('.accordion-content');
+        if (!expanded) {
+          content.slideDown(200);
+          $(this).find('.accordion-icon').html('&#9660;');
+        } else {
+          content.slideUp(200);
+          $(this).find('.accordion-icon').html('&#9654;');
         }
-    });
+      });
+    }
+  });
 }
+
 
 
 
@@ -861,21 +902,63 @@ function deleteBlueprint(id) {
  * @param {number} id The ID of the material to edit.
  */
 function editMaterial(id) {
-    var newQuantity = prompt("Enter new quantity for material:");
-    if (newQuantity) {
-        $.ajax({
-            url: '/api/materials/material' + id,
-            method: 'PUT',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                quantity: parseInt(newQuantity)
-            }),
-            success: function(response) {
-                alert('Material updated successfully');
-                loadMaterials();
-            }
-        });
+  $.ajax({
+    url: '/api/materials/material/' + id,
+    method: 'GET',
+    success: function(material) {
+      $('#editMaterialId').val(material.id);
+      $('#editMaterialQuantity').val(material.quantity);
+      $('#editMaterialTypeID').val(material.type_id || '');
+      $('#editMaterialCategory').val(material.category || '');
+      $('#editMaterialModal').show();
+    },
+    error: function(xhr, status, error) {
+      console.error("Error fetching material:", error);
+      alert('Error fetching material details.');
     }
+  });
+}
+
+$('#editMaterialForm').on('submit', function(e) {
+  e.preventDefault();
+
+  const id = $('#editMaterialId').val();
+  const quantity = parseInt($('#editMaterialQuantity').val());
+  const type_id = $('#editMaterialTypeID').val();
+  const category = $('#editMaterialCategory').val();
+
+  $.ajax({
+    url: '/api/materials/material/' + id,
+    method: 'PUT',
+    contentType: 'application/json',
+    data: JSON.stringify({
+      quantity: quantity,
+      type_id: type_id ? parseInt(type_id) : undefined,
+      category: category || undefined
+    }),
+    success: function(response) {
+      alert('Material updated successfully');
+      $('#editMaterialModal').hide();
+      loadMaterials(); // refresh table
+    },
+    error: function(xhr, status, error) {
+      console.error("Error updating material:", error);
+      alert('Failed to update material.');
+    }
+  });
+});
+
+$('#editMaterialCategorySelect').on('change', function() {
+  if (this.value === 'Other') {
+    $('#editMaterialCategoryManual').show();
+  } else {
+    $('#editMaterialCategoryManual').hide();
+    $('#editMaterialCategoryManual').val(''); // clear manual input if hidden
+  }
+});
+
+function closeEditMaterialModal() {
+    $('#editMaterialModal').hide();
 }
 
 
@@ -912,46 +995,65 @@ $(document).ready(function() {
  * Upon successful response, formats the results as a JSON string and displays them
  * in the '#results' element on the page.
  */
-function optimize() {
+ function optimize() {
     $.ajax({
         url: '/api/blueprints/optimize',
         method: 'GET',
         success: function(response) {
-            var resultsHtml = '<h3>Optimization Results</h3>';
+            let resultsHtml = `
+                <div class="optimize-container container my-4">
+                  <h2 class="mb-3 text-primary">Optimization Results</h2>
+                  <div class="mb-2">
+                    <span class="fw-bold">Total Profit:</span>
+                    <span class="text-success">${response.total_profit.toLocaleString('en-US')}</span>
+                    <span class="text-muted">(${numberToWords(response.total_profit)}) ISK</span>
+                  </div>
+                  <div class="mb-2">
+                    <span class="fw-bold">True Profit (after material costs):</span>
+                    <span class="text-success">${response.true_profit.toLocaleString('en-US')}</span>
+                    <span class="text-muted">(${numberToWords(response.true_profit)}) ISK</span>
+                  </div>
+                  <div class="mb-3">
+                    <span class="fw-bold">True Profit Percentage:</span>
+                    <span class="text-info">${((response.true_profit / response.total_profit) * 100).toFixed(2)}%</span>
+                  </div>
+            `;
 
-             // Profit summary
-            var formattedProfit = response.total_profit.toLocaleString('en-US', {maximumFractionDigits: 2});
-            var trueProfit = response.true_profit.toLocaleString('en-US', {maximumFractionDigits: 2});
-            var profitInWords = numberToWords(response.total_profit);
-            var trueProfitInWords = numberToWords(response.true_profit);
-            var trueProfitPercentage = ((response.true_profit / response.total_profit) * 100).toFixed(2);
-
-            resultsHtml += '<p>Total Profit: ' + formattedProfit + ' (' + profitInWords + ') ISK</p>';
-            resultsHtml += '<p>True Profit (after material costs): ' + trueProfit + ' (' + trueProfitInWords + ') ISK</p>';
-            resultsHtml += '<p>True Profit Percentage: ' + trueProfitPercentage + '%</p>';
-
-            // Show required component dependencies with quantities
+            // Dependencies Needed
             if (response.dependencies_needed && Object.keys(response.dependencies_needed).length > 0) {
-                resultsHtml += '<h4>Required Component Production:</h4>';
-                resultsHtml += '<table><tr><th>Component</th><th>Quantity Needed</th></tr>';
-                for (var dep in response.dependencies_needed) {
-                    resultsHtml += '<tr><td>' + dep + '</td><td>' + response.dependencies_needed[dep] + '</td></tr>';
-                }
-                resultsHtml += '</table>';
+                resultsHtml += `
+                  <h4 class="mt-4">Required Component Production</h4>
+                  <table class="table table-striped table-sm">
+                    <thead><tr><th>Component</th><th>Quantity Needed</th></tr></thead>
+                    <tbody>
+                `;
+                Object.entries(response.dependencies_needed)
+                    .sort((a, b) => a[0].localeCompare(b[0]))
+                    .forEach(([dep, qty]) => {
+                        resultsHtml += `<tr><td>${dep}</td><td>${qty.toLocaleString()}</td></tr>`;
+                    });
+                resultsHtml += '</tbody></table>';
             }
 
             // Production Plan
-            resultsHtml += '<h4>Production Plan:</h4>';
-            resultsHtml += '<table><tr><th>Blueprint</th><th>Quantity</th></tr>';
-            for (var blueprint in response.what_to_produce) {
-                if (response.what_to_produce[blueprint] > 0) {
-                    resultsHtml += '<tr><td>' + blueprint + '</td><td>' + response.what_to_produce[blueprint] + '</td></tr>';
-                }
-            }
-            resultsHtml += '</table>';
+            resultsHtml += `
+              <h4 class="mt-4">Production Plan</h4>
+              <table class="table table-bordered table-sm">
+                <thead><tr><th>Blueprint</th><th>Quantity</th></tr></thead>
+                <tbody>
+            `;
+            Object.entries(response.what_to_produce)
+                .filter(([_, qty]) => qty > 0)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .forEach(([bp, qty]) => {
+                    resultsHtml += `<tr><td>${bp}</td><td>${qty.toLocaleString()}</td></tr>`;
+                });
+            resultsHtml += '</tbody></table>';
 
             // Material Usage by Category
-            var categorizedMaterials = {
+            resultsHtml += '<h4 class="mt-4">Material Usage by Category</h4>';
+            const knownMinerals = ['Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 'Nocxium', 'Zydrine', 'Megacyte', 'Morphite'];
+            const categorizedMaterials = {
                 'Minerals': {},
                 'Components': {},
                 'Items': {},
@@ -959,13 +1061,9 @@ function optimize() {
                 'Other': {}
             };
 
-            // Hardcoded list of all minerals
-            var knownMinerals = ['Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 'Nocxium', 'Zydrine', 'Megacyte', 'Morphite'];
-
-            // Group materials by category
-            for (var material in response.material_usage) {
-                var usage = response.material_usage[material];
-                var category = usage.category;
+            for (const material in response.material_usage) {
+                const usage = response.material_usage[material];
+                let category = usage.category;
                 if (knownMinerals.includes(material)) {
                     category = 'Minerals';
                 } else if (!categorizedMaterials[category]) {
@@ -974,50 +1072,68 @@ function optimize() {
                 categorizedMaterials[category][material] = usage;
             }
 
-            // Create tables for each category
-            for (var category in categorizedMaterials) {
-                if (Object.keys(categorizedMaterials[category]).length > 0) {
-                    resultsHtml += '<h5>' + category + ':</h5>';
-                    resultsHtml += '<table><tr><th>Material</th><th>Used</th><th>Remaining</th></tr>';
-                    for (var material in categorizedMaterials[category]) {
-                        var usage = categorizedMaterials[category][material];
-                        resultsHtml += '<tr><td>' + material + '</td><td>' +
-                                       usage.used.toLocaleString() + '</td><td>' +
-                                       usage.remaining.toLocaleString() + '</td></tr>';
-                    }
-                    resultsHtml += '</table>';
+            Object.entries(categorizedMaterials).forEach(([category, mats]) => {
+                if (Object.keys(mats).length > 0) {
+                    resultsHtml += `
+                      <h5 class="mt-3">${category}</h5>
+                      <table class="table table-hover table-sm">
+                        <thead><tr><th>Material</th><th>Used</th><th>Remaining</th></tr></thead>
+                        <tbody>
+                    `;
+                    Object.entries(mats)
+                        .sort((a, b) => a[0].localeCompare(b[0]))
+                        .forEach(([material, usage]) => {
+                            const remainingClass = usage.remaining < 0 ? 'text-danger fw-bold' : '';
+                            resultsHtml += `
+                              <tr>
+                                <td>${material}</td>
+                                <td>${usage.used.toLocaleString()}</td>
+                                <td class="${remainingClass}">${usage.remaining.toLocaleString()}</td>
+                              </tr>
+                            `;
+                        });
+                    resultsHtml += '</tbody></table>';
                 }
-            }
-
-            // Bottleneck Materials Section
-            resultsHtml += '<h4>Bottleneck Materials:</h4>';
-            resultsHtml += '<ul>';
-            var bottlenecks = [];
-            for (var material in response.material_usage) {
-                var usage = response.material_usage[material];
-                var usagePercentage = (usage.used / (usage.used + usage.remaining)) * 100;
-                if (usagePercentage > 90) {
-                    bottlenecks.push({name: material, percentage: usagePercentage});
-                }
-            }
-            bottlenecks.sort(function(a, b) { return b.percentage - a.percentage; });
-            bottlenecks.forEach(function(bottleneck) {
-                resultsHtml += '<li>' + bottleneck.name + ' (' + bottleneck.percentage.toFixed(2) + '% used)</li>';
             });
+
+            // Bottleneck Materials
+            resultsHtml += '<h4 class="mt-4">Bottleneck Materials</h4><ul class="list-group">';
+            const bottlenecks = [];
+            for (const material in response.material_usage) {
+                const usage = response.material_usage[material];
+                const used = usage.used;
+                const total = usage.used + usage.remaining;
+                if (total > 0) {
+                    const usagePercentage = (used / total) * 100;
+                    if (usagePercentage > 90) {
+                        bottlenecks.push({ name: material, percentage: usagePercentage });
+                    }
+                }
+            }
+            bottlenecks.sort((a, b) => b.percentage - a.percentage);
+            bottlenecks.forEach(bottleneck => {
+                const badgeClass = getUsageBadgeClass(bottleneck.percentage);
+                resultsHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>${bottleneck.name}</span>
+                                <span class="badge ${badgeClass} rounded-pill">${bottleneck.percentage.toFixed(2)}% used</span>
+                                </li>`;
+            });
+
             resultsHtml += '</ul>';
 
-            // Display results
+            resultsHtml += '</div>';
+
             $('#results').html(resultsHtml);
 
-            //Reload materials and blueprints
-            loadMaterials();
-            loadBlueprints();
+            // Optionally, re-load materials and blueprints if needed
+            if (typeof loadMaterials === "function") loadMaterials();
+            if (typeof loadBlueprints === "function") loadBlueprints();
         },
         error: function(xhr, status, error) {
             console.error("Error optimizing:", xhr.responseText);
-            var errorMessage = "Error during optimization";
+            let errorMessage = "Error during optimization";
             try {
-                var errorObj = JSON.parse(xhr.responseText);
+                const errorObj = JSON.parse(xhr.responseText);
                 errorMessage += ": " + (errorObj.error || "Unknown error");
             } catch(e) {
                 errorMessage += ": " + xhr.responseText;
@@ -1025,6 +1141,14 @@ function optimize() {
             alert(errorMessage);
         }
     });
+}
+
+function getUsageBadgeClass(percentage) {
+    if (percentage >= 200) return 'badge-danger';      // super red
+    if (percentage >= 120) return 'badge-warning';     // orange/yellow
+    if (percentage >= 90)  return 'badge-critical';    // gold
+    if (percentage >= 60)  return 'badge-caution';     // blueish
+    return 'badge-normal';                             // default blue
 }
 
 

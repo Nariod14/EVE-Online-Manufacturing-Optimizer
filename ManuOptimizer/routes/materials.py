@@ -39,15 +39,20 @@ def update_material(id):
     try:
         data = request.json
         material = Material.query.get_or_404(id)
+
         material.quantity = data.get('quantity', material.quantity)
+        material.type_id = data.get('type_id', material.type_id)
+        material.category = data.get('category', material.category)
+
         db.session.commit()
         logger.info("Material updated successfully")
         return jsonify({"message": "Material updated successfully"}), 200
+
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error updating material! See the traceback for more info:")
-        logger.error(traceback.format_exc())
+        logger.error("Error updating material!\n" + traceback.format_exc())
         return jsonify({"ERROR": "An error occurred while updating the material"}), 500
+
 
 @materials_bp.route('/material/<int:id>', methods=['DELETE'])
 def delete_material(id):
@@ -87,6 +92,23 @@ def add_material():
         logger.error(f"Error adding/updating material: {str(e)}")
         logger.error(traceback.format_exc())
         return jsonify({"error": "An error occurred while adding/updating the material"}), 500
+
+@materials_bp.route('/material/<int:id>', methods=['GET'])
+def get_material(id):
+    try:
+        material = Material.query.get_or_404(id)
+        logger.info(f"Material {material.name} retrieved successfully")
+        return jsonify({
+            "id": material.id,
+            "name": material.name,
+            "quantity": material.quantity,
+            "type_id": material.type_id,
+            "category": material.category
+        }), 200
+    except Exception as e:
+        logger.error("Error getting material by ID!\n" + traceback.format_exc())
+        return jsonify({"ERROR": "An error occurred while retrieving the material"}), 500
+
     
 @materials_bp.route('/material', methods=['GET'])
 def get_materials():
@@ -110,44 +132,52 @@ def get_materials():
     
 @materials_bp.route('/update_materials', methods=['POST'])
 def update_materials():
-        try:
-            data = request.json
-            materials = data.get('materials', {})
-            update_type = data.get('updateType', 'replace')
-    
-            logger.info(f"Received materials data: {materials}")
-            logger.info(f"Update type: {update_type}")
-    
-            if update_type == 'replace':
-                # Clear all existing materials before adding new ones
-                Material.query.delete()
-                db.session.commit()
-                logger.info("All existing materials have been deleted.")
-                # Add new materials
-                for name, quantity in materials.items():
-                    new_material = Material(name=name, quantity=quantity)
-                    db.session.add(new_material)
-                db.session.commit()
-                logger.info("Materials updated successfully.")
-    
-            elif update_type == 'add':
-                # Replace existing materials with the same name and add new ones
-                for name, quantity in materials.items():
-                    material = Material.query.filter_by(name=name).first()
-                    if material:
-                        logger.info(f"Replacing material: {name} with quantity: {quantity}")
-                        material.quantity = quantity
-                    else:
-                        logger.info(f"Adding new material: {name} with quantity: {quantity}")
-                        new_material = Material(name=name, quantity=quantity)
-                        db.session.add(new_material)
-    
+    try:
+        data = request.json
+        materials = data.get('materials', {})
+        update_type = data.get('updateType', 'replace')
+
+        logger.info(f"Received materials data: {materials}")
+        logger.info(f"Update type: {update_type}")
+
+        category_lookup = get_material_category_lookup()
+
+        if update_type == 'replace':
+            # Clear all existing materials before adding new ones
+            Material.query.delete()
+            db.session.commit()
+            logger.info("All existing materials have been deleted.")
+
+            # Add new materials with categories
+            for name, quantity in materials.items():
+                category = category_lookup.get(name, "Other")
+                new_material = Material(name=name, quantity=quantity, category=category)
+                db.session.add(new_material)
             db.session.commit()
             logger.info("Materials updated successfully.")
-            return jsonify({"message": "Materials updated successfully"}), 200
-        except Exception as e:
-            db.session.rollback()
-            logger.error(f"Error updating materials: {str(e)}")
-            logger.error(traceback.format_exc())
-            return jsonify({"error": "An error occurred while updating materials"}), 500
+
+        elif update_type == 'add':
+            # Replace existing materials with the same name and add new ones with categories
+            for name, quantity in materials.items():
+                material = Material.query.filter_by(name=name).first()
+                category = category_lookup.get(name, "Other")
+                if material:
+                    logger.info(f"Replacing material: {name} with quantity: {quantity} and category: {category}")
+                    material.quantity = quantity
+                    material.category = category
+                else:
+                    logger.info(f"Adding new material: {name} with quantity: {quantity} and category: {category}")
+                    new_material = Material(name=name, quantity=quantity, category=category)
+                    db.session.add(new_material)
+
+            db.session.commit()
+            logger.info("Materials updated successfully.")
+
+        return jsonify({"message": "Materials updated successfully"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error updating materials: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({"error": "An error occurred while updating materials"}), 500
 

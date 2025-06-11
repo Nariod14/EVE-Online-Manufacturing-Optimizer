@@ -12,7 +12,7 @@ from urllib3.util.retry import Retry
 
 
 import pulp
-from .utils import expand_materials, get_material_category_lookup, parse_blueprint_text, parse_ingame_invention_text
+from .utils import expand_materials, get_material_category_lookup, get_material_quantity, parse_blueprint_text, parse_ingame_invention_text
 from models import BlueprintT2,Blueprint as BlueprintModel, db, Material
 from flask import Blueprint
 from pulp import LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus, PULP_CBC_CMD
@@ -374,16 +374,7 @@ def optimize():
                 expand_materials(b, blueprints, quantity=n_to_produce, t1_dependencies=t1_deps)
                 for t1_name, qty in t1_deps.items():
                     dependencies_needed[t1_name] += qty
-
-            def get_material_quantity(blueprint, material_name):
-                if isinstance(blueprint.materials, dict):
-                    quantity = 0
-                    for sub_category in blueprint.materials.values():
-                        if isinstance(sub_category, dict):
-                            quantity += sub_category.get(material_name, 0)
-                    return quantity
-                return blueprint.materials.get(material_name, 0)
-
+                    
             results = {
                 "status": "Optimal",
                 "total_profit": sum(b.sell_price * value(x[b.name]) for b in blueprints),

@@ -48,6 +48,16 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None):
                 expanded[mat] += qty * quantity
     return expanded
 
+def get_material_quantity(blueprint, material_name):
+    if isinstance(blueprint.materials, dict):
+        quantity = 0
+        for sub_category in blueprint.materials.values():
+            if isinstance(sub_category, dict):
+                quantity += sub_category.get(material_name, 0)
+        return quantity
+    return blueprint.materials.get(material_name, 0)
+
+
 
 def parse_blueprint_text(raw_text, category_lookup=None):
     lines = [l.strip() for l in raw_text.splitlines() if l.strip()]
@@ -170,65 +180,64 @@ def parse_ingame_invention_text(raw_text):
 
 
 
-def parse_ingame_format(lines):
+def parse_ingame_format(lines, category_lookup=None):
     blueprint_name = lines[0].split('\t')[0].replace(' Blueprint', '')
-    normalized = {}
-    current_section = None
+    materials_by_category = defaultdict(dict)
     total_cost = 0
 
-    for line in lines[1:]:  # Skip the first line (blueprint name)
+    if category_lookup is None:
+        category_lookup = {}
+
+    for line in lines[1:]:
         clean_line = line.strip()
-        if not clean_line:
+        if not clean_line or clean_line.lower().startswith(('item\t', 'material\t')):
             continue
 
-        # If the line does not contain tabs, treat it as a section header
-        if '\t' not in clean_line:
-            current_section = clean_line
-            normalized[current_section] = {}
-            continue
-
-        # If the line looks like a column header, skip it
-        if clean_line.lower().startswith('item\t') or clean_line.lower().startswith('material\t'):
-            continue
-
-        # Parse material lines
-        if current_section and '\t' in clean_line:
+        if '\t' in clean_line:
             parts = [p.strip() for p in clean_line.split('\t')]
             if len(parts) < 2:
                 continue
             try:
-                mat_name = parts[0]
+                name = parts[0]
                 quantity = int(float(parts[1]))
-                normalized[current_section][mat_name] = quantity
 
-                # Calculate cost if available (4th column)
+                # Get category from lookup or fallback
+                category = category_lookup.get(name, 'Uncategorized')
+                materials_by_category[category][name] = quantity
+
                 if len(parts) >= 4 and parts[3]:
                     unit_price = float(parts[3].replace(",", ""))
                     total_cost += quantity * unit_price
             except Exception:
                 continue
 
-    return normalized, blueprint_name, total_cost
+    return materials_by_category, blueprint_name, total_cost
 
 
 def get_material_category_lookup():
     lookup = {}
-    blueprints = Blueprint.query.all()
-    
-    # First pass: Add known minerals
-    known_minerals = {'Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 
-                     'Nocxium', 'Zydrine', 'Megacyte', 'Morphite'}
+
+    # Known minerals (fallbacks)
+    known_minerals = {
+        'Tritanium', 'Pyerite', 'Mexallon', 'Isogen',
+        'Nocxium', 'Zydrine', 'Megacyte', 'Morphite'
+    }
     for mineral in known_minerals:
         lookup[mineral] = "Minerals"
-        
-    # Second pass: Add blueprint materials (newer entries overwrite older ones)
-    for bp in reversed(blueprints):  # Reverse to prioritize newer entries
+
+    # Scan through all blueprint materials
+    blueprints = Blueprint.query.all()
+    for bp in reversed(blueprints):  # prioritize newer blueprints
         if isinstance(bp.materials, dict):
-            for category, materials in bp.materials.items():
-                if isinstance(materials, dict):
-                    for mat in materials:
-                        lookup[mat] = category
+            for cat_or_material, contents in bp.materials.items():
+                if isinstance(contents, dict):  # Nested form {category: {material: qty}}
+                    for mat in contents:
+                        lookup[mat] = cat_or_material
+                else:  # Flat form {material: qty}
+                    lookup[cat_or_material] = "Uncategorized"
+
     return lookup
+
 
 # Add this helper function to routes.py
 def create_esi_session():

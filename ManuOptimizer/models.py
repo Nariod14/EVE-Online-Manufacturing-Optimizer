@@ -34,6 +34,8 @@ class Material(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
+    type_id = db.Column(db.Integer, nullable=True)  # Make sure this is here
+    category = db.Column(db.String, nullable=True) 
 
 class Region(db.Model):
     id = db.Column(db.Integer, primary_key=True)
