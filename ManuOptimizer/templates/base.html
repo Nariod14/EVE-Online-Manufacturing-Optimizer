@@ -21,6 +21,31 @@
 }
 
 
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const loginBtn = document.getElementById("eveLoginBtn");
+  const hiddenBtn = document.getElementById("eveLoginHiddenBtn");
+  const statusText = document.getElementById("loginStatus");
+
+  function triggerLogin() {
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Logging in...";
+    statusText.textContent = "Redirecting to EVE SSO...";
+    window.location.href = "/login"; // Starts the OAuth flow
+  }
+
+  if (loginBtn) {
+    loginBtn.addEventListener("click", triggerLogin);
+  }
+
+  if (hiddenBtn) {
+    hiddenBtn.addEventListener("click", triggerLogin);
+  }
+});
+
+
 /**
  * Appends a new material input form to the blueprint materials section.
  * 
@@ -231,38 +256,47 @@ $(document).ready(function() {
                         <th>Material Cost</th>
                         <th>Materials</th>
                         <th>Profit %</th>
+                        <th>Station</th>
                         <th>Max</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>`;
+
                 blueprints.forEach(function(blueprint) {
                     var sellPrice = blueprint.sell_price;
                     var formattedSell = sellPrice.toLocaleString() + ' | (' + numberToWords(sellPrice) + ') isk';
+                    if (blueprint.used_jita_fallback) {
+                        formattedSell += ' <span style="color: orange;" title="Fallback to Jita pricing">&#9888;</span>';
+                    }
                     var materialCost = Math.round(blueprint.material_cost);
                     var formattedCost = materialCost.toLocaleString() + ' | (' + numberToWords(materialCost) + ') isk';
                     var profit = sellPrice - materialCost;
                     var profitPercentage = (profit / materialCost) * 100;
                     var formattedProfit = profitPercentage.toFixed(2) + '%';
+
                     html += `<tr>
                         <td>${blueprint.name}</td>
                         <td>${formattedSell}</td>
                         <td>${formattedCost}</td>
                         <td>
                           <ul style="list-style: none; padding: 0; margin: 0;">`;
+
                     blueprint.materials.forEach(function(material) {
                         var category = Object.keys(material)[0];
                         var quantities = material[category];
                         html += `<li><strong>${category}</strong></li>
-                                 <ul style="list-style: none; padding: 0; margin: 0;">`;
+                                <ul style="list-style: none; padding: 0; margin: 0;">`;
                         for (var item in quantities) {
                             html += `<li>&nbsp;&nbsp;${item}: ${quantities[item]}</li>`;
                         }
                         html += `</ul>`;
                     });
+
                     html += `</ul>
                         </td>
                         <td style="text-align: center;">${formattedProfit}</td>
+                        <td style="text-align: center;">${blueprint.station_name || 'Jita 4-4'}</td>
                         <td style="text-align: center; width: 90px;">
                           <input type="number" class="blueprint-max" data-id="${blueprint.id}" value="${blueprint.max || ''}" style="width: 60px; text-align: center;">
                         </td>
@@ -275,12 +309,15 @@ $(document).ready(function() {
                         </td>
                       </tr>`;
                 });
+
                 html += `</tbody>
                   </table>
                   <button class="resetAllMaxButton">Reset All Max Values</button>
                 </div>`;
+
                 return html;
             }
+
 
             // Helper: build T2 table (with invention chance), wrapped in .blueprint-section.t2
             function buildT2Table(blueprints) {
@@ -294,19 +331,25 @@ $(document).ready(function() {
                         <th>Material Cost</th>
                         <th>Materials</th>
                         <th>Profit %</th>
+                        <th>Station</th>
                         <th>Max</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>`;
+
                 blueprints.forEach(function(blueprint) {
                     var sellPrice = blueprint.sell_price;
                     var formattedSell = sellPrice.toLocaleString() + ' | (' + numberToWords(sellPrice) + ') isk';
+                    if (blueprint.used_jita_fallback) {
+                        formattedSell += ' <span style="color: orange;" title="Fallback to Jita pricing">&#9888;</span>';
+                    }
                     var fullMaterialCost = Math.round(blueprint.full_material_cost);
                     var formattedCost = fullMaterialCost.toLocaleString() + ' | (' + numberToWords(fullMaterialCost) + ') isk';
                     var profit = sellPrice - fullMaterialCost;
                     var profitPercentage = (profit / fullMaterialCost) * 100;
                     var formattedProfit = profitPercentage.toFixed(2) + '%';
+
                     html += `<tr>
                         <td>${blueprint.name}</td>
                         <td>${blueprint.invention_chance ? (blueprint.invention_chance * 100).toFixed(1) + '%' : '-'}</td>
@@ -314,19 +357,22 @@ $(document).ready(function() {
                         <td>${formattedCost}</td>
                         <td>
                           <ul style="list-style: none; padding: 0; margin: 0;">`;
+
                     blueprint.materials.forEach(function(material) {
                         var category = Object.keys(material)[0];
                         var quantities = material[category];
                         html += `<li><strong>${category}</strong></li>
-                                 <ul style="list-style: none; padding: 0; margin: 0;">`;
+                                <ul style="list-style: none; padding: 0; margin: 0;">`;
                         for (var item in quantities) {
                             html += `<li>&nbsp;&nbsp;${item}: ${quantities[item]}</li>`;
                         }
                         html += `</ul>`;
                     });
+
                     html += `</ul>
                         </td>
                         <td style="text-align: center;">${formattedProfit}</td>
+                        <td style="text-align: center;">${blueprint.station_name || 'Jita 4-4'}</td>
                         <td style="text-align: center; width: 90px;">
                           <input type="number" class="blueprint-max" data-id="${blueprint.id}" value="${blueprint.max || ''}" style="width: 60px; text-align: center;">
                         </td>
@@ -339,12 +385,15 @@ $(document).ready(function() {
                         </td>
                       </tr>`;
                 });
+
                 html += `</tbody>
                   </table>
                   <button class="resetAllMaxButton">Reset All Max Values</button>
                 </div>`;
+
                 return html;
             }
+
 
             // Accordion HTML, now with blueprint-section wrapping the tables
             var html = `
@@ -558,6 +607,9 @@ $('#blueprintParseForm').submit(function(e) {
     var inventionChance = parseFloat($('#blueprintParseInventionChance').val())/100 || null;
     var tier = $('#blueprintParseTier').val();
     var runs = $('#blueprintParseRunsPerCopy').val();
+    var selectedStation = $('#blueprintParseStation').val();
+    blueprintData.station_id = selectedStation ? parseInt(selectedStation) : null;
+
 
     var inventionChanceField = $('#blueprintParseInventionChance');
 
@@ -576,7 +628,8 @@ $('#blueprintParseForm').submit(function(e) {
         material_cost: makeCost,
         invention_chance: inventionChance,
         tier: tier,
-        runs_per_copy: runs
+        runs_per_copy: runs,
+        station_id: selectedStation ? parseInt(selectedStation) : null
     };
 
     $.ajax({
@@ -682,15 +735,21 @@ $('#availableMaterialsForm').submit(function(e) {
 
 // Function to edit a blueprint
 
+
 /**
- * Edits a blueprint.
- * 
- * This function prompts the user for a new name and sell price, and if provided, sends a
- * PUT request to the '/blueprint/:id' endpoint to update the blueprint. Upon success, it
- * alerts the user and reloads the list of blueprints.
- * 
+ * Fetches and loads data for editing a blueprint.
+ *
+ * This function sends a GET request to retrieve the blueprint details
+ * for a given ID. Upon a successful response, it populates the form
+ * fields in the edit modal with the blueprint's data, including name,
+ * sell price, material cost, and tier. If the blueprint is of tier T2,
+ * it displays additional fields for invention chance. Materials data
+ * is also loaded into the form. If an error occurs during the request,
+ * it logs the error and alerts the user.
+ *
  * @param {number} id The ID of the blueprint to edit.
  */
+
 function editBlueprint(id) {
     $.ajax({
         url: '/api/blueprints/blueprint/' + id,
@@ -701,6 +760,7 @@ function editBlueprint(id) {
         $('#editBlueprintSellPrice').val(blueprint.sell_price);
         $('#editBlueprintMaterials').empty();
         $('#editBlueprintCost').val(blueprint.material_cost);
+        $('#editBlueprintStation').val(blueprint.station_id || '');
 
         // Set tier
         $('#editBlueprintTier').val(blueprint.tier || 'T1');
@@ -723,7 +783,7 @@ function editBlueprint(id) {
             }
             }
         }
-
+        loadStationsIntoDropdown();
         $('#editBlueprintModal').show();
         },
         error: function(xhr, status, error) {
@@ -772,6 +832,7 @@ $('#editBlueprintForm').submit(function(e) {
   var materials = { Minerals: {}, Items: {}, Components: {}};
   var material_cost = parseFloat($('#editBlueprintCost').val());
   var blueprintTier = $('#editBlueprintTier').val();
+  var station_id = $('#editBlueprintStation').val() ? parseInt($('#editBlueprintStation').val()) : null
   
   
 
@@ -810,7 +871,8 @@ $('#editBlueprintForm').submit(function(e) {
     material_cost: material_cost,
     blueprint_tier: blueprintTier,
     invention_chance: true_invention_chance,
-    runs_per_copy: runs_per_copy
+    runs_per_copy: runs_per_copy,
+    station_id: station_id
   };
 
   $.ajax({
@@ -891,6 +953,48 @@ function deleteBlueprint(id) {
         });
     }
 }
+
+document.getElementById('updatePricesBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('price-update-status');
+  statusEl.textContent = 'Updating prices...';
+
+  try {
+    const response = await fetch('/api/blueprints/update_prices', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      statusEl.textContent = data.message || 'Prices updated successfully!';
+
+      // Await the reload functions if they're async
+      if (typeof loadBlueprints === 'function') {
+        try {
+          await loadBlueprints();
+        } catch (err) {
+          console.error('Failed to load blueprints:', err);
+        }
+      }
+
+      if (typeof loadMaterials === 'function') {
+        try {
+          await loadMaterials();
+        } catch (err) {
+          console.error('Failed to load materials:', err);
+        }
+      }
+
+    } else {
+      const errorData = await response.json();
+      statusEl.textContent = errorData.error || 'Failed to update prices.';
+    }
+  } catch (error) {
+    console.error('Fetch error:', error);
+    statusEl.textContent = 'Error updating prices: ' + error.message;
+  }
+});
+
 
 /**
  * Edits the quantity of a material.
@@ -984,11 +1088,309 @@ function deleteMaterial(id) {
     }
 }
 
+document.getElementById('update-materials-btn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('update-status');
+    statusEl.textContent = 'Updating material info...';
+
+    try {
+      const response = await fetch('/api/materials/update_material_info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        statusEl.textContent = data.message || 'Material info updated successfully!';
+        loadMaterials();
+      } else {
+        const errorData = await response.json();
+        statusEl.textContent = errorData.ERROR || 'Failed to update material info.';
+      }
+    } catch (error) {
+      statusEl.textContent = 'Error updating material info: ' + error.message;
+    }
+  });
+
 // Call these functions when the page loads
 $(document).ready(function() {
     loadBlueprints();
     loadMaterials();
+    loadStationsIntoDropdown();
+    loadStationsAccordion();
 });
+
+async function loadStationsIntoDropdown() {
+  const dropdowns = [
+    document.getElementById('editBlueprintStation'),
+    document.getElementById('blueprintParseStation')
+  ];
+
+  try {
+    const res = await fetch('/api/stations');
+    const stations = await res.json();
+
+    for (const dropdown of dropdowns) {
+      if (!dropdown) continue;
+
+      dropdown.innerHTML = '<option value="">None (Use Jita)</option>';
+      stations.forEach(station => {
+        const option = document.createElement('option');
+        option.value = station.station_id;
+        option.textContent = `${station.name} (${station.station_id})`;
+        dropdown.appendChild(option);
+      });
+    }
+  } catch (err) {
+    console.error("Failed to load stations into dropdown(s):", err);
+  }
+}
+
+
+// Add a new station
+document.addEventListener('DOMContentLoaded', () => {
+  const addStationForm = document.getElementById('addStationForm');
+  if (!addStationForm) return;
+
+  addStationForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const name = document.getElementById('stationName').value.trim();
+    const station_id = parseInt(document.getElementById('stationId').value.trim(), 10);
+
+    const response = await fetch('/api/stations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, station_id })
+    });
+
+    const result = await response.json();
+    const statusDiv = document.getElementById('stationAddStatus');
+
+    if (response.ok) {
+      statusDiv.innerText = '✅ Station added successfully!';
+      statusDiv.style.color = 'green';
+      addStationForm.reset();
+      loadStationsAccordion();
+      loadStationsIntoDropdown(); // If you have a function to refresh the station dropdown
+      loadStationModal(); // Refresh modal content
+    } else {
+      statusDiv.innerText = `❌ ${result.error}`;
+      statusDiv.style.color = 'red';
+    }
+  });
+});
+
+
+
+function openAddStationModal() {
+  document.getElementById('addStationModal').style.display = 'block';
+}
+
+function closeAddStationModal() {
+  document.getElementById('addStationModal').style.display = 'none';
+}
+
+async function loadStationsAccordion() {
+  const container = $('#stationAccordionContainer');
+  const res = await fetch('/api/stations');
+
+  if (!res.ok) {
+    container.html('<p style="color:red;">Failed to load stations.</p>');
+    return;
+  }
+
+  const stations = await res.json();
+
+  if (!stations.length) {
+    container.html('<p style="color:#aaa;">No stations added yet.</p>');
+    return;
+  }
+
+  let html = '<div class="material-accordion"><div class="accordion-item">';
+
+  html += `
+    <button class="accordion-header" aria-expanded="false">
+      <span class="category-label">Stations</span>
+      <span class="accordion-icon">&#9654;</span>
+    </button>
+    <div class="accordion-content" style="display: none;">
+      <table class="material-table">
+        <thead>
+          <tr><th>Name</th><th>ID</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+  `;
+
+  stations.forEach(station => {
+    html += `
+      <tr>
+        <td>${station.name}</td>
+        <td>${station.station_id}</td>
+        <td>
+          <button onclick='openEditStationModal(${JSON.stringify(station)})'>Edit</button>
+          <button onclick='deleteStation(${station.id})' style='color:red;'>Delete</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `
+        </tbody>
+      </table>
+    </div>
+  </div></div>`;
+
+  container.html(html);
+
+  // Accordion logic
+  $('.accordion-header').off('click').on('click', function () {
+    const expanded = $(this).attr('aria-expanded') === 'true';
+    $(this).attr('aria-expanded', !expanded);
+    const content = $(this).closest('.accordion-item').find('.accordion-content');
+    if (!expanded) {
+      content.slideDown(200);
+      $(this).find('.accordion-icon').html('&#9660;');
+    } else {
+      content.slideUp(200);
+      $(this).find('.accordion-icon').html('&#9654;');
+    }
+  });
+}
+
+
+/**
+ * Opens the Edit Station modal and pre-populates the fields with the given station's info.
+ * @param {Object} station - Station object with id, name, and station_id properties
+ */
+function openEditStationModal(station) {
+  document.getElementById('editStationIdHidden').value = station.id;
+  document.getElementById('editStationName').value = station.name;
+  document.getElementById('editStationStationId').value = station.station_id;
+  document.getElementById('editStationStatus').textContent = '';
+  document.getElementById('editStationModal').style.display = 'block';
+}
+
+function closeEditStationModal() {
+  document.getElementById('editStationModal').style.display = 'none';
+}
+
+document.getElementById('editStationForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('editStationIdHidden').value;
+  const name = document.getElementById('editStationName').value.trim();
+  const station_id = parseInt(document.getElementById('editStationStationId').value, 10);
+
+  if (!name || !station_id) {
+    document.getElementById('editStationStatus').textContent = 'Name and Station ID are required.';
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/stations/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, station_id }),
+    });
+
+    if (res.ok) {
+      document.getElementById('editStationStatus').textContent = 'Station updated successfully!';
+      loadStationsAccordion();
+      loadStationsIntoDropdown();
+      setTimeout(() => closeEditStationModal(), 1000);
+    } else {
+      const err = await res.json();
+      document.getElementById('editStationStatus').textContent = 'Error: ' + (err.error || 'Unknown error');
+    }
+  } catch (error) {
+    document.getElementById('editStationStatus').textContent = 'Network error';
+  }
+});
+
+
+// You already have updateStation and deleteStation in place
+// Just make sure loadStationsAccordion() is called in relevant places
+
+/**
+ * Loads the station modal with data from the backend.
+ *
+ * Fetches the list of stations from the backend, and if successful, populates the
+ * station list div with input fields and buttons to edit and delete each station.
+ * If the fetch fails, it displays an error message in the list div.
+ *
+ * Lastly, it sets the display style of the modal to block, making it visible.
+ */
+async function loadStationModal() {
+  const modal = document.getElementById('stationModal');
+  const listDiv = document.getElementById('stationList');
+
+  const res = await fetch('/api/stations');
+  if (!res.ok) {
+    listDiv.innerHTML = '<p style="color:red;">Failed to load stations.</p>';
+    return;
+  }
+  const stations = await res.json();
+
+  listDiv.innerHTML = stations.map(station => `
+    <div style="margin-bottom:8px; border-bottom:1px solid #ddd; padding-bottom:6px;">
+      <input type="text" data-id="${station.id}" class="editStationName" value="${station.name}" style="width:60%; margin-right:6px;">
+      <input type="number" data-id="${station.id}" class="editStationId" value="${station.station_id}" style="width:30%; margin-right:6px;">
+      <button onclick="updateStation(${station.id})" style="margin-right:4px;">Save</button>
+      <button onclick="deleteStation(${station.id})" style="color:red;">Delete</button>
+    </div>
+  `).join('');
+
+  modal.style.display = 'block';
+}
+
+function closeStationModal() {
+  document.getElementById('stationModal').style.display = 'none';
+}
+
+
+
+async function updateStation(id) {
+  const nameInput = document.querySelector(`.editStationName[data-id='${id}']`);
+  const idInput = document.querySelector(`.editStationId[data-id='${id}']`);
+  const name = nameInput.value.trim();
+  const station_id = parseInt(idInput.value.trim(), 10);
+
+  if (!name || !station_id) {
+    alert('Name and Station ID cannot be empty');
+    return;
+  }
+
+  const res = await fetch(`/api/stations/${id}`, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ name, station_id }),
+  });
+
+  if (res.ok) {
+    alert('Station updated!');
+    loadStationModal();
+    loadStationsIntoDropdown(); // If you have this
+  } else {
+    const err = await res.json();
+    alert('Error: ' + (err.error || 'Unknown error'));
+  }
+}
+
+async function deleteStation(id) {
+  if (!confirm('Are you sure you want to delete this station?')) return;
+
+  const res = await fetch(`/api/stations/${id}`, { method: 'DELETE' });
+  if (res.ok) {
+    alert('Station deleted!');
+    loadStationModal();
+    loadStationsIntoDropdown(); // Refresh dropdown if needed
+  } else {
+    const err = await res.json();
+    alert('Error: ' + (err.error || 'Unknown error'));
+  }
+}
+
+
+
 
 /**
  * Sends a GET request to the '/optimize' endpoint to run the optimization algorithm.

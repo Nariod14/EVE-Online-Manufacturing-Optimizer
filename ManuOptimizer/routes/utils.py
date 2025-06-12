@@ -1,13 +1,24 @@
 from collections import defaultdict
-from flask import jsonify, render_template, request
+from functools import wraps
+from flask import jsonify, render_template, request, session
 import logging
 import traceback
 import re
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+import os
+import sys
+import sqlite3
+import unicodedata
+from time import time
 
 from models import BlueprintT2, db, Blueprint, Material
+
+
+# Constants
+JITA_REGION_ID = 10000002  # The Forge
+JITA_STATION_ID = 60003760  # Caldari Navy Assembly Plant
 
 
 
@@ -22,6 +33,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+
+def normalize_name(name: str) -> str:
+    return unicodedata.normalize("NFKC", name.strip())
 
 def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None):
     expanded = defaultdict(float)
@@ -56,6 +71,72 @@ def get_material_quantity(blueprint, material_name):
                 quantity += sub_category.get(material_name, 0)
         return quantity
     return blueprint.materials.get(material_name, 0)
+
+
+def get_material_info(material_names):
+    # Get the path to the SDE
+    base_path = getattr(sys, '_MEIPASS', os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    sde_path = os.path.join(base_path, 'sde', 'mini_sde.sqlite')
+    
+    if not os.path.exists(sde_path):
+        logger.error(f"SDE database not found at: {sde_path}")
+        raise FileNotFoundError(f"SDE database not found at: {sde_path}")
+
+    # Connect to the SDE database
+    conn = sqlite3.connect(sde_path)
+    cursor = conn.cursor()
+
+    # Normalize the material names
+    normalized_names = [unicodedata.normalize('NFC', normalize_name(name)) for name in material_names]
+    logger.debug(f"Normalized names: {normalized_names}")
+
+    # Query the SDE database
+    placeholders = ', '.join('?' for _ in normalized_names)
+    query = f'''
+    SELECT i.typeName, i.typeID, COALESCE(m.manufacturingCategory, 'Other')
+    FROM invTypes i
+    LEFT JOIN materialClassifications m ON i.typeID = m.typeID
+    WHERE i.typeName IN ({placeholders})
+    '''
+    cursor.execute(query, normalized_names)
+    rows = cursor.fetchall()
+
+    info = {}
+    for name, tid, cat in rows:
+        info[normalize_name(name)] = {"type_id": tid, "category": cat}
+    
+    if info:
+        logger.debug(f"Material info: {info}")
+    else:
+        logger.debug("No material info found")
+
+    conn.close()
+
+    # Return the material information
+    return {
+        normalize_name(name): info.get(normalize_name(name), {"type_id": 0, "category": "Other"})
+        for name in material_names
+    }
+
+
+def get_item_name(type_id):
+    base_path = getattr(sys, '_MEIPASS', os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    sde_path = os.path.join(base_path, 'sde', 'mini_sde.sqlite')
+
+    if not os.path.exists(sde_path):
+        logger.error(f"SDE database not found at: {sde_path}")
+        raise FileNotFoundError(f"SDE database not found at: {sde_path}")
+
+    conn = sqlite3.connect(sde_path)
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT typeName FROM invTypes WHERE typeID = ?', (type_id,))
+    result = cursor.fetchone()
+
+    conn.close()
+
+    return result[0] if result else None
+
 
 
 
@@ -250,55 +331,94 @@ def create_esi_session():
     session.mount('https://', HTTPAdapter(max_retries=retry))
     return session
 
-def fetch_jita_price(blueprint_name):
-    session = create_esi_session()
-    region_id = 10000002  # The Forge (Jita)
-    location_id = 60003760  # Jita 4-4 station
-    
+JITA_STATION_ID = 60003760
+
+def get_lowest_jita_sell_price(type_id, headers):
+    url = f"https://esi.evetech.net/latest/markets/{JITA_REGION_ID}/orders/?order_type=sell&type_id={type_id}"
+
     try:
-        # Get type ID
-        type_resp = session.post(
-            "https://esi.evetech.net/latest/universe/ids/",
-            json=[blueprint_name]
-        )
-        type_resp.raise_for_status()
-        type_data = type_resp.json()
-        
-        if not type_data.get('inventory_types'):
-            return None
-            
-        type_id = type_data['inventory_types'][0]['id']
-        
-        # Get market orders
-        orders = []
-        page = 1
-        while True:
-            orders_resp = session.get(
-                f"https://esi.evetech.net/latest/markets/{region_id}/orders/",
-                params={
-                    'type_id': type_id,
-                    'order_type': 'sell',
-                    'page': page
-                }
-            )
-            orders_resp.raise_for_status()
-            page_orders = orders_resp.json()
-            orders.extend(page_orders)
-            
-            if len(page_orders) < 1000:
-                break
-            page += 1
-        
-        # Filter Jita 4-4 orders and find lowest price
-        jita_orders = [o for o in orders if o['location_id'] == location_id]
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+        orders = response.json()
+        jita_orders = [o for o in orders if o.get("location_id") == JITA_STATION_ID]
+
         if not jita_orders:
-            return None
-            
-        return min(o['price'] for o in jita_orders)
-        
-    except requests.exceptions.RequestException as e:
-        logger.error(f"ESI request failed: {str(e)}")
-        return None
+            logger.warning(f"No Jita 4-4 orders for type_id {type_id}, falling back to region-wide.")
+            jita_orders = orders
+
+        if not jita_orders:
+            logger.warning(f"No sell orders at all for type_id {type_id} in Jita region.")
+            return None, "not_found"
+
+        lowest_price = min(order['price'] for order in jita_orders)
+        logger.info(f"Lowest sell price for type_id {type_id} ({get_item_name(type_id)}) in Jita: {lowest_price}")
+
+        return lowest_price, "jita"
+
+    except Exception as e:
+        logger.error(f"Error fetching Jita sell price for type_id {type_id}: {e}")
+        return None, "error"
+
+# Temporary cache for structure orders
+structure_order_cache = defaultdict(list)
+
+#TODO: add search by region
+
+
+# Cache becomes: { station_id: (timestamp, [orders]) }
+structure_order_cache = {}
+
+CACHE_TTL = 60 * 5  # 5 minutes
+
+def get_station_sell_price(type_id, station_id, headers):
+    now = time()
+    cached = structure_order_cache.get(station_id)
+
+    if not cached or now - cached[0] > CACHE_TTL:
+        url = f"https://esi.evetech.net/latest/markets/structures/{station_id}/"
+        all_orders = []
+        page = 1
+
+        try:
+            logger.info(f"Fetching structure orders at {station_id}")
+            while True:
+                paged_url = f"{url}?page={page}"
+                res = requests.get(paged_url, headers=headers)
+                if res.status_code == 500:
+                    logger.warning(f"Server error on page {page} — stopping early.")
+                    break
+
+                res.raise_for_status()
+                page_orders = res.json()
+                all_orders.extend(page_orders)
+
+                logger.info(f"Fetched page {page} with {len(page_orders)} orders.")
+                if len(page_orders) < 1000:
+                    break
+                page += 1
+
+            structure_order_cache[station_id] = (now, all_orders)
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to fetch structure orders from {station_id}: {e}")
+            return None, "error"
+    else:
+        all_orders = cached[1]
+
+    sell_orders = [
+        order for order in all_orders
+        if not order['is_buy_order'] and order['type_id'] == type_id
+    ]
+
+    if not sell_orders:
+        logger.warning(f"No sell orders for type_id {type_id} at structure {station_id}")
+        return None, "not_found"
+
+    lowest = min(order['price'] for order in sell_orders)
+    logger.info(f"Lowest sell price for type_id {type_id} at structure {station_id}: {lowest}")
+
+    return lowest, "structure"
 
 # Price fetching updates
 def fetch_market_price(blueprint_name, region_id, station_id=None, use_region=False):
@@ -365,3 +485,10 @@ def fetch_market_price(blueprint_name, region_id, station_id=None, use_region=Fa
 
 
 
+def auth_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "token" not in session or not session["token"]:
+            return jsonify({"error": "Authentication required"}), 401
+        return f(*args, **kwargs)
+    return decorated_function

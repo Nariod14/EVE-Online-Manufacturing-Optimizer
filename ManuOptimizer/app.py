@@ -2,13 +2,16 @@ import os
 import sys
 import logging
 import traceback
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, session
 from flask_cors import CORS
 from models import db
 from flask_migrate import Migrate
 from routes.materials import materials_bp
 from routes.blueprints import blueprints_bp
-
+from routes.stations import stations_bp
+from auth import auth_bp
+from dotenv import load_dotenv
+load_dotenv()
 
 
 # Configure logging
@@ -26,6 +29,7 @@ def create_app():
     
     flask_app = Flask(__name__)
     CORS(flask_app)
+    flask_app.secret_key = os.getenv("FLASK_SECRET_KEY")
     
     if getattr(sys, 'frozen', False):
         # Running as compiled exe
@@ -54,11 +58,14 @@ def create_app():
 
     flask_app.register_blueprint(materials_bp)
     flask_app.register_blueprint(blueprints_bp)
+    flask_app.register_blueprint(auth_bp)
+    flask_app.register_blueprint(stations_bp)
     
     
     @flask_app.route('/')
     def index():
-        return render_template('index.html')
+        character_name = session.get('character_name', None)
+        return render_template('index.html', character_name=character_name)
     
     @flask_app.errorhandler(404)
     def not_found_error(error):

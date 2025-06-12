@@ -5,6 +5,85 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/manoptimiza.css') }}">
 
+<div id="eveLoginContainer" style="text-align:center; margin: 30px 0;">
+  {% if not character_name %}
+    <button id="eveLoginBtn" class="login-button">Log in with EVE Online</button>
+    <button id="eveLoginHiddenBtn" style="display: none;">Hidden Login Trigger</button>
+    <div id="loginStatus" style="margin-top: 10px; font-weight: bold;"></div>
+  {% else %}
+    <div id="userGreeting" style="margin: 20px; font-weight: bold;">
+      Welcome, {{ character_name }}!
+    </div>
+    <form action="{{ url_for('auth.logout') }}" method="post" style="display:inline;">
+      <button type="submit" class="logout-btn" style="padding: 6px 12px; font-size: 14px;">Logout</button>
+    </form>  
+  {% endif %}
+</div>
+
+
+<div style="text-align: center; margin: 20px 0;">
+  <button onclick="openAddStationModal()" style="padding: 12px 20px; background: #5eb6ff; color: #141a22; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
+    Add Station
+  </button>
+</div>
+
+
+<!-- Always-visible Station List -->
+<div id="stationAccordionContainer"></div>
+
+<!-- Add Station Modal -->
+<div id="addStationModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.7);">
+  <div class="modal-content" style="max-width:400px; margin:5% auto; background:#1b2230; padding:20px; border-radius:12px; color:#e3eaf7;">
+    <h2 style="color:#5eb6ff;">Add New Station</h2>
+    <form id="addStationForm">
+      <div class="form-group">
+        <label for="stationName" class="bold-label">Station Name</label>
+        <input type="text" id="stationName" name="stationName" placeholder="e.g., Neo Nexus Refinery" required>
+      </div>
+
+      <div class="form-group">
+        <label for="stationId" class="bold-label">Station ID</label>
+        <input type="number" id="stationId" name="stationId" placeholder="e.g., 1024012922938" required>
+      </div>
+      <div class="modal-actions">
+        <button type="submit">Add Station</button>
+      </form>
+    
+      <div id="stationAddStatus"></div>
+      <button onclick="closeAddStationModal()" style="margin-top:12px;">Close</button>
+    </div>
+</div>
+</div>
+
+<div id="stationModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.6);">
+  <div class="modal-content" style="max-width:400px; margin:5% auto; background:#fff; padding:20px; border-radius:8px; position:relative;">
+    <h3>Stations</h3>
+    <div id="stationList"></div>
+    <button onclick="closeStationModal()" style="margin-top:12px;">Close</button>
+  </div>
+</div>
+
+<div id="editStationModal" class="modal" style="display:none;">
+  <div class="modal-content" style="padding:20px; max-width:400px; margin: auto; border-radius:6px;">
+    <h3>Edit Station</h3>
+    <form id="editStationForm">
+      <input type="hidden" id="editStationIdHidden" />
+      <label for="editStationName">Name:</label><br>
+      <input type="text" id="editStationName" required style="width:100%; margin-bottom:10px;" /><br>
+      <label for="editStationStationId">Station ID:</label><br>
+      <input type="number" id="editStationStationId" required style="width:100%; margin-bottom:10px;" /><br>
+      <div class="modal-actions">
+        <button type="submit">Save</button>
+        <button type="button" onclick="closeEditStationModal()">Cancel</button>
+      </div>
+    </form>
+    <div id="editStationStatus" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+
+
+
 <h2>Add Blueprint (Manually)</h2>
 <form id="blueprintForm" class="blueprint-form">
     <input type="text" id="blueprintName" placeholder="Blueprint Name" required>
@@ -16,6 +95,11 @@
                 <option value="Minerals">Minerals</option>
                 <option value="Items">Items</option>
                 <option value="Components">Components</option>
+                <option value="Invention Materials">Invention Materials</option>
+                <option value="Salvaged Materials">Salvaged Materials</option>
+                <option value="Reaction Materials">Reaction Materials</option>
+                <option value="Fuel">Fuel</option>
+                <option value="Other">Other</option>
             </select>
             <div class="mineralSelectContainer" style="display: none;">
                 <select class="materialName">
@@ -69,6 +153,10 @@
       </div>
       
     </div>
+    <label for="blueprintParseStation">Manufacturing Station</label>
+    <select id="blueprintParseStation">
+      <option value="">None (Use Jita)</option>
+    </select>
     <button type="submit" class="center-button">Add Blueprint</button>
   </form>
   
@@ -109,12 +197,21 @@
       </div>
 
       <div class="form-group">
+        <label for="editBlueprintStation" class="bold-label">Manufacturing Station</label>
+        <select id="editBlueprintStation">
+          <option value="">None (Use Jita)</option>
+        </select>
+      </div>
+      
+
+      <div class="form-group">
         <label for="editBlueprintTier" class="bold-label">Tier</label>
         <select id="editBlueprintTier" required>
           <option value="T1">Tier 1</option>
           <option value="T2">Tier 2</option>
         </select>
       </div>
+
       <div class="form-group" id="inventionChanceGroup" style="display:none;">
         <label for="editBlueprintInventionChance" class="bold-label">Invention Chance (%)</label>
         <input type="number" id="editBlueprintInventionChance" placeholder="Invention Chance" min="0" max="100" step="0.1">
@@ -124,9 +221,6 @@
           <option value="1">1 Run</option>
         </select>
       </div>
-      
-      
-
       <h3 class="materials-heading">Materials</h3>
       <div id="editBlueprintMaterials"></div>
 
@@ -134,7 +228,7 @@
         <button type="button" onclick="addEditBlueprintMaterial()">Add Material</button>
         <button type="submit">Save Changes</button>
         <button type="button" onclick="closeEditBlueprintModal()">Cancel</button>
-    </div>
+      </div>
     </form>
   </div>
 </div>
@@ -183,23 +277,54 @@
 
   
 
-  <h2>Add Material (Manually)</h2>
-  <form id="materialForm">
-      <select id="materialName" required>
-          <option value="Tritanium">Tritanium</option>
-          <option value="Pyerite">Pyerite</option>
-          <option value="Mexallon">Mexallon</option>
-          <option value="Isogen">Isogen</option>
-          <option value="Nocxium">Nocxium</option>
-          <option value="Zydrine">Zydrine</option>
-          <option value="Megacyte">Megacyte</option>
-          <option value="other">Other</option>
-      </select>
-      <input type="text" id="otherMaterialName" placeholder="Other Material Name" style="display: none;">
-      <input type="number" id="materialQuantity" placeholder="Quantity" required>
-      <button type="submit">Add Material</button>
-  </form>
+<h2>Add Material (Manually)</h2>
+
+<form id="materialForm" method="POST" action="/material">
+  <!-- Name Selector -->
+  <label for="materialName">Material:</label>
+  <select id="materialName" name="name" required onchange="toggleOtherInput()">
+    <option value="Tritanium">Tritanium</option>
+    <option value="Pyerite">Pyerite</option>
+    <option value="Mexallon">Mexallon</option>
+    <option value="Isogen">Isogen</option>
+    <option value="Nocxium">Nocxium</option>
+    <option value="Zydrine">Zydrine</option>
+    <option value="Megacyte">Megacyte</option>
+    <option value="other">Other</option>
+  </select>
+
+  <!-- If "other" is chosen -->
+  <input type="text" id="otherMaterialName" name="otherName" placeholder="Other Material Name" style="display: none;">
+
+  <!-- Quantity -->
+  <input type="number" name="quantity" id="materialQuantity" placeholder="Quantity" required>
+
+  <!-- Type ID -->
+  <input type="number" name="type_id" id="typeId" placeholder="Type ID (optional)">
+
+  <!-- Category -->
+  <input type="text" name="category" id="category" placeholder="Category (optional)">
+
+  <button type="submit">Add Material</button>
+</form>
+
+<script>
+  function toggleOtherInput() {
+    const select = document.getElementById('materialName');
+    const otherInput = document.getElementById('otherMaterialName');
   
+    if (select.value === 'other') {
+      otherInput.style.display = 'inline-block';
+      otherInput.name = 'name'; // replace select name
+      select.name = 'unused';
+    } else {
+      otherInput.style.display = 'none';
+      select.name = 'name';
+      otherInput.name = 'otherName';
+    }
+  }
+  </script>
+
 <h2>Add Available Materials From Game (Copy/Paste)</h2>
 <form id="availableMaterialsForm">
     <textarea id="availableMaterialsData" placeholder="Paste available materials here" required></textarea>
@@ -214,15 +339,39 @@
     <button type="submit">Update Available Materials</button>
 </form>
 
-<h2>Current Blueprints</h2>
-<div id="blueprintList"></div>
 
-<h2>Current Materials</h2>
-<div id="materialList"></div>
 
-<button class="center-button" onclick="optimize()">Optimize Production</button>
 
-<div id="results"></div>
+<div style="display: flex; flex-direction: column; min-height: 80vh;">
+  
+
+  <div id="main-content" style="flex: 1 1 auto; overflow-y: auto; padding: 20px;">
+    <h2>Current Blueprints</h2>
+    <div id="blueprintList"></div>
+
+    <div style="display: flex; justify-content: left; margin: 20px;">
+      <button id="updatePricesBtn" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+        Update All Blueprint Prices (Cost and Sell)
+      </button>
+    </div>
+    <div id="price-update-status" style="text-align: center; margin-top: 10px; font-weight: bold;"></div>
+
+    <div class="price-legend" style="margin-top: 10px; font-size: 0.9em;">
+      <span style="color: orange;">&#9888;</span> Fallback to Jita pricing
+    </div>
+    <h2>Current Materials</h2>
+    <div id="materialList"></div>
+    <div style="display: flex; justify-content: left; margin: 20px;">
+      <button id="update-materials-btn" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+        Update Material Info (TypeID and Category)
+      </button>
+    </div>
+    <div id="update-status" style="text-align: center; margin-top: 10px; font-weight: bold;"></div>
+    <button class="center-button" onclick="optimize()">Optimize Production</button>
+    <div id="results"></div>
+  </div>
+</div>
+
 
   
 {% endblock %}

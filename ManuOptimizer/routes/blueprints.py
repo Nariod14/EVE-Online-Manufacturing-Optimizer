@@ -2,7 +2,8 @@ from collections import defaultdict
 import os
 import subprocess
 import sys
-from flask import jsonify, render_template, request
+import concurrent
+from flask import jsonify, render_template, request, session
 import logging
 import traceback
 import re
@@ -12,8 +13,8 @@ from urllib3.util.retry import Retry
 
 
 import pulp
-from .utils import expand_materials, get_material_category_lookup, get_material_quantity, parse_blueprint_text, parse_ingame_invention_text
-from models import BlueprintT2,Blueprint as BlueprintModel, db, Material
+from .utils import expand_materials, get_lowest_jita_sell_price, get_material_category_lookup, get_material_info, get_material_quantity, get_station_sell_price, normalize_name, parse_blueprint_text, parse_ingame_invention_text
+from models import BlueprintT2,Blueprint as BlueprintModel, Station, db, Material
 from flask import Blueprint
 from pulp import LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus, PULP_CBC_CMD
 
@@ -171,6 +172,7 @@ def add_manual_blueprint():
         logger.error(f"Error adding blueprint! See the traceback for more info:")
         logger.error(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
+    
 
 @blueprints_bp.route('/blueprint/<int:id>', methods=['GET'])
 def get_blueprint(id):
@@ -185,8 +187,8 @@ def get_blueprint(id):
             'sell_price': blueprint.sell_price,
             'material_cost': blueprint.material_cost,
             'tier': blueprint.tier,
-            'invention_chance': getattr(blueprint, 'invention_chance', None),
-            'invention_cost': getattr(blueprint, 'invention_cost', None)
+            "station_id": getattr(blueprint, 'station_id', None),
+            "use_jita_sell": getattr(blueprint, 'use_jita_sell', True),
         }
         # If T2, add invention_chance
         if blueprint.tier == "T2":
@@ -217,7 +219,11 @@ def get_blueprints():
                 "materials": materials,
                 "sell_price": b.sell_price,
                 "material_cost": b.material_cost,
-                "tier": b.tier
+                "tier": b.tier,
+                "station_id": b.station_id,
+                "station_name": b.station.name if b.station else None,
+                "use_jita_sell": b.use_jita_sell,
+                "used_jita_fallback": getattr(b, 'used_jita_fallback', False)
             }
             if b.tier == "T2":
                 bp_dict["invention_chance"] = getattr(b, "invention_chance", None)
@@ -243,35 +249,43 @@ def update_blueprint(id):
         blueprint.material_cost = data.get('material_cost', blueprint.material_cost)
         blueprint.max = data.get('max', blueprint.max)
         blueprint.tier = data.get('tier', blueprint.tier)
-        blueprint.runs_per_copy = data.get('runs_per_copy', 10)
+        blueprint.station_id = data.get('station_id', blueprint.station_id)
 
+        # Jita logic
+        if blueprint.station_id is not None and blueprint.station_id != 60003760:
+            blueprint.use_jita_sell = False
+        else:
+            blueprint.use_jita_sell = True
+
+        # Optional T2-specific logic
         if blueprint.tier == 'T2':
-            # Always update invention_chance and invention_cost if provided
             if 'invention_chance' in data and data['invention_chance'] is not None:
                 blueprint.invention_chance = data['invention_chance']
             if 'invention_cost' in data and data['invention_cost'] is not None:
                 blueprint.invention_cost = data['invention_cost']
+            if 'runs_per_copy' in data and data['runs_per_copy'] is not None:
+                blueprint.runs_per_copy = data['runs_per_copy']
 
-            # Always recalculate material_cost to include the new invention cost per run
-            base_material_cost = data.get('material_cost', blueprint.material_cost)
+            base_material_cost = blueprint.material_cost
             if blueprint.invention_chance and blueprint.invention_cost:
                 invention_cost_per_run = blueprint.invention_cost / (blueprint.invention_chance * blueprint.runs_per_copy)
                 blueprint.full_material_cost = base_material_cost + invention_cost_per_run
             else:
-                blueprint.material_cost = base_material_cost
+                blueprint.full_material_cost = base_material_cost
         else:
             blueprint.invention_chance = None
             blueprint.invention_cost = None
 
-
         db.session.commit()
         logger.info("Blueprint updated successfully")
         return jsonify({'message': 'Blueprint updated successfully'}), 200
+
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error updating blueprint! See the traceback for more info:")
+        logger.error("Error updating blueprint! See the traceback for more info:")
         logger.error(traceback.format_exc())
         return jsonify({"ERROR": "An error occurred while updating the blueprint"}), 500
+
 
 
 
@@ -304,7 +318,129 @@ def delete_blueprint(id):
         logger.error(f"Error deleting blueprint! See the traceback for more info:")
         logger.error(traceback.format_exc())
         return jsonify({"ERROR": "An error occurred while deleting the blueprint"}), 500
-    
+                
+@blueprints_bp.route('/update_prices', methods=['POST'])
+def update_prices():
+    try:
+        access_token = session.get("token")
+        headers = {
+            'User-Agent': 'ManuOptimizer 1.0 nariod14@gmail.com'
+        }
+        if access_token:
+            headers['Authorization'] = f'Bearer {access_token}'
+
+        from sqlalchemy import or_
+
+        materials = Material.query.filter(
+            or_(
+                Material.category != "Invention Materials",
+                Material.category == None
+            )
+        ).all()
+
+        blueprints = BlueprintModel.query.all()
+
+        unique_type_ids = set()
+        material_jobs = []
+        blueprint_jobs = []
+
+        # Stage material fetch jobs (always Jita)
+        for mat in materials:
+            if mat.type_id:
+                unique_type_ids.add(mat.type_id)
+                material_jobs.append((mat.type_id, None))
+
+        # Stage blueprint fetch jobs
+        for bp in blueprints:
+            if not bp.type_id:
+                info = get_material_info([bp.name])
+                logger.debug(f"Lookup result for '{bp.name}': {info}")
+                bp.type_id = info[normalize_name(bp.name)]['type_id']
+            if bp.type_id:
+                unique_type_ids.add(bp.type_id)
+                if not bp.use_jita_sell and bp.station_id:
+                    blueprint_jobs.append((bp.type_id, bp.station_id))
+                else:
+                    blueprint_jobs.append((bp.type_id, None))
+
+        prices = {}
+        fallback_flags = {}  # Track if fallback to Jita happened
+
+        def fetch_price(type_id, station_id):
+            if station_id:
+                price_data = get_station_sell_price(type_id, station_id, headers)  # returns tuple (price, source)
+                price, source = price_data
+                if price is not None:
+                    return type_id, price_data, False  # No fallback because station price found
+                # fallback to Jita
+                price_data = get_lowest_jita_sell_price(type_id, headers)
+                return type_id, price_data, True  # fallback occurred
+            else:
+                price_data = get_lowest_jita_sell_price(type_id, headers)
+                return type_id, price_data, False
+
+        jobs = material_jobs + blueprint_jobs
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = {executor.submit(fetch_price, tid, sid): tid for tid, sid in jobs}
+            for future in concurrent.futures.as_completed(futures):
+                tid, price_tuple, fallback = future.result()
+                price, source = price_tuple  # unpack the tuple
+
+                if price is not None:
+                    prices[tid] = price_tuple  # store tuple (price, source)
+                    fallback_flags[tid] = fallback
+                else:
+                    logger.warning(f"No price found for type_id {tid} — source: {source}")
+
+        # Cache material prices for quick cost calculation
+        material_price_map = {}
+
+        for mat in materials:
+            price_data = prices.get(mat.type_id)
+            if price_data:
+                mat.sell_price = price_data[0]  # price_data is (price, source) tuple
+                material_price_map[mat.type_id] = mat.sell_price
+            else:
+                logger.warning(f"No price found for material {mat.name} (type_id: {mat.type_id})")
+
+        for bp in blueprints:
+            price_data = prices.get(bp.type_id)
+            if price_data:
+                bp.sell_price = price_data[0]
+                bp.used_jita_fallback = fallback_flags.get(bp.type_id, False)
+            else:
+                logger.warning(f"No price found for blueprint {bp.name} (type_id: {bp.type_id})")
+                bp.sell_price = None
+                bp.used_jita_fallback = False
+
+            total_cost = 0.0
+            name_to_type_id = {mat.name: mat.type_id for mat in materials}
+
+            for category, materials_dict in bp.materials.items():
+                for mat_name, qty in materials_dict.items():
+                    type_id = name_to_type_id.get(mat_name)
+                    if type_id is not None:
+                        unit_price = material_price_map.get(type_id)
+                    else:
+                        unit_price = None
+
+                    if unit_price is not None:
+                        total_cost += unit_price * qty
+                    else:
+                        logger.warning(f"No price for material {mat_name} (type_id: {type_id}) in blueprint {bp.name}")
+
+            bp.material_cost = round(total_cost, 2)
+
+        db.session.commit()
+        return jsonify({"message": "Prices updated successfully"}), 200
+
+    except Exception:
+        db.session.rollback()
+        logger.error("Error updating prices", exc_info=True)
+        return jsonify({"error": "An error occurred while updating prices"}), 500
+
+
 
 @blueprints_bp.route('/optimize', methods=['GET'])
 def optimize():

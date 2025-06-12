@@ -1,11 +1,18 @@
+# manuoptimizer.spec
+
 # -*- mode: python ; coding: utf-8 -*-
 
+block_cipher = None
 
 a = Analysis(
-    ['run.py'],
+    ['run.py'],  # This is your entry point, so keep this as-is
     pathex=[],
     binaries=[],
-    datas=[('templates', 'templates'), ('static', 'static')],
+    datas=[
+        ('templates', 'templates'),
+        ('static', 'static'),
+        ('sde/mini_sde.sqlite', 'sde')  # Add the mini SDE here
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -14,6 +21,7 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
+
 pyz = PYZ(a.pure)
 
 exe = EXE(
@@ -22,7 +30,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='run',
+    name='run',  # This controls the output executable name (run.exe)
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
