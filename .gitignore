@@ -166,3 +166,4 @@ ManuOptimizer/test/routes.txt
 ManuOptimizer/test/nackupdp/eve_optimizer.db
 ManuOptimizer/test/nackupdp/eve_optimizer.db - Shortcut.lnk
 /ManuOptimizer/alembic
+/ManuOptimizer/Utils

@@ -10,12 +10,10 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from flask import Blueprint
-
-import pulp
-from .utils import get_material_category_lookup
+from .utils import get_material_category_lookup, get_material_info
 from models import BlueprintT2, db, Material
 from flask import Blueprint
-from pulp import LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus, PULP_CBC_CMD
+
 
 
 
@@ -42,7 +40,7 @@ def update_material(id):
 
         material.quantity = data.get('quantity', material.quantity)
         material.type_id = data.get('type_id', material.type_id)
-        material.category = data.get('category', material.category)
+        material.category = data.get('category', material.category or "Other")
 
         db.session.commit()
         logger.info("Material updated successfully")
@@ -79,9 +77,11 @@ def add_material():
         if material:
             logger.info(f"Updating existing material: {data['name']}")
             material.quantity = data['quantity']
+            material.type_id = data.get('type_id') or get_material_info(data['name'])['type_id']
+            material.category = data.get('category') or get_material_info(data['name'])['category']
         else:
             logger.info(f"Adding new material: {data['name']}")
-            new_material = Material(name=data['name'], quantity=data['quantity'])
+            new_material = Material(name=data['name'], quantity=data['quantity'], type_id=data.get('type_id'), category=data.get('category') or get_material_info(data['name'])['category'])
             db.session.add(new_material)
         
         db.session.commit()
@@ -102,7 +102,7 @@ def get_material(id):
             "id": material.id,
             "name": material.name,
             "quantity": material.quantity,
-            "type_id": material.type_id,
+            "type_id": material.type_id or None,
             "category": material.category
         }), 200
     except Exception as e:
@@ -121,6 +121,7 @@ def get_materials():
                 "id": m.id,
                 "name": m.name,
                 "quantity": m.quantity,
+                "type_id": m.type_id or None,
                 "category": category_lookup.get(m.name, "Other")
             }
             for m in materials
@@ -140,39 +141,33 @@ def update_materials():
         logger.info(f"Received materials data: {materials}")
         logger.info(f"Update type: {update_type}")
 
-        category_lookup = get_material_category_lookup()
+        all_names = list(materials.keys())
+        material_info = get_material_info(all_names)  # Dict[str, {"type_id": ..., "category": ...}]
 
         if update_type == 'replace':
-            # Clear all existing materials before adding new ones
             Material.query.delete()
             db.session.commit()
             logger.info("All existing materials have been deleted.")
 
-            # Add new materials with categories
-            for name, quantity in materials.items():
-                category = category_lookup.get(name, "Other")
-                new_material = Material(name=name, quantity=quantity, category=category)
+        for name, quantity in materials.items():
+            info = material_info.get(name, {})
+            type_id = info.get("type_id", 0)
+            category = info.get("category", "Other")
+
+            existing_material = Material.query.filter_by(name=name).first()
+
+            if update_type == 'add' and existing_material:
+                logger.info(f"Updating material: {name} -> Qty: {quantity}, Cat: {category}, ID: {type_id}")
+                existing_material.quantity = quantity
+                existing_material.category = category
+                existing_material.type_id = type_id
+            else:
+                logger.info(f"Adding new material: {name} -> Qty: {quantity}, Cat: {category}, ID: {type_id}")
+                new_material = Material(name=name, quantity=quantity, category=category, type_id=type_id)
                 db.session.add(new_material)
-            db.session.commit()
-            logger.info("Materials updated successfully.")
 
-        elif update_type == 'add':
-            # Replace existing materials with the same name and add new ones with categories
-            for name, quantity in materials.items():
-                material = Material.query.filter_by(name=name).first()
-                category = category_lookup.get(name, "Other")
-                if material:
-                    logger.info(f"Replacing material: {name} with quantity: {quantity} and category: {category}")
-                    material.quantity = quantity
-                    material.category = category
-                else:
-                    logger.info(f"Adding new material: {name} with quantity: {quantity} and category: {category}")
-                    new_material = Material(name=name, quantity=quantity, category=category)
-                    db.session.add(new_material)
-
-            db.session.commit()
-            logger.info("Materials updated successfully.")
-
+        db.session.commit()
+        logger.info("Materials updated successfully.")
         return jsonify({"message": "Materials updated successfully"}), 200
 
     except Exception as e:
@@ -180,4 +175,24 @@ def update_materials():
         logger.error(f"Error updating materials: {str(e)}")
         logger.error(traceback.format_exc())
         return jsonify({"error": "An error occurred while updating materials"}), 500
+    
 
+@materials_bp.route('/update_material_info', methods=['POST'])
+def update_material_info():
+    try:
+        materials = Material.query.all()
+        
+        for material in materials:
+            material_info = get_material_info([material.name])[material.name]
+            material.type_id = material_info['type_id']
+            material.category = material_info['category']
+            logger.info(f"Updated material '{material.name}' (type_id: {material.type_id}, category: {material.category})")
+
+        
+        db.session.commit()
+        logger.info("Material info updated successfully")
+        return jsonify({"message": "Material info updated successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        logger.error("Error updating material info!\n" + traceback.format_exc())
+        return jsonify({"ERROR": "An error occurred while updating the material info"}), 500
