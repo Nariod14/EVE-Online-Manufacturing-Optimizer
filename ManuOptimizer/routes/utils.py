@@ -72,6 +72,20 @@ def get_material_quantity(blueprint, material_name):
         return quantity
     return blueprint.materials.get(material_name, 0)
 
+def fetch_price(type_id, station_id, headers):
+    if station_id:
+        price_data = get_station_sell_price(type_id, station_id, headers)  # returns tuple (price, source)
+        price, source = price_data
+        if price is not None:
+            return type_id, price_data, False  # No fallback because station price found
+        # fallback to Jita
+        price_data = get_lowest_jita_sell_price(type_id, headers)
+        return type_id, price_data, True  # fallback occurred
+    else:
+        price_data = get_lowest_jita_sell_price(type_id, headers)
+        return type_id, price_data, False
+
+
 
 def get_material_info(material_names):
     # Get the path to the SDE
@@ -88,7 +102,6 @@ def get_material_info(material_names):
 
     # Normalize the material names
     normalized_names = [unicodedata.normalize('NFC', normalize_name(name)) for name in material_names]
-    logger.debug(f"Normalized names: {normalized_names}")
 
     # Query the SDE database
     placeholders = ', '.join('?' for _ in normalized_names)
@@ -105,9 +118,7 @@ def get_material_info(material_names):
     for name, tid, cat in rows:
         info[normalize_name(name)] = {"type_id": tid, "category": cat}
     
-    if info:
-        logger.debug(f"Material info: {info}")
-    else:
+    if not info:
         logger.debug("No material info found")
 
     conn.close()

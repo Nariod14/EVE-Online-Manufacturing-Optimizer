@@ -10,7 +10,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from flask import Blueprint
-from .utils import get_material_category_lookup, get_material_info
+from .utils import get_material_category_lookup, get_material_info, normalize_name
 from models import BlueprintT2, db, Material
 from flask import Blueprint
 
@@ -115,21 +115,28 @@ def get_materials():
     try:
         materials = Material.query.all()
         logger.info("Materials retrieved successfully")
-        category_lookup = get_material_category_lookup()
-        return jsonify([
-            {
+
+        # Use SDE-based info for fallback category lookup
+        names = [m.name for m in materials]
+        sde_info = get_material_info(names)
+
+        result = []
+        for m in materials:
+            sde_cat = sde_info.get(normalize_name(m.name), {}).get("category", "Other")
+            result.append({
                 "id": m.id,
                 "name": m.name,
                 "quantity": m.quantity,
-                "type_id": m.type_id or None,
-                "category": category_lookup.get(m.name, "Other")
-            }
-            for m in materials
-        ]), 200
+                "type_id": m.type_id or sde_info.get(normalize_name(m.name), {}).get("type_id", None),
+                "category": m.category or sde_cat
+            })
+
+        return jsonify(result), 200
+
     except Exception as e:
-        logger.error(f"Error getting materials! See the traceback for more info:")
-        logger.error(traceback.format_exc())
+        logger.error("Error getting materials!\n" + traceback.format_exc())
         return jsonify({"ERROR": "An error occurred while getting the materials"}), 500
+
     
 @materials_bp.route('/update_materials', methods=['POST'])
 def update_materials():

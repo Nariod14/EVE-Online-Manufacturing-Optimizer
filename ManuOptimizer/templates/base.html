@@ -1029,7 +1029,17 @@ $('#editMaterialForm').on('submit', function(e) {
   const id = $('#editMaterialId').val();
   const quantity = parseInt($('#editMaterialQuantity').val());
   const type_id = $('#editMaterialTypeID').val();
-  const category = $('#editMaterialCategory').val();
+
+  const dropdownVal = $('#editMaterialCategorySelect').val(); // ✅ FIXED
+  const manualVal = $('#editMaterialCategoryManual').val();
+
+  const category = dropdownVal === 'Other' ? manualVal : dropdownVal;
+
+  console.log("Sending payload:", {
+    quantity,
+    type_id,
+    category
+  });
 
   $.ajax({
     url: '/api/materials/material/' + id,
@@ -1051,6 +1061,7 @@ $('#editMaterialForm').on('submit', function(e) {
     }
   });
 });
+
 
 $('#editMaterialCategorySelect').on('change', function() {
   if (this.value === 'Other') {
