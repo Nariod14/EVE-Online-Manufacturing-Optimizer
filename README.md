@@ -13,8 +13,8 @@
 - Gain access to structure-specific market data and authorized endpoints via the authenticated access token.
 
 ### Station Management
-- Manage Player-Owned Stations (POS).
-- Add, edit, and delete stations for market data queries and blueprint calculations using your access token.
+- Manage Player-Owned Stations.
+- Add, edit, and delete stations for market data queries and blueprint calculations using your access token (when logged in through ESI).
 
 ### Material Tracking
 - Add and update your inventory of materials, including quantities and prices.
@@ -25,7 +25,7 @@
 - Prioritize based on profit margins or material availability.
 
 ### Dynamic UI
-- No page reloads — real-time updates for blueprints, materials, and stations.
+- No page reloads real-time updates for blueprints, materials, and stations.
 - Blueprint and material prices are updated live using ESI with local caching for efficiency.
 
 ### Responsive Design
