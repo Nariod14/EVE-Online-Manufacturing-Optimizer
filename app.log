@@ -1,8 +1,340 @@
-2025-06-13 14:47:18,473 - INFO - Starting EVE Online Manufacturing Optimizer
-2025-06-13 14:47:18,474 - INFO - Server is running at: http://127.0.0.1:5000
-2025-06-13 14:47:18,475 - INFO - Opening web browser...
-2025-06-13 14:47:18,579 - INFO - Instructions:
-2025-06-13 14:47:18,579 - INFO - 1. Use the web interface to manage blueprints and materials
-2025-06-13 14:47:18,579 - INFO - 2. Click 'Optimize Production' to calculate the most profitable manufacturing plan
-2025-06-13 14:47:18,580 - INFO - 3. Press Ctrl+C in this terminal to stop the server
-2025-06-13 14:47:18,585 - INFO - Serving on http://127.0.0.1:5000
+2025-06-15 05:21:00,245 - INFO - Starting EVE Online Manufacturing Optimizer
+2025-06-15 05:21:00,245 - INFO - Server is running at: http://127.0.0.1:5000
+2025-06-15 05:21:00,245 - INFO - Opening web browser...
+2025-06-15 05:21:00,335 - INFO - Instructions:
+2025-06-15 05:21:00,335 - INFO - 1. Use the web interface to manage blueprints and materials
+2025-06-15 05:21:00,336 - INFO - 2. Click 'Optimize Production' to calculate the most profitable manufacturing plan
+2025-06-15 05:21:00,336 - INFO - 3. Press Ctrl+C in this terminal to stop the server
+2025-06-15 05:21:00,338 - INFO - Serving on http://127.0.0.1:5000
+2025-06-15 05:21:00,750 - INFO - Blueprints retrieved successfully
+2025-06-15 05:21:00,758 - INFO - Materials retrieved successfully
+2025-06-15 05:21:01,962 - ERROR - 404 Not Found: GET /favicon.ico
+2025-06-15 10:41:49,377 - INFO - Blueprints retrieved successfully
+2025-06-15 10:41:49,380 - INFO - Materials retrieved successfully
+2025-06-15 10:42:09,942 - DEBUG - Starting new HTTPS connection (1): login.eveonline.com:443
+2025-06-15 10:42:10,144 - DEBUG - https://login.eveonline.com:443 "POST /v2/oauth/token HTTP/1.1" 200 None
+2025-06-15 10:42:10,220 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:10,590 - DEBUG - https://esi.evetech.net:443 "GET /verify HTTP/1.1" 200 251
+2025-06-15 10:42:10,592 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:10,913 - DEBUG - https://esi.evetech.net:443 "GET /latest/characters/2113289499/ HTTP/1.1" 200 636
+2025-06-15 10:42:10,914 - INFO - Logged in as Nariod Naren — Access Token: eyJhbGciOiJSUzI1NiIsImtpZCI6IkpXVC1TaWduYXR1cmUtS2V5IiwidHlwIjoiSldUIn0.eyJzY3AiOiJlc2ktbWFya2V0cy5zdHJ1Y3R1cmVfbWFya2V0cy52MSIsImp0aSI6ImNjMTkzNmNlLWY0YTUtNGUzMy04MzM3LWNjZGJkOTExZjRkMiIsImtpZCI6IkpXVC1TaWduYXR1cmUtS2V5Iiwic3ViIjoiQ0hBUkFDVEVSOkVWRToyMTEzMjg5NDk5IiwiYXpwIjoiNzgzMTdiOGFiZWY4NDU0YmFmYzUzZTIwMzYzMWE5ODAiLCJ0ZW5hbnQiOiJ0cmFucXVpbGl0eSIsInRpZXIiOiJsaXZlIiwicmVnaW9uIjoid29ybGQiLCJhdWQiOlsiNzgzMTdiOGFiZWY4NDU0YmFmYzUzZTIwMzYzMWE5ODAiLCJFVkUgT25saW5lIl0sIm5hbWUiOiJOYXJpb2QgTmFyZW4iLCJvd25lciI6ImYzdGZ3NEE4VTdRRTVhcmZPeEkyR0NVdWJCVT0iLCJleHAiOjE3NDk5OTYxMzAsImlhdCI6MTc0OTk5NDkzMCwiaXNzIjoiaHR0cHM6Ly9sb2dpbi5ldmVvbmxpbmUuY29tIn0.YxStI_b5XxVSJGNTG1mrxOLeW4DwjqGYiLUE_VDir3Lie2u8PlPapI6ygT9B2v5kRuvz6uZMZmPcjWPNEQhSOT2gimqy-qpkU_SZO8TqFcm6fmLLwCT_8lNcX6cX44fDntS6hqieuTfYzKJWSMfeD8MF4zWj9pGJ9zicShNuQWshvEHLDBR95UjN5zvkNiof59xY-5FmWtj0lq9t5RY_AR9_yoyQfHz5yszAwQJ1ssjB00yZ2ZGNQDwhXhxkSGCDjQa0_vshs43zehR2r5Po0Leausvdm0uvqTSvuLTXW6VfPwtqZJo-kQ2llK95e8x-m9YpsHATIuwZSfpS0bi8pw. Try not to share this.
+2025-06-15 10:42:11,184 - INFO - Blueprints retrieved successfully
+2025-06-15 10:42:11,185 - INFO - Materials retrieved successfully
+2025-06-15 10:42:12,271 - ERROR - 404 Not Found: GET /favicon.ico
+2025-06-15 10:42:22,961 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:22,964 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:22,965 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:22,966 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:22,967 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:22,967 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:22,968 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:22,969 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:22,969 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:22,970 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,278 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=3687 HTTP/1.1" 200 870
+2025-06-15 10:42:23,279 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=36 HTTP/1.1" 200 None
+2025-06-15 10:42:23,281 - INFO - Lowest sell price for type_id 3687 (Electronic Parts) in Jita: 789.2
+2025-06-15 10:42:23,281 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=37 HTTP/1.1" 200 1747
+2025-06-15 10:42:23,282 - INFO - Lowest sell price for type_id 36 (Mexallon) in Jita: 87.9
+2025-06-15 10:42:23,282 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,283 - INFO - Lowest sell price for type_id 37 (Isogen) in Jita: 378.0
+2025-06-15 10:42:23,283 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,284 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,286 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=38 HTTP/1.1" 200 None
+2025-06-15 10:42:23,287 - INFO - Lowest sell price for type_id 38 (Nocxium) in Jita: 1188.0
+2025-06-15 10:42:23,287 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,290 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=40 HTTP/1.1" 200 1427
+2025-06-15 10:42:23,291 - INFO - Lowest sell price for type_id 40 (Megacyte) in Jita: 5345.0
+2025-06-15 10:42:23,291 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,291 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=35 HTTP/1.1" 200 2041
+2025-06-15 10:42:23,292 - INFO - Lowest sell price for type_id 35 (Pyerite) in Jita: 33.69
+2025-06-15 10:42:23,293 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=39 HTTP/1.1" 200 None
+2025-06-15 10:42:23,293 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,294 - INFO - Lowest sell price for type_id 39 (Zydrine) in Jita: 2286.0
+2025-06-15 10:42:23,295 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,300 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=34 HTTP/1.1" 200 None
+2025-06-15 10:42:23,301 - INFO - Lowest sell price for type_id 34 (Tritanium) in Jita: 4.21
+2025-06-15 10:42:23,302 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,337 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=16682 HTTP/1.1" 200 1170
+2025-06-15 10:42:23,338 - INFO - Lowest sell price for type_id 16682 (Hypersynaptic Fibers) in Jita: 13290.0
+2025-06-15 10:42:23,339 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,354 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=11541 HTTP/1.1" 200 None
+2025-06-15 10:42:23,355 - INFO - Lowest sell price for type_id 11541 (Photon Microprocessor) in Jita: 44750.0
+2025-06-15 10:42:23,356 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,598 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=11399 HTTP/1.1" 200 None
+2025-06-15 10:42:23,599 - INFO - Lowest sell price for type_id 11399 (Morphite) in Jita: 31000.0
+2025-06-15 10:42:23,600 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,614 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=3689 HTTP/1.1" 200 657
+2025-06-15 10:42:23,615 - INFO - Lowest sell price for type_id 3689 (Mechanical Parts) in Jita: 14200.0
+2025-06-15 10:42:23,616 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,649 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=20413 HTTP/1.1" 200 945
+2025-06-15 10:42:23,650 - INFO - Lowest sell price for type_id 20413 (Datacore - Laser Physics) in Jita: 110600.0
+2025-06-15 10:42:23,651 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,663 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=20424 HTTP/1.1" 200 1759
+2025-06-15 10:42:23,664 - INFO - Lowest sell price for type_id 20424 (Datacore - Mechanical Engineering) in Jita: 98000.0
+2025-06-15 10:42:23,665 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,668 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=9840 HTTP/1.1" 200 974
+2025-06-15 10:42:23,668 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=11482 HTTP/1.1" 200 490
+2025-06-15 10:42:23,669 - INFO - Lowest sell price for type_id 9840 (Transmitter) in Jita: 12560.0
+2025-06-15 10:42:23,669 - INFO - Lowest sell price for type_id 11482 (R.A.M.- Energy Tech) in Jita: 948.9
+2025-06-15 10:42:23,670 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,670 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,684 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=11689 HTTP/1.1" 200 619
+2025-06-15 10:42:23,685 - INFO - Lowest sell price for type_id 11689 (Laser Focusing Crystals) in Jita: 27390.0
+2025-06-15 10:42:23,686 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,687 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=23527 HTTP/1.1" 200 1548
+2025-06-15 10:42:23,688 - INFO - Lowest sell price for type_id 23527 (Drone Link Augmentor I) in Jita: 585100.0
+2025-06-15 10:42:23,689 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,703 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60313 HTTP/1.1" 200 892
+2025-06-15 10:42:23,706 - INFO - Lowest sell price for type_id 60313 (Gas Cloud Harvester I) in Jita: 5776000.0
+2025-06-15 10:42:23,709 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,973 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=20411 HTTP/1.1" 200 1039
+2025-06-15 10:42:23,974 - INFO - Lowest sell price for type_id 20411 (Datacore - High Energy Physics) in Jita: 113100.0
+2025-06-15 10:42:23,975 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:23,977 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=18054 HTTP/1.1" 200 670
+2025-06-15 10:42:23,978 - INFO - Lowest sell price for type_id 18054 (Mercoxit Asteroid Mining Crystal Type A I) in Jita: 1044000.0
+2025-06-15 10:42:23,979 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,012 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=11483 HTTP/1.1" 200 699
+2025-06-15 10:42:24,013 - INFO - Lowest sell price for type_id 11483 (R.A.M.- Electronics) in Jita: 1574.0
+2025-06-15 10:42:24,014 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,038 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60279 HTTP/1.1" 200 969
+2025-06-15 10:42:24,039 - INFO - Lowest sell price for type_id 60279 (Simple Asteroid Mining Crystal Type B I) in Jita: 171600.0
+2025-06-15 10:42:24,040 - INFO - Fetching structure orders at 1046831245129
+2025-06-15 10:42:24,040 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,052 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60297 HTTP/1.1" 200 1268
+2025-06-15 10:42:24,053 - INFO - Lowest sell price for type_id 60297 (Complex Asteroid Mining Crystal Type A I) in Jita: 315400.0
+2025-06-15 10:42:24,054 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,062 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60292 HTTP/1.1" 200 691
+2025-06-15 10:42:24,063 - INFO - Lowest sell price for type_id 60292 (Variegated Asteroid Mining Crystal Type B I) in Jita: 714500.0
+2025-06-15 10:42:24,063 - INFO - Fetching structure orders at 1046831245129
+2025-06-15 10:42:24,063 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,066 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=11688 HTTP/1.1" 200 774
+2025-06-15 10:42:24,066 - INFO - Lowest sell price for type_id 11688 (Particle Accelerator Unit) in Jita: 29440.0
+2025-06-15 10:42:24,067 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,067 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=12108 HTTP/1.1" 200 959
+2025-06-15 10:42:24,068 - INFO - Lowest sell price for type_id 12108 (Deep Core Mining Laser I) in Jita: 1229000.0
+2025-06-15 10:42:24,068 - INFO - Fetching structure orders at 1046831245129
+2025-06-15 10:42:24,069 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,069 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60291 HTTP/1.1" 200 501
+2025-06-15 10:42:24,070 - INFO - Lowest sell price for type_id 60291 (Variegated Asteroid Mining Crystal Type A I) in Jita: 348500.0
+2025-06-15 10:42:24,070 - INFO - Fetching structure orders at 1046831245129
+2025-06-15 10:42:24,071 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,121 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60298 HTTP/1.1" 200 653
+2025-06-15 10:42:24,122 - INFO - Lowest sell price for type_id 60298 (Complex Asteroid Mining Crystal Type B I) in Jita: 815000.0
+2025-06-15 10:42:24,123 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,386 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60285 HTTP/1.1" 200 1586
+2025-06-15 10:42:24,387 - INFO - Lowest sell price for type_id 60285 (Coherent Asteroid Mining Crystal Type A I) in Jita: 87640.0
+2025-06-15 10:42:24,388 - INFO - Fetching structure orders at 1046831245129
+2025-06-15 10:42:24,388 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60286 HTTP/1.1" 200 554
+2025-06-15 10:42:24,389 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,389 - INFO - Lowest sell price for type_id 60286 (Coherent Asteroid Mining Crystal Type B I) in Jita: 418200.0
+2025-06-15 10:42:24,390 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,447 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60276 HTTP/1.1" 200 716
+2025-06-15 10:42:24,448 - INFO - Lowest sell price for type_id 60276 (Simple Asteroid Mining Crystal Type A I) in Jita: 99790.0
+2025-06-15 10:42:24,448 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,471 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=24348 HTTP/1.1" 200 1121
+2025-06-15 10:42:24,472 - INFO - Lowest sell price for type_id 24348 (Small Tractor Beam I) in Jita: 3590000.0
+2025-06-15 10:42:24,473 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,562 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=22782 HTTP/1.1" 200 878
+2025-06-15 10:42:24,563 - INFO - Lowest sell price for type_id 22782 (Interdiction Sphere Launcher I) in Jita: 4699000.0
+2025-06-15 10:42:24,564 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,566 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=44102 HTTP/1.1" 200 1081
+2025-06-15 10:42:24,567 - INFO - Lowest sell price for type_id 44102 (Defender Launcher I) in Jita: 9596000.0
+2025-06-15 10:42:24,568 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,701 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60297 HTTP/1.1" 200 1268
+2025-06-15 10:42:24,702 - INFO - Lowest sell price for type_id 60297 (Complex Asteroid Mining Crystal Type A I) in Jita: 315400.0
+2025-06-15 10:42:24,703 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,745 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=1 HTTP/1.1" 200 None
+2025-06-15 10:42:24,748 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=1 HTTP/1.1" 200 None
+2025-06-15 10:42:24,759 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=18054 HTTP/1.1" 200 670
+2025-06-15 10:42:24,760 - INFO - Lowest sell price for type_id 18054 (Mercoxit Asteroid Mining Crystal Type A I) in Jita: 1044000.0
+2025-06-15 10:42:24,761 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,801 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60285 HTTP/1.1" 200 1586
+2025-06-15 10:42:24,803 - INFO - Lowest sell price for type_id 60285 (Coherent Asteroid Mining Crystal Type A I) in Jita: 87640.0
+2025-06-15 10:42:24,803 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,813 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=1 HTTP/1.1" 200 None
+2025-06-15 10:42:24,850 - INFO - Fetched page 1 with 1000 orders.
+2025-06-15 10:42:24,851 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,853 - INFO - Fetched page 1 with 1000 orders.
+2025-06-15 10:42:24,853 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,874 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=11482 HTTP/1.1" 200 490
+2025-06-15 10:42:24,875 - INFO - Lowest sell price for type_id 11482 (R.A.M.- Energy Tech) in Jita: 948.9
+2025-06-15 10:42:24,875 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,889 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60313 HTTP/1.1" 200 892
+2025-06-15 10:42:24,890 - INFO - Lowest sell price for type_id 60313 (Gas Cloud Harvester I) in Jita: 5776000.0
+2025-06-15 10:42:24,891 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:24,915 - INFO - Fetched page 1 with 1000 orders.
+2025-06-15 10:42:24,916 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,030 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60298 HTTP/1.1" 200 653
+2025-06-15 10:42:25,031 - INFO - Lowest sell price for type_id 60298 (Complex Asteroid Mining Crystal Type B I) in Jita: 815000.0
+2025-06-15 10:42:25,032 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,066 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60292 HTTP/1.1" 200 691
+2025-06-15 10:42:25,067 - INFO - Lowest sell price for type_id 60292 (Variegated Asteroid Mining Crystal Type B I) in Jita: 714500.0
+2025-06-15 10:42:25,068 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,136 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60279 HTTP/1.1" 200 969
+2025-06-15 10:42:25,137 - INFO - Lowest sell price for type_id 60279 (Simple Asteroid Mining Crystal Type B I) in Jita: 171600.0
+2025-06-15 10:42:25,138 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,155 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=1 HTTP/1.1" 200 None
+2025-06-15 10:42:25,197 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60291 HTTP/1.1" 200 501
+2025-06-15 10:42:25,198 - INFO - Lowest sell price for type_id 60291 (Variegated Asteroid Mining Crystal Type A I) in Jita: 348500.0
+2025-06-15 10:42:25,199 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,202 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=12108 HTTP/1.1" 200 959
+2025-06-15 10:42:25,203 - INFO - Lowest sell price for type_id 12108 (Deep Core Mining Laser I) in Jita: 1229000.0
+2025-06-15 10:42:25,204 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,257 - INFO - Fetched page 1 with 1000 orders.
+2025-06-15 10:42:25,258 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,337 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=23527 HTTP/1.1" 200 1548
+2025-06-15 10:42:25,339 - INFO - Lowest sell price for type_id 23527 (Drone Link Augmentor I) in Jita: 585100.0
+2025-06-15 10:42:25,340 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,419 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=2 HTTP/1.1" 200 None
+2025-06-15 10:42:25,440 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60309 HTTP/1.1" 200 477
+2025-06-15 10:42:25,442 - INFO - Lowest sell price for type_id 60309 (Mercoxit Asteroid Mining Crystal Type B I) in Jita: 1262000.0
+2025-06-15 10:42:25,442 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,520 - INFO - Fetched page 2 with 1000 orders.
+2025-06-15 10:42:25,520 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,524 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=2 HTTP/1.1" 200 None
+2025-06-15 10:42:25,590 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=2 HTTP/1.1" 200 None
+2025-06-15 10:42:25,671 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=11483 HTTP/1.1" 200 699
+2025-06-15 10:42:25,671 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60300 HTTP/1.1" 200 561
+2025-06-15 10:42:25,671 - INFO - Fetched page 2 with 1000 orders.
+2025-06-15 10:42:25,673 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,673 - INFO - Lowest sell price for type_id 11483 (R.A.M.- Electronics) in Jita: 1574.0
+2025-06-15 10:42:25,673 - INFO - Lowest sell price for type_id 60300 (Complex Asteroid Mining Crystal Type A II) in Jita: 720000.0
+2025-06-15 10:42:25,674 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,674 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,696 - INFO - Fetched page 2 with 1000 orders.
+2025-06-15 10:42:25,696 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:25,850 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=18068 HTTP/1.1" 200 1244
+2025-06-15 10:42:25,851 - INFO - Lowest sell price for type_id 18068 (Modulated Deep Core Miner II) in Jita: 2673000.0
+2025-06-15 10:42:25,852 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,034 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=3 HTTP/1.1" 200 None
+2025-06-15 10:42:26,133 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60314 HTTP/1.1" 200 1114
+2025-06-15 10:42:26,134 - INFO - Lowest sell price for type_id 60314 (Gas Cloud Harvester II) in Jita: 9719000.0
+2025-06-15 10:42:26,135 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,137 - INFO - Fetched page 3 with 1000 orders.
+2025-06-15 10:42:26,138 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,187 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60301 HTTP/1.1" 200 800
+2025-06-15 10:42:26,188 - INFO - Lowest sell price for type_id 60301 (Complex Asteroid Mining Crystal Type B II) in Jita: 2148000.0
+2025-06-15 10:42:26,189 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,208 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=3 HTTP/1.1" 200 None
+2025-06-15 10:42:26,219 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60295 HTTP/1.1" 200 691
+2025-06-15 10:42:26,220 - INFO - Lowest sell price for type_id 60295 (Variegated Asteroid Mining Crystal Type B II) in Jita: 1964000.0
+2025-06-15 10:42:26,221 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,310 - INFO - Fetched page 3 with 1000 orders.
+2025-06-15 10:42:26,311 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,318 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=2 HTTP/1.1" 200 None
+2025-06-15 10:42:26,346 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=3 HTTP/1.1" 200 None
+2025-06-15 10:42:26,419 - INFO - Fetched page 2 with 1000 orders.
+2025-06-15 10:42:26,420 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,451 - INFO - Fetched page 3 with 1000 orders.
+2025-06-15 10:42:26,451 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,504 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60283 HTTP/1.1" 200 776
+2025-06-15 10:42:26,505 - INFO - Lowest sell price for type_id 60283 (Simple Asteroid Mining Crystal Type B II) in Jita: 760400.0
+2025-06-15 10:42:26,505 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,568 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60294 HTTP/1.1" 200 976
+2025-06-15 10:42:26,569 - INFO - Lowest sell price for type_id 60294 (Variegated Asteroid Mining Crystal Type A II) in Jita: 678400.0
+2025-06-15 10:42:26,570 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,618 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60281 HTTP/1.1" 200 899
+2025-06-15 10:42:26,618 - INFO - Lowest sell price for type_id 60281 (Simple Asteroid Mining Crystal Type A II) in Jita: 240600.0
+2025-06-15 10:42:26,688 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60286 HTTP/1.1" 200 554
+2025-06-15 10:42:26,689 - INFO - Lowest sell price for type_id 60286 (Coherent Asteroid Mining Crystal Type B I) in Jita: 418200.0
+2025-06-15 10:42:26,753 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=3 HTTP/1.1" 200 None
+2025-06-15 10:42:26,757 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=4 HTTP/1.1" 200 None
+2025-06-15 10:42:26,766 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=4 HTTP/1.1" 200 None
+2025-06-15 10:42:26,860 - INFO - Fetched page 3 with 1000 orders.
+2025-06-15 10:42:26,861 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,865 - INFO - Fetched page 4 with 1000 orders.
+2025-06-15 10:42:26,866 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,868 - INFO - Fetched page 4 with 1000 orders.
+2025-06-15 10:42:26,869 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:26,931 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60288 HTTP/1.1" 200 410
+2025-06-15 10:42:26,932 - INFO - Lowest sell price for type_id 60288 (Coherent Asteroid Mining Crystal Type A II) in Jita: 285600.0
+2025-06-15 10:42:26,967 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=60289 HTTP/1.1" 200 432
+2025-06-15 10:42:26,969 - INFO - Lowest sell price for type_id 60289 (Coherent Asteroid Mining Crystal Type B II) in Jita: 1664000.0
+2025-06-15 10:42:27,189 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=4 HTTP/1.1" 200 None
+2025-06-15 10:42:27,295 - INFO - Fetched page 4 with 1000 orders.
+2025-06-15 10:42:27,296 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:27,303 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=18608 HTTP/1.1" 200 1273
+2025-06-15 10:42:27,304 - INFO - Lowest sell price for type_id 18608 (Mercoxit Asteroid Mining Crystal Type A II) in Jita: 1665000.0
+2025-06-15 10:42:27,395 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=5 HTTP/1.1" 200 None
+2025-06-15 10:42:27,497 - INFO - Fetched page 5 with 1000 orders.
+2025-06-15 10:42:27,498 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:27,605 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=5 HTTP/1.1" 200 None
+2025-06-15 10:42:27,637 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=5 HTTP/1.1" 200 None
+2025-06-15 10:42:27,713 - INFO - Fetched page 5 with 1000 orders.
+2025-06-15 10:42:27,714 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:27,744 - INFO - Fetched page 5 with 1000 orders.
+2025-06-15 10:42:27,745 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:28,049 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=6 HTTP/1.1" 200 None
+2025-06-15 10:42:28,050 - INFO - Fetched page 6 with 163 orders.
+2025-06-15 10:42:28,050 - WARNING - No sell orders for type_id 33400 at structure 1046831245129
+2025-06-15 10:42:28,051 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:28,070 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=6 HTTP/1.1" 200 None
+2025-06-15 10:42:28,071 - INFO - Fetched page 6 with 163 orders.
+2025-06-15 10:42:28,072 - WARNING - No sell orders for type_id 62625 at structure 1046831245129
+2025-06-15 10:42:28,073 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:28,175 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=6 HTTP/1.1" 200 None
+2025-06-15 10:42:28,176 - INFO - Fetched page 6 with 163 orders.
+2025-06-15 10:42:28,178 - INFO - Lowest sell price for type_id 52694 at structure 1046831245129: 9485000.0
+2025-06-15 10:42:28,360 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=1 HTTP/1.1" 200 None
+2025-06-15 10:42:28,429 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=33400 HTTP/1.1" 200 823
+2025-06-15 10:42:28,430 - INFO - Lowest sell price for type_id 33400 (Bastion Module I) in Jita: 11650000.0
+2025-06-15 10:42:28,459 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=62625 HTTP/1.1" 200 449
+2025-06-15 10:42:28,462 - INFO - Fetched page 1 with 1000 orders.
+2025-06-15 10:42:28,463 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:28,463 - INFO - Lowest sell price for type_id 62625 (Large Asteroid Ore Compressor I) in Jita: 30400000.0
+2025-06-15 10:42:28,787 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=2 HTTP/1.1" 200 None
+2025-06-15 10:42:28,887 - INFO - Fetched page 2 with 1000 orders.
+2025-06-15 10:42:28,888 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:29,216 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=3 HTTP/1.1" 200 None
+2025-06-15 10:42:29,322 - INFO - Fetched page 3 with 1000 orders.
+2025-06-15 10:42:29,323 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:29,639 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=4 HTTP/1.1" 200 None
+2025-06-15 10:42:29,740 - INFO - Fetched page 4 with 1000 orders.
+2025-06-15 10:42:29,740 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:30,058 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=5 HTTP/1.1" 200 None
+2025-06-15 10:42:30,160 - INFO - Fetched page 5 with 1000 orders.
+2025-06-15 10:42:30,161 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:30,471 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=6 HTTP/1.1" 200 None
+2025-06-15 10:42:30,473 - INFO - Fetched page 6 with 163 orders.
+2025-06-15 10:42:30,475 - WARNING - No sell orders for type_id 62622 at structure 1046831245129
+2025-06-15 10:42:30,476 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:30,857 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/10000002/orders/?order_type=sell&type_id=62622 HTTP/1.1" 200 1087
+2025-06-15 10:42:30,858 - INFO - Lowest sell price for type_id 62622 (Medium Asteroid Ore Compressor I) in Jita: 16470000.0
+2025-06-15 10:42:31,227 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=4 HTTP/1.1" 200 None
+2025-06-15 10:42:31,330 - INFO - Fetched page 4 with 1000 orders.
+2025-06-15 10:42:31,331 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:31,647 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=5 HTTP/1.1" 200 None
+2025-06-15 10:42:31,748 - INFO - Fetched page 5 with 1000 orders.
+2025-06-15 10:42:31,749 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 10:42:32,059 - DEBUG - https://esi.evetech.net:443 "GET /latest/markets/structures/1046831245129/?page=6 HTTP/1.1" 200 None
+2025-06-15 10:42:32,060 - INFO - Fetched page 6 with 163 orders.
+2025-06-15 10:42:32,061 - INFO - Lowest sell price for type_id 28646 at structure 1046831245129: 15750000.0
+2025-06-15 10:42:32,107 - INFO - Blueprints retrieved successfully
+2025-06-15 10:42:32,107 - INFO - Materials retrieved successfully
+2025-06-15 10:43:28,857 - DEBUG - C:\Users\nario\AppData\Roaming\Python\Python313\site-packages\pulp\solverdir\cbc\win\64\cbc.exe C:\Users\nario\AppData\Local\Temp\476f6158a94d4ed0af0b4eb6439e3297-pulp.mps -max -timeMode elapsed -branch -printingOptions all -solution C:\Users\nario\AppData\Local\Temp\476f6158a94d4ed0af0b4eb6439e3297-pulp.sol 
+2025-06-15 10:43:29,011 - INFO - Optimization Status: Optimal
+2025-06-15 10:43:29,014 - INFO - Optimization completed successfully
+2025-06-15 10:43:29,014 - INFO - Results: {'status': 'Optimal', 'total_profit': 1502333800.0, 'what_to_produce': {'Medium Asteroid Ore Compressor I': 15, 'Small Tractor Beam I': 0, 'Bastion Module I': 0, 'Defender Launcher I': 0, 'Covert Cynosural Field Generator I': 0, 'Industrial Cynosural Field Generator': 0, 'Interdiction Sphere Launcher I': 0, 'Large Asteroid Ore Compressor I': 0, 'Complex Asteroid Mining Crystal Type A I': 0, 'Mercoxit Asteroid Mining Crystal Type A I': 0, 'Coherent Asteroid Mining Crystal Type A I': 0, 'R.A.M.- Energy Tech': 0, 'Gas Cloud Harvester I': 0, 'Complex Asteroid Mining Crystal Type B I': 0, 'Variegated Asteroid Mining Crystal Type B I': 73, 'Simple Asteroid Mining Crystal Type B I': 2, 'Variegated Asteroid Mining Crystal Type A I': 0, 'Deep Core Mining Laser I': 70, 'Drone Link Augmentor I': 101, 'Mercoxit Asteroid Mining Crystal Type B I': 0, 'Coherent Asteroid Mining Crystal Type B I': 0, 'Mercoxit Asteroid Mining Crystal Type A II': 0, 'Complex Asteroid Mining Crystal Type A II': 0, 'R.A.M.- Electronics': 0, 'Modulated Deep Core Miner II': 0, 'Gas Cloud Harvester II': 15, 'Complex Asteroid Mining Crystal Type B II': 0, 'Variegated Asteroid Mining Crystal Type B II': 0, 'Simple Asteroid Mining Crystal Type B II': 0, 'Variegated Asteroid Mining Crystal Type A II': 0, 'Simple Asteroid Mining Crystal Type A II': 0, 'Coherent Asteroid Mining Crystal Type A II': 0, 'Coherent Asteroid Mining Crystal Type B II': 548}, 'material_usage': {'Pyerite': {'used': 1409112, 'remaining': 7377673, 'category': 'Minerals'}, 'Tritanium': {'used': 1911598, 'remaining': 19607568, 'category': 'Minerals'}, 'Mexallon': {'used': 401588, 'remaining': 1610437, 'category': 'Minerals'}, 'Isogen': {'used': 230702, 'remaining': 66103, 'category': 'Minerals'}, 'Nocxium': {'used': 44792, 'remaining': 174802, 'category': 'Minerals'}, 'Zydrine': {'used': 16251, 'remaining': 4505, 'category': 'Minerals'}, 'Megacyte': {'used': 8474, 'remaining': 6423, 'category': 'Minerals'}, 'Hypersynaptic Fibers': {'used': 9864, 'remaining': 5, 'category': 'Reaction materials'}, 'Electronic Parts': {'used': 660, 'remaining': 2388, 'category': 'Items'}, 'Photon Microprocessor': {'used': 345, 'remaining': 1404, 'category': 'Components'}, 'Laser Focusing Crystals': {'used': 0, 'remaining': 8748, 'category': 'Components'}, 'R.A.M.- Energy Tech': {'used': 15, 'remaining': 24056, 'category': 'Items'}, 'Datacore - Laser Physics': {'used': 2222, 'remaining': -722, 'category': 'Invention Materials'}, 'Morphite': {'used': 225, 'remaining': 8518, 'category': 'Minerals'}, 'Datacore - Mechanical Engineering': {'used': 30, 'remaining': 770, 'category': 'Invention Materials'}, 'Mechanical Parts': {'used': 590, 'remaining': 664, 'category': 'Minerals'}, 'Gas Cloud Harvester I': {'used': 15, 'remaining': -15, 'category': 'Items'}, 'Drone Link Augmentor I': {'used': 0, 'remaining': 84, 'category': 'Other(Likely Unused or other Built Components)'}, 'Datacore - High Energy Physics': {'used': 2192, 'remaining': -1192, 'category': 'Invention Materials'}, 'Transmitter': {'used': 0, 'remaining': 1497, 'category': 'Other(Likely Unused or other Built Components)'}, 'R.A.M.- Electronics': {'used': 548, 'remaining': 52354, 'category': 'Items'}, 'Mercoxit Asteroid Mining Crystal Type A I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Complex Asteroid Mining Crystal Type A I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Particle Accelerator Unit': {'used': 0, 'remaining': 52, 'category': 'Other(Likely Unused or other Built Components)'}, 'Simple Asteroid Mining Crystal Type B I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Variegated Asteroid Mining Crystal Type A I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Deep Core Mining Laser I': {'used': 0, 'remaining': 132, 'category': 'Items'}, 'Complex Asteroid Mining Crystal Type B I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Variegated Asteroid Mining Crystal Type B I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Simple Asteroid Mining Crystal Type A I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Coherent Asteroid Mining Crystal Type B I': {'used': 548, 'remaining': -548, 'category': 'Items'}, 'Coherent Asteroid Mining Crystal Type A I': {'used': 0, 'remaining': 0, 'category': 'Items'}}, 'true_profit': 709556268.4399999, 'dependencies_needed': {'Gas Cloud Harvester I': 15, 'R.A.M.- Energy Tech': 15, 'R.A.M.- Electronics': 548, 'Coherent Asteroid Mining Crystal Type B I': 548}}
+2025-06-15 10:43:29,023 - INFO - Materials retrieved successfully
+2025-06-15 10:43:29,024 - INFO - Blueprints retrieved successfully
+2025-06-15 11:25:58,621 - INFO - Blueprints retrieved successfully
+2025-06-15 11:25:58,631 - INFO - Materials retrieved successfully
+2025-06-15 11:26:45,149 - DEBUG - Starting new HTTPS connection (1): login.eveonline.com:443
+2025-06-15 11:26:45,318 - DEBUG - https://login.eveonline.com:443 "POST /v2/oauth/token HTTP/1.1" 200 None
+2025-06-15 11:26:45,388 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 11:26:45,747 - DEBUG - https://esi.evetech.net:443 "GET /verify HTTP/1.1" 200 251
+2025-06-15 11:26:45,748 - DEBUG - Starting new HTTPS connection (1): esi.evetech.net:443
+2025-06-15 11:26:46,071 - DEBUG - https://esi.evetech.net:443 "GET /latest/characters/2113289499/ HTTP/1.1" 200 636
+2025-06-15 11:26:46,072 - INFO - Logged in as Nariod Naren — Access Token: eyJhbGciOiJSUzI1NiIsImtpZCI6IkpXVC1TaWduYXR1cmUtS2V5IiwidHlwIjoiSldUIn0.eyJzY3AiOiJlc2ktbWFya2V0cy5zdHJ1Y3R1cmVfbWFya2V0cy52MSIsImp0aSI6ImRlNTEwOTY5LTkxNzYtNDQzNy1hODE1LTA1MjY0MTNjZDc1OSIsImtpZCI6IkpXVC1TaWduYXR1cmUtS2V5Iiwic3ViIjoiQ0hBUkFDVEVSOkVWRToyMTEzMjg5NDk5IiwiYXpwIjoiNzgzMTdiOGFiZWY4NDU0YmFmYzUzZTIwMzYzMWE5ODAiLCJ0ZW5hbnQiOiJ0cmFucXVpbGl0eSIsInRpZXIiOiJsaXZlIiwicmVnaW9uIjoid29ybGQiLCJhdWQiOlsiNzgzMTdiOGFiZWY4NDU0YmFmYzUzZTIwMzYzMWE5ODAiLCJFVkUgT25saW5lIl0sIm5hbWUiOiJOYXJpb2QgTmFyZW4iLCJvd25lciI6ImYzdGZ3NEE4VTdRRTVhcmZPeEkyR0NVdWJCVT0iLCJleHAiOjE3NDk5OTg4MDUsImlhdCI6MTc0OTk5NzYwNSwiaXNzIjoiaHR0cHM6Ly9sb2dpbi5ldmVvbmxpbmUuY29tIn0.hdjaTDzXsmjdRUXPFZu-v-FkWHZI27entwDPEglxHppAweI37azkQkwfz30zpBe7Os05g4KYnm4YjOX3hKgac9eNJp78JnD-SN2io8qDefKvblPhshpyO1QS1HSh_yFqJEGIZB-aYIWxfbts9UflsJmZdxQpZff750SEsXRl0q7E1fGJoGO3ZV9z1TiIjfaI2yywC2jev6kZe5K7mY1iGGQ6rA8PWQi74enc3AMUjbouvMbWOhsTQqF1FmjLjXncVjL8cBcA-jJYzlTA1_5UxHaXrIswFPsCokfeOHYAdr0n0EEBANZpZ3clClcrT4nQeBrItktQ-6db17TcXjBG0A. Try not to share this.
+2025-06-15 11:26:46,327 - INFO - Materials retrieved successfully
+2025-06-15 11:26:46,329 - INFO - Blueprints retrieved successfully
+2025-06-15 11:28:58,253 - INFO - Blueprint 13 retrieved successfully
+2025-06-15 11:29:50,556 - INFO - Blueprint 50 retrieved successfully
+2025-06-15 11:30:06,045 - INFO - Blueprint 50 retrieved successfully
+2025-06-15 11:35:25,712 - DEBUG - C:\Users\nario\AppData\Roaming\Python\Python313\site-packages\pulp\solverdir\cbc\win\64\cbc.exe C:\Users\nario\AppData\Local\Temp\a761244e6e05439f962781ba25843696-pulp.mps -max -timeMode elapsed -branch -printingOptions all -solution C:\Users\nario\AppData\Local\Temp\a761244e6e05439f962781ba25843696-pulp.sol 
+2025-06-15 11:35:25,812 - INFO - Optimization Status: Optimal
+2025-06-15 11:35:25,815 - INFO - Optimization completed successfully
+2025-06-15 11:35:25,815 - INFO - Results: {'status': 'Optimal', 'total_profit': 1502333800.0, 'what_to_produce': {'Medium Asteroid Ore Compressor I': 15, 'Small Tractor Beam I': 0, 'Bastion Module I': 0, 'Defender Launcher I': 0, 'Covert Cynosural Field Generator I': 0, 'Industrial Cynosural Field Generator': 0, 'Interdiction Sphere Launcher I': 0, 'Large Asteroid Ore Compressor I': 0, 'Complex Asteroid Mining Crystal Type A I': 0, 'Mercoxit Asteroid Mining Crystal Type A I': 0, 'Coherent Asteroid Mining Crystal Type A I': 0, 'R.A.M.- Energy Tech': 0, 'Gas Cloud Harvester I': 0, 'Complex Asteroid Mining Crystal Type B I': 0, 'Variegated Asteroid Mining Crystal Type B I': 73, 'Simple Asteroid Mining Crystal Type B I': 2, 'Variegated Asteroid Mining Crystal Type A I': 0, 'Deep Core Mining Laser I': 70, 'Drone Link Augmentor I': 101, 'Mercoxit Asteroid Mining Crystal Type B I': 0, 'Coherent Asteroid Mining Crystal Type B I': 0, 'Mercoxit Asteroid Mining Crystal Type A II': 0, 'Complex Asteroid Mining Crystal Type A II': 0, 'R.A.M.- Electronics': 0, 'Modulated Deep Core Miner II': 0, 'Gas Cloud Harvester II': 15, 'Complex Asteroid Mining Crystal Type B II': 0, 'Variegated Asteroid Mining Crystal Type B II': 0, 'Simple Asteroid Mining Crystal Type B II': 0, 'Variegated Asteroid Mining Crystal Type A II': 0, 'Simple Asteroid Mining Crystal Type A II': 0, 'Coherent Asteroid Mining Crystal Type A II': 0, 'Coherent Asteroid Mining Crystal Type B II': 548}, 'material_usage': {'Pyerite': {'used': 1409112, 'remaining': 7377673, 'category': 'Minerals'}, 'Tritanium': {'used': 1911598, 'remaining': 19607568, 'category': 'Minerals'}, 'Mexallon': {'used': 401588, 'remaining': 1610437, 'category': 'Minerals'}, 'Isogen': {'used': 230702, 'remaining': 66103, 'category': 'Minerals'}, 'Nocxium': {'used': 44792, 'remaining': 174802, 'category': 'Minerals'}, 'Zydrine': {'used': 16251, 'remaining': 4505, 'category': 'Minerals'}, 'Megacyte': {'used': 8474, 'remaining': 6423, 'category': 'Minerals'}, 'Hypersynaptic Fibers': {'used': 9864, 'remaining': 5, 'category': 'Reaction materials'}, 'Electronic Parts': {'used': 660, 'remaining': 2388, 'category': 'Items'}, 'Photon Microprocessor': {'used': 345, 'remaining': 1404, 'category': 'Components'}, 'Laser Focusing Crystals': {'used': 0, 'remaining': 8748, 'category': 'Components'}, 'R.A.M.- Energy Tech': {'used': 15, 'remaining': 24056, 'category': 'Items'}, 'Datacore - Laser Physics': {'used': 2222, 'remaining': -722, 'category': 'Invention Materials'}, 'Morphite': {'used': 225, 'remaining': 8518, 'category': 'Minerals'}, 'Datacore - Mechanical Engineering': {'used': 30, 'remaining': 770, 'category': 'Invention Materials'}, 'Mechanical Parts': {'used': 590, 'remaining': 664, 'category': 'Minerals'}, 'Gas Cloud Harvester I': {'used': 15, 'remaining': -15, 'category': 'Items'}, 'Drone Link Augmentor I': {'used': 0, 'remaining': 84, 'category': 'Other(Likely Unused or other Built Components)'}, 'Datacore - High Energy Physics': {'used': 2192, 'remaining': -1192, 'category': 'Invention Materials'}, 'Transmitter': {'used': 0, 'remaining': 1497, 'category': 'Other(Likely Unused or other Built Components)'}, 'R.A.M.- Electronics': {'used': 548, 'remaining': 52354, 'category': 'Items'}, 'Mercoxit Asteroid Mining Crystal Type A I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Complex Asteroid Mining Crystal Type A I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Particle Accelerator Unit': {'used': 0, 'remaining': 52, 'category': 'Other(Likely Unused or other Built Components)'}, 'Simple Asteroid Mining Crystal Type B I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Variegated Asteroid Mining Crystal Type A I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Deep Core Mining Laser I': {'used': 0, 'remaining': 132, 'category': 'Items'}, 'Complex Asteroid Mining Crystal Type B I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Variegated Asteroid Mining Crystal Type B I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Simple Asteroid Mining Crystal Type A I': {'used': 0, 'remaining': 0, 'category': 'Items'}, 'Coherent Asteroid Mining Crystal Type B I': {'used': 548, 'remaining': -548, 'category': 'Items'}, 'Coherent Asteroid Mining Crystal Type A I': {'used': 0, 'remaining': 0, 'category': 'Items'}}, 'true_profit': 709556268.4399999, 'dependencies_needed': {'Gas Cloud Harvester I': 15, 'R.A.M.- Energy Tech': 15, 'R.A.M.- Electronics': 548, 'Coherent Asteroid Mining Crystal Type B I': 548}}
+2025-06-15 11:35:25,823 - INFO - Materials retrieved successfully
+2025-06-15 11:35:25,835 - INFO - Blueprints retrieved successfully
