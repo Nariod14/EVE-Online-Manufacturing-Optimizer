@@ -1,11 +1,12 @@
 import { http, HttpResponse } from 'msw';
 import { S } from 'vitest/dist/chunks/config.d.D2ROskhv.js';
 import { mockBlueprints } from '@/types/blueprints';
-import { mockMaterials } from '@/types/materials';
+import { Material, mockMaterials } from '@/types/materials';
 import { mockStations } from '@/types/stations';
 import { mock } from 'node:test';
 
 let localStations = [...mockStations];
+let localMaterials = [...mockMaterials];
 export const handlers = [
   // GET /api/stations
   http.get('/api/stations', () => {
@@ -100,5 +101,68 @@ export const handlers = [
     return HttpResponse.json({
       success: true
     })
-  })
+  }),
+
+  http.get('/api/materials/materials', () => {
+    console.log("🛰️ MSW Intercepted /api/materials/materials");
+    return HttpResponse.json(localMaterials);
+  }),
+
+  // GET single material by ID
+  http.get("/api/materials/material/:id", ({ params }) => {
+    const id = Number(params.id);
+    const material = localMaterials.find((m) => m.id === id);
+
+    if (!material) {
+      return new HttpResponse("Material not found", { status: 404 });
+    }
+
+    return HttpResponse.json(material);
+  }),
+
+  // POST update material info (simulated)
+  http.put("/api/materials/material/:id", async ({ request, params }) => {
+    const id = Number(params.id);
+    const updatedMaterial = await request.json() as Partial<Material>;
+
+    const index = localMaterials.findIndex((mat) => mat.id === id);
+    if (index === -1) {
+      console.warn(`🛰️ Material with id ${id} not found for update`);
+      return new HttpResponse("Material not found", { status: 404 });
+    }
+
+    localMaterials = localMaterials.map((mat) =>
+      mat.id === id ? { ...mat, ...updatedMaterial, id } : mat
+    );
+
+    console.log(`🛰️ Updated Material ${id}:`, localMaterials[index]);
+    return HttpResponse.json(localMaterials[index]);
+  }),
+
+  // DELETE material
+  http.delete("/api/materials/material/:id", ({ params }) => {
+    const id = Number(params.id);
+    const index = localMaterials.findIndex((m) => m.id === id);
+    if (index === -1) {
+      return new HttpResponse("Material not found", { status: 404 });
+    }
+
+    const deleted = localMaterials.splice(index, 1)[0];
+    console.log(`🛰️ MSW Deleted Material ${id}`);
+    return HttpResponse.json(deleted);
+  }),
+
+  // POST to add a new material
+  http.post("/api/materials/material", async ({ request }) => {
+    const newMaterial = await request.json() as Material;
+
+    const newId = localMaterials.length > 0 ? Math.max(...localMaterials.map((m) => m.id)) + 1 : 1;
+    const created = { ...newMaterial, id: newId };
+
+    localMaterials.push(created);
+
+    console.log(`🛰️ MSW Created Material ${newId}:`, created);
+    return HttpResponse.json(created);
+  }),
+
 ];

@@ -200,7 +200,7 @@ $(document).ready(function() {
         };
 
         $.ajax({
-            url: ' /api/materials/material',
+            url: ' /api/materials/materials',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(materialData),
@@ -520,7 +520,7 @@ function resetAllBlueprintMax() {
  */
  function loadMaterials() {
   $.ajax({
-    url: '/api/materials/material',
+    url: '/api/materials/materials',
     method: 'GET',
     success: function (response) {
       // Group materials by category
@@ -633,7 +633,7 @@ $('#blueprintParseForm').submit(function(e) {
     };
 
     $.ajax({
-        url: '/api/blueprints/blueprint',
+        url: '/api/blueprints/blueprints',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(blueprintData),
@@ -674,7 +674,7 @@ $('#iskHourParseForm').submit(function(e) {
     };
 
     $.ajax({
-        url: '/api/blueprints/blueprint',
+        url: '/api/blueprints/blueprints',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(blueprintData),
@@ -1023,6 +1023,7 @@ function editMaterial(id) {
   });
 }
 
+// Function to update a material
 $('#editMaterialForm').on('submit', function(e) {
   e.preventDefault();
 

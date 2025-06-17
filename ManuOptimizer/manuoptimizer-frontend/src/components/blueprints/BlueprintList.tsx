@@ -146,29 +146,56 @@ export default function BlueprintsList({
     }
   };
 
-  const handleResetMax = async (id: number) => {
-    const res = await fetch(`/api/blueprints/blueprint/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ max: null }),
+const handleResetMax = async (id: number) => {
+  console.log("Resetting max value for blueprint", id);
+
+  const res = await fetch(`/api/blueprints/blueprint/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ max: null }),
+  });
+
+  if (res.ok) {
+
+    setBlueprints((prev) =>
+      prev.map((bp) => (bp.id === id ? { ...bp, max: null } : bp))
+    );
+
+    setMaxEdits((prev) => {
+      const newEdits = { ...prev };
+      delete newEdits[id];
+      return newEdits;
     });
-    if (res.ok) {
-      toast.success("Blueprint max value reset");
-    
-    } else {
-      toast.error("Failed to reset max value");
-    }
-  };
+
+    console.log("Toast triggered for individual reset");
+    toast.success("Blueprint max value reset");
+  } else {
+    console.error("Failed to reset max value: " + res.statusText);
+    toast.error("Failed to reset max value");
+  }
+};
 
   const handleResetAllMax = async (tier: BlueprintTier) => {
     setResettingAll((prev) => ({ ...prev, [tier]: true }));
+    console.log("Resetting all max values for tier", tier);
     const res = await fetch("/api/blueprints/blueprints/reset_max", {
       method: "POST",
     });
     if (res.ok) {
+      console.log("All max values reset");
       toast.success("All max values reset");
+      // Clear all max values locally too
+      setBlueprints((prev) =>
+        prev.map((bp) => ({
+          ...bp,
+          max: null,
+        }))
+      );
+
+      setMaxEdits({});
       
     } else {
+      console.error("Failed to reset all max values" + res.statusText);
       toast.error("Failed to reset all max values");
     }
     setResettingAll((prev) => ({ ...prev, [tier]: false }));
@@ -315,14 +342,6 @@ function renderHeader(
 
 
   return (
-  <Card className="rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 border-blue-800 shadow-2xl w-full ">
-    <CardHeader>
-      <CardTitle className="text-2xl text-blue-400">Blueprints Overview</CardTitle>
-      <CardDescription className="text-sm text-muted-foreground">
-        View and Manage Blueprints
-      </CardDescription>
-    </CardHeader>
-
     <CardContent>
           <Accordion type="multiple" className="mb-4">
             {/* T1 Section */}
@@ -416,7 +435,7 @@ function renderHeader(
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className=" bg-blue-200 text-blue-900 "
+                                    className="border-blue-500 text-blue-700 bg-blue-200"
                                     onClick={() => handleResetMax(bp.id)}
                                   >
                                     <RotateCcw className="w-4 h-4 mr-1" /> Reset Max
@@ -431,7 +450,7 @@ function renderHeader(
                     <div className="flex justify-end mt-3">
                       <Button
                         variant="outline"
-                        className="border-blue-800"
+                        className="border-blue-500 text-blue-700 bg-blue-50"
                         onClick={() => handleResetAllMax("T1")}
                         disabled={!!resettingAll["T1"]}
                       >
@@ -560,7 +579,7 @@ function renderHeader(
                         <div className="flex justify-end mt-3">
                             <Button
                             variant="outline"
-                            className="border-[#e08900] text-[#ff9800]"
+                            className="border-[#e08900] text-[#ce7c00] bg-amber-50"
                             onClick={() => handleResetAllMax("T2")}
                             disabled={!!resettingAll["T2"]}
                             >
@@ -576,11 +595,10 @@ function renderHeader(
 
                 </AccordionItem>
               </Accordion>
-              <div className="price-legend mt-2 text-sm">
+              <div className="price-legend mt-2 text-sm text-[#ff9500]">
                 <span className="text-orange-400">&#9888;</span> Fallback to Jita pricing
               </div>
             </CardContent>
-         </Card> 
       );
       
 
