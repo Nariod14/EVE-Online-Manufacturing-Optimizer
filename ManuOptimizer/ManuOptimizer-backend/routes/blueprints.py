@@ -33,7 +33,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 blueprints_bp = Blueprint('blueprints', __name__,url_prefix='/api/blueprints')
-@blueprints_bp.route('/blueprint', methods=['POST'])
+@blueprints_bp.route('/blueprints', methods=['POST'])
 def add_blueprint():
     try:
         data = request.json

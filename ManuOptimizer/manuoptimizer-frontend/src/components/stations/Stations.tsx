@@ -102,75 +102,71 @@ export default function Stations() {
       };
       
 
-      return (
-    <section className="w-full max-w-4xl mx-auto py-10 px-4">
-     <Card className="rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 border-blue-800 shadow-2xl w-full max-w-4xl">
-  <CardHeader className="px-6 pb-2">
-    <div className="flex items-center justify-between">
-      <div>
-        <CardTitle className="text-2xl text-blue-100">Your Stations</CardTitle>
-        <CardDescription className="text-blue-400">
-          Manage your manufacturing and blueprint stations.
-        </CardDescription>
-      </div>
-      <Button
-        onClick={() => setAddModalOpen(true)}
-        className="bg-gradient-to-r from-blue-700 via-blue-900 to-blue-800 text-white hover:from-blue-800 hover:to-blue-900"
-      >
-        + Add Station
-      </Button>
-    </div>
-  </CardHeader>
+     return (
+         <>
+           <Card className="h-full rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 border-blue-800 shadow-2xl w-full">
+             <CardHeader className="px-6 pb-2">
+               <div className="flex items-center justify-between">
+                 <div>
+                   <CardTitle className="text-2xl text-blue-100">Your Stations</CardTitle>
+                   <CardDescription className="text-blue-400">
+                     Manage your selling stations. (If none, Jita will be used)
+                   </CardDescription>
+                 </div>
+                 <Button
+                   onClick={() => setAddModalOpen(true)}
+                   className="bg-gradient-to-r from-blue-700 via-blue-900 to-blue-800 text-white hover:from-blue-800 hover:to-blue-900"
+                 >
+                   + Add Station
+                 </Button>
+               </div>
+             </CardHeader>
 
-  <CardContent className="px-6 pb-6">
-    <Accordion type="single" collapsible defaultValue="stations">
-      <AccordionItem
-        value="stations"
-        className="border-none bg-slate-900/60 rounded-xl overflow-hidden"
-      >
-        <AccordionTrigger className="text-blue-200 text-lg font-bold tracking-wide rounded-xl px-4 py-3 bg-blue-900/80 hover:bg-blue-800/80 hover:no-underline shadow transition-all">
-          View Station List
-        </AccordionTrigger>
+             <CardContent className="px-6 pb-6">
+               <Accordion type="single" collapsible defaultValue="stations">
+                 <AccordionItem
+                   value="stations"
+                   className="border-none bg-slate-900/60 rounded-xl overflow-hidden"
+                 >
+                   <AccordionTrigger className="text-blue-200 text-lg font-bold tracking-wide rounded-xl px-4 py-3 bg-blue-900/80 hover:bg-blue-800/80 hover:no-underline shadow transition-all">
+                     View Station List
+                   </AccordionTrigger>
 
-        <AccordionContent className="bg-slate-900/80 px-2 pb-4 pt-2 rounded-b-xl">
-          <StationList
-            stations={stations}
-            loading={loading}
-            error={error}
-            onEdit={handleEditStation}
-            onDelete={handleDeleteStation}
-          />
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  </CardContent>
-</Card>
+                   <AccordionContent className="bg-slate-900/80 px-2 pb-4 pt-2 rounded-b-xl">
+                     <StationList
+                       stations={stations}
+                       loading={loading}
+                       error={error}
+                       onEdit={handleEditStation}
+                       onDelete={handleDeleteStation}
+                     />
+                   </AccordionContent>
+                 </AccordionItem>
+               </Accordion>
+             </CardContent>
+           </Card>
 
+           {/* Modals */}
+           <StationModal
+             open={manageModalOpen}
+             onOpenChange={setManageModalOpen}
+             stations={stations}
+             loading={loading}
+             error={error}
+             onEditStation={handleEditStation}
+           />
 
+           {editStation && (
+             <EditStationModal
+               open={editModalOpen}
+               onOpenChange={setEditModalOpen}
+               station={editStation}
+               onStationUpdate={handleStationUpdate}
+             />
+           )}
 
-      {/* Modals */}
-      <StationModal
-        open={manageModalOpen}
-        onOpenChange={setManageModalOpen}
-        stations={stations}
-        loading={loading}
-        error={error}
-        onEditStation={handleEditStation}
-      />
+           <AddStationModal open={addModalOpen} onOpenChange={setAddModalOpen} />
+         </>
+       );
+     }
 
-      {editStation && (
-        <EditStationModal
-          open={editModalOpen}
-          onOpenChange={setEditModalOpen}
-          station={editStation}
-          onStationUpdate={handleStationUpdate}
-        />
-      )}
-
-      <AddStationModal
-        open={addModalOpen}
-        onOpenChange={setAddModalOpen}
-      />
-    </section>
-  );
-}

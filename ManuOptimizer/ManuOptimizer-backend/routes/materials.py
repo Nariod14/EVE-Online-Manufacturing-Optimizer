@@ -14,13 +14,6 @@ from .utils import get_material_category_lookup, get_material_info, normalize_na
 from models import BlueprintT2, db, Material
 from flask import Blueprint
 
-
-
-
-
-
-materials_bp = Blueprint('materials', __name__,url_prefix='/api/materials')
-
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -31,7 +24,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
+materials_bp = Blueprint('materials', __name__,url_prefix='/api/materials')
 @materials_bp.route('/material/<int:id>', methods=['PUT'])
 def update_material(id):
     try:
@@ -67,7 +60,7 @@ def delete_material(id):
         return jsonify({"ERROR": "An error occurred while deleting the material"}), 500
 
 
-@materials_bp.route('/material', methods=['POST'])
+@materials_bp.route('/materials', methods=['POST'])
 def add_material():
     try:
         data = request.form
@@ -110,7 +103,7 @@ def get_material(id):
         return jsonify({"ERROR": "An error occurred while retrieving the material"}), 500
 
     
-@materials_bp.route('/material', methods=['GET'])
+@materials_bp.route('/materials', methods=['GET'])
 def get_materials():
     try:
         materials = Material.query.all()

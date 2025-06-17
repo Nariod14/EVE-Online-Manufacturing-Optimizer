@@ -120,7 +120,7 @@ export default function AddStationModal({
               type="button"
               variant="secondary"
               onClick={handleClose}
-              className="bg-slate-700 text-blue-200"
+              className="bg-slate-700 text-blue-200 hover:bg-slate-600"
             >
               Close
             </Button>
