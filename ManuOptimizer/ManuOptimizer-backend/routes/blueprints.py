@@ -355,7 +355,7 @@ def update_prices():
                 info = get_material_info([bp.name])
                 logger.debug(f"Lookup result for '{bp.name}': {info}")
                 bp.type_id = info[normalize_name(bp.name)]['type_id']
-            if bp.type_id:
+            else:
                 unique_type_ids.add(bp.type_id)
                 if not bp.use_jita_sell and bp.station_id:
                     blueprint_jobs.append((bp.type_id, bp.station_id))

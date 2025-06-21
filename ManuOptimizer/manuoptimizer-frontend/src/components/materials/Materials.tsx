@@ -120,7 +120,7 @@ export default function Materials() {
               </div>
               <Button
                 onClick={() => setAddModalOpen(true)}
-                className="bg-gradient-to-r from-blue-700 via-blue-900 to-blue-800 text-white hover:from-blue-800 hover:to-blue-900 relative top-[30px] left-[-35px] scale-125"
+                className="bg-gradient-to-r from-blue-700 via-blue-900 to-blue-800 text-white hover:from-blue-800 hover:to-blue-900 relative top-[5px] left-[-30px] scale-125"
               >
                 + Add Materials
               </Button>

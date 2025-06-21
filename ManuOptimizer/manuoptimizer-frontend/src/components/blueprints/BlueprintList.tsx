@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Pencil, Trash2, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
-import type { Blueprint, BlueprintT2 } from "@/types/blueprints";
+import type { Blueprint, BlueprintT2, BlueprintTier } from "@/types/blueprints";
 import { useMswReady } from "@/hooks/useMswReady";
 import { Material } from "@/types/materials";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-type BlueprintTier = "T1" | "T2";
+import { waitForMswReady } from "@/lib/mswReady";
+import { ConfirmDeleteButton } from "../utils/utils";
+import { numberToWords } from "../utils/utils";
 
 
 
@@ -37,12 +39,7 @@ type SortState = {
 function formatIsk(n: number) {
   return n.toLocaleString() + " ISK";
 }
-function numberToWords(n: number) {
-  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + "b";
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "m";
-  if (n >= 1_000) return (n / 1_000).toFixed(2) + "k";
-  return n.toString();
-}
+
 
 function MaterialsCell({ materials }: { materials: Material[] }) {
   if (!materials || materials.length === 0) {
@@ -77,115 +74,97 @@ function MaterialsCell({ materials }: { materials: Material[] }) {
 }
 
 
+type BlueprintsListProps = {
+  blueprints: Blueprint[];
+  onEdit?: (bp: Blueprint, tier: "T1" | "T2") => void;
+  onSetBlueprints?: React.Dispatch<React.SetStateAction<Blueprint[]>>;
+  loading?: boolean;
+  fetchBlueprints?: () => Promise<Blueprint[]>
+};
+
 export default function BlueprintsList({
+  blueprints,
   onEdit,
-}: {
-  onEdit?: (bp: import('@/types/blueprints').Blueprint, tier: "T1" | "T2") => void;
-}) {
-  const [blueprints, setBlueprints] = useState<Blueprint[]>([]);
-  const [loading, setLoading] = useState(true);
+  onSetBlueprints,
+  loading,
+  fetchBlueprints
+}: BlueprintsListProps) {
   const [maxEdits, setMaxEdits] = useState<Record<number, string>>({});
   const [resettingAll, setResettingAll] = useState<{ [tier in BlueprintTier]?: boolean }>({});
+
   // Sorting state per tier
   const [t1Sort, setT1Sort] = useState<SortState>({ key: "name", direction: "asc" });
   const [t2Sort, setT2Sort] = useState<SortState>({ key: "name", direction: "asc" });
+
   const mswReady = useMswReady();
 
   useEffect(() => {
-    if (!mswReady) return;
-
-    console.log('MSW ready, running fetch');
-
-    setLoading(true);
-    fetch('/api/blueprints/blueprints')
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => setBlueprints(data))
-      .catch((err) => {
-        toast.error('Failed to load blueprints: ' + (err.message || 'Unknown error'));
-      })
-      .finally(() => setLoading(false));
-  }, [mswReady]);
-
-  useEffect(() => {
-    loadBlueprints();
+    fetchBlueprints?.();
   }, []);
 
-  /**
-   * Loads the list of all blueprints from the server.
-   * 
-   * Sends a GET request to the '/blueprints' endpoint to retrieve all available blueprints.
-   * On a successful response, the component's state is updated with the new list of blueprints.
-   * If the request fails, a toast error is displayed with the error message.
-   * Finally, the loading state is reset to false.
-   */
-  function loadBlueprints() {
-    setLoading(true);
-    fetch("/api/blueprints/blueprints")
-      .then((res) => res.json())
-      .then((data) => setBlueprints(data))
-      .catch((err) => {
-        toast.error("Failed to load blueprints: " + (err.message || "Unknown error"));
-      })
-      .finally(() => setLoading(false));
-  }
 
-  function bpTierCheck(bp: Blueprint) : bp is BlueprintT2 {
+  function bpTierCheck(bp: Blueprint): bp is BlueprintT2 {
     return bp.tier === "T2";
   }
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("Are you sure you want to delete this blueprint?")) return;
+
     const res = await fetch(`/api/blueprints/blueprint/${id}`, { method: "DELETE" });
+
     if (res.ok) {
       toast.success("Blueprint deleted");
+      fetchBlueprints?.();
     } else {
       toast.error("Failed to delete blueprint");
     }
   };
 
-const handleResetMax = async (id: number) => {
-  console.log("Resetting max value for blueprint", id);
+  const handleResetMax = async (id: number) => {
+    if (!onSetBlueprints) return;
 
-  const res = await fetch(`/api/blueprints/blueprint/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ max: null }),
-  });
+    console.log("Resetting max value for blueprint", id);
 
-  if (res.ok) {
-
-    setBlueprints((prev) =>
-      prev.map((bp) => (bp.id === id ? { ...bp, max: null } : bp))
-    );
-
-    setMaxEdits((prev) => {
-      const newEdits = { ...prev };
-      delete newEdits[id];
-      return newEdits;
+    const res = await fetch(`/api/blueprints/blueprint/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ max: null }),
     });
 
-    console.log("Toast triggered for individual reset");
-    toast.success("Blueprint max value reset");
-  } else {
-    console.error("Failed to reset max value: " + res.statusText);
-    toast.error("Failed to reset max value");
-  }
-};
+    if (res.ok) {
+      onSetBlueprints((prev) =>
+        prev.map((bp) => (bp.id === id ? { ...bp, max: null } : bp))
+      );
+
+      setMaxEdits((prev) => {
+        const newEdits = { ...prev };
+        delete newEdits[id];
+        return newEdits;
+      });
+
+      console.log("Toast triggered for individual reset");
+      toast.success("Blueprint max value reset");
+    } else {
+      console.error("Failed to reset max value: " + res.statusText);
+      toast.error("Failed to reset max value");
+    }
+  };
 
   const handleResetAllMax = async (tier: BlueprintTier) => {
+    if (!onSetBlueprints) return;
+
     setResettingAll((prev) => ({ ...prev, [tier]: true }));
     console.log("Resetting all max values for tier", tier);
+
     const res = await fetch("/api/blueprints/blueprints/reset_max", {
       method: "POST",
     });
+
     if (res.ok) {
       console.log("All max values reset");
       toast.success("All max values reset");
-      // Clear all max values locally too
-      setBlueprints((prev) =>
+
+      onSetBlueprints((prev) =>
         prev.map((bp) => ({
           ...bp,
           max: null,
@@ -193,11 +172,11 @@ const handleResetMax = async (id: number) => {
       );
 
       setMaxEdits({});
-      
     } else {
       console.error("Failed to reset all max values" + res.statusText);
       toast.error("Failed to reset all max values");
     }
+
     setResettingAll((prev) => ({ ...prev, [tier]: false }));
   };
 
@@ -243,7 +222,11 @@ function sortBlueprints(arr: Blueprint[], sort: SortState) {
         const bProfit = b.sell_price - (b.tier === "T2" ? b.full_material_cost : b.material_cost);
         return (aProfit - bProfit) * dir;
       case "station_name":
-        return (a.station?.name || "Jita 4-4").localeCompare(b.station?.name || "Jita 4-4") * dir;
+      return (
+        (a.station?.name || a.station_name || "Jita 4-4").localeCompare(
+          b.station?.name || b.station_name || "Jita 4-4"
+        ) * dir
+      );
       case "max":
         return ((a.max ?? 0) - (b.max ?? 0)) * dir;
       case "invention_chance":
@@ -424,14 +407,10 @@ function renderHeader(
                                     <Pencil className="w-4 h-4 mr-1" /> Edit
                                   </Button>
 
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    className="bg-red-800"
-                                    onClick={() => handleDelete(bp.id)}
-                                  >
+                                  <ConfirmDeleteButton onDelete={() => handleDelete(bp.id)}>
                                     <Trash2 className="w-4 h-4 mr-1" /> Delete
-                                  </Button>
+                                  </ConfirmDeleteButton>
+                                  
                                   <Button
                                     size="sm"
                                     variant="outline"
@@ -549,13 +528,9 @@ function renderHeader(
                                         <Pencil className="w-4 h-4 mr-1" /> Edit
                                       </Button>
 
-                                        <Button
-                                        size="sm"
-                                        variant="destructive"
-                                        onClick={() => handleDelete(bp.id)}
-                                        >
-                                        <Trash2 className="w-4 h-4 mr-1" /> Delete
-                                        </Button>
+                                        <ConfirmDeleteButton onDelete={() => handleDelete(bp.id)}>
+                                          <Trash2 className="w-4 h-4 mr-1" /> Delete
+                                        </ConfirmDeleteButton>
                                         <Button
                                         size="sm"
                                         variant="outline"

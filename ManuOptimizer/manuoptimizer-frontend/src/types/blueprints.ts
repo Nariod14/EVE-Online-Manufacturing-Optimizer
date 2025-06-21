@@ -1,5 +1,6 @@
 import { Station } from "./stations";
 import { Material, mockMaterials } from "./materials";
+import { mockStations } from "./stations";
 import { mock } from "node:test";
 
 export type BlueprintTier = "T1" | "T2";
@@ -36,92 +37,104 @@ export type BlueprintT1 = BlueprintBase & {
 
 export type Blueprint = BlueprintT1 | BlueprintT2;
 
-
-// TypeScript type for reference
-export const mockBlueprints: {
-  id: number;
-  name: string;
-  tier: "T1" | "T2";
-  sell_price: number;
-  material_cost: number;
-  full_material_cost?: number;
-  used_jita_fallback: boolean;
-  station_name?: string;
-  max?: number | null;
-  materials: Material[];
-  invention_chance?: number | null;
-}[] = [
-  // T1 Example
+export const mockBlueprints = [
   {
     id: 1,
     name: "Hobgoblin I",
-    tier: "T1",
-    sell_price: 1200000,
-    material_cost: 900000,
-    used_jita_fallback: false,
-    station_name: "Jita IV - Moon 4",
-    max: 10,
+    type_id: 1001,
     materials: [
       mockMaterials[0], // Tritanium
       mockMaterials[1], // Pyerite
       mockMaterials[2], // Mexallon
-      mockMaterials[3] // Drone Structure
-    ]
+    ],
+    sell_price: 1200000,
+    max: null,
+    material_cost: 900000,
+    tier: "T1",
+    station_id: 60011866, // Jita
+    region_id: 10000002,
+    use_jita_sell: true,
+    used_jita_fallback: true,
   },
-  // T1 Example with Jita fallback
   {
     id: 2,
     name: "Warp Core Stabilizer I",
-    tier: "T1",
-    sell_price: 500000,
-    material_cost: 400000,
-    used_jita_fallback: true,
-    station_name: "Amarr VIII (Oris)",
-    max: null,
-    materials: [
-      mockMaterials[0], // Tritanium
-      mockMaterials[1], // Pyerite
-      mockMaterials[4] // Morphite
-    ]
-  },
-  // T2 Example
-  {
-    id: 3,
-    name: "Hobgoblin II",
-    tier: "T2",
-    sell_price: 6200000,
-    material_cost: 4100000,
-    full_material_cost: 4700000,
-    used_jita_fallback: false,
-    station_name: "Jita IV - Moon 4",
-    max: 5,
-    invention_chance: 0.42,
-    materials: [
-      mockMaterials[0], // Tritanium
-      mockMaterials[1], // Pyerite
-      mockMaterials[2], // Mexallon
-      mockMaterials[3], // Drone Structure
-      mockMaterials[5], // Morphite
-      mockMaterials[6] // Advanced Drone Structure
-    ]
-  },
-  // T2 Example with Jita fallback and no max
-  {
-    id: 4,
-    name: "Warp Core Stabilizer II",
-    tier: "T2",
-    sell_price: 15000000,
-    material_cost: 10000000,
-    full_material_cost: 11000000,
-    used_jita_fallback: true,
-    station_name: "Dodixie IX - Moon 20",
-    max: null,
-    invention_chance: 0.355,
+    type_id: 1002,
     materials: [
       mockMaterials[0], // Tritanium
       mockMaterials[1], // Pyerite
       mockMaterials[4], // Morphite
-      mockMaterials[5] // Advanced Stabilizer
-    ]
-  }
+    ],
+    sell_price: 500000,
+    max: null,
+    material_cost: 400000,
+    tier: "T1",
+    station_id: 60003760, // Amarr
+    region_id: 10000002,
+    use_jita_sell: true,
+    used_jita_fallback: true,
+  },
+  {
+    id: 3,
+    name: "Hobgoblin II",
+    type_id: 2001,
+    materials: [
+      mockMaterials[0], // Tritanium
+      mockMaterials[1], // Pyerite
+      mockMaterials[2], // Mexallon
+      mockMaterials[5], // Advanced Drone Structure
+    ],
+    sell_price: 6200000,
+    max: null,
+    material_cost: 4100000,
+    tier: "T2",
+    station_id: 60011866, // Jita
+    region_id: 10000002,
+    use_jita_sell: true,
+    used_jita_fallback: true,
+    invention_chance: 0.45,
+    invention_cost: 950000,
+    full_material_cost: 5200000,
+    runs_per_copy: 10,
+  },
+  {
+    id: 4,
+    name: "Warp Core Stabilizer II",
+    type_id: 2002,
+    materials: [
+      mockMaterials[0], // Tritanium
+      mockMaterials[1], // Pyerite
+      mockMaterials[4], // Morphite
+      mockMaterials[5], // Advanced Drone Structure
+    ],
+    sell_price: 15000000,
+    max: null,
+    material_cost: 10000000,
+    tier: "T2",
+    station_id: 60005686, // Dodixie
+    region_id: 10000002,
+    use_jita_sell: true,
+    used_jita_fallback: true,
+    invention_chance: 0.32,
+    invention_cost: 1100000,
+    full_material_cost: 12500000,
+    runs_per_copy: 10,
+  },
+  {
+    id: 5,
+    name: "R.A.M Energy Tech",
+    type_id: 1003,
+    materials: [
+      mockMaterials[0], // Tritanium
+      mockMaterials[1], // Pyerite
+    ],
+    sell_price: 100000,
+    max: null,
+    material_cost: 50000,
+    tier: "T1",
+    station_id: 60004588, // Rens
+    region_id: 10000002,
+    use_jita_sell: true,
+    used_jita_fallback: true,
+  },
 ];

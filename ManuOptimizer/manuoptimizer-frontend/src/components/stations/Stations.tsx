@@ -115,7 +115,7 @@ export default function Stations() {
                  </div>
                  <Button
                    onClick={() => setAddModalOpen(true)}
-                   className="bg-gradient-to-r from-blue-700 via-blue-900 to-blue-800 text-white hover:from-blue-800 hover:to-blue-900"
+                   className="bg-gradient-to-r from-blue-700 via-blue-900 to-blue-800 text-white hover:from-blue-800 hover:to-blue-900 scale-120 relative right-2"
                  >
                    + Add Station
                  </Button>

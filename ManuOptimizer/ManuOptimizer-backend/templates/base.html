@@ -608,17 +608,13 @@ $('#blueprintParseForm').submit(function(e) {
     var tier = $('#blueprintParseTier').val();
     var runs = $('#blueprintParseRunsPerCopy').val();
     var selectedStation = $('#blueprintParseStation').val();
-    blueprintData.station_id = selectedStation ? parseInt(selectedStation) : null;
-
 
     var inventionChanceField = $('#blueprintParseInventionChance');
 
     if (tier === 'T2' && (!inventionChance || isNaN(parseFloat(inventionChance)))) {
         inventionChance = 1;
-        inventionChanceField.val(100); // Update the field visually too
+        inventionChanceField.val(100);
     }
-
-    
 
     var blueprintData = {
         name: blueprintName,
@@ -649,6 +645,7 @@ $('#blueprintParseForm').submit(function(e) {
         }
     });
 });
+
 
 
 // Blueprint Parser from ISK per hour

@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Blueprint, BlueprintBase, BlueprintT1, BlueprintT2 } from "@/types/blueprints";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BlueprintTier } from "@/types/blueprints";
 
 type EditBlueprintModalProps = {
@@ -39,9 +39,23 @@ export function EditBlueprintModal({
   : tier === "T2"
   ? "bg-gradient-to-br from-orange-800 via-orange-700 to-yellow-700 text-orange-100"
   : "";
+  const [stations, setStations] = useState<{ station_id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    async function fetchStations() {
+      try {
+        const res = await fetch("/api/stations");
+        const data = await res.json();
+        setStations(data);
+      } catch (err) {
+        console.error("Failed to fetch stations:", err);
+      }
+    }
+    if (open) fetchStations();
+  }, [open]);
 
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (blueprint) setForm(blueprint);
   }, [blueprint]);
 
@@ -121,189 +135,204 @@ function handleTierChange(value: "T1" | "T2") {
 
 
   const tierStyles = {
-  T1: {
-    modal: "bg-[#0a1b38] border border-[#1a3a8a] text-white",
-    label: "text-[#a0c4ff]",
-    input:
-      "bg-[#142850] border border-[#2a4d8f] text-white focus:ring-[#6bb0ff] focus:border-[#6bb0ff]",
-    selectTrigger:
-      "bg-[#142850] border border-[#2a4d8f] text-white focus:ring-[#6bb0ff] focus:border-[#6bb0ff]",
-    selectContent: "bg-[#0a1f44] text-white",
-    buttonPrimary:
-      "bg-[#1e40af] hover:bg-[#3b82f6] focus:ring-[#3b82f6] text-white",
-    buttonSecondary:
-      "bg-[#0f172a] text-[#6bb0ff] hover:bg-[#1e40af]",
-    title: "text-[#6bb0ff]",
-  },
-  T2: {
-    modal: "bg-[#42210b] border border-[#8a5e1a] text-[#f0e4c1]",
-    label: "text-[#d9bb7f]",
-    input:
-      "bg-[#6a4b1b] border border-[#9e7c31] text-[#f0e4c1] focus:ring-[#d4af37] focus:border-[#d4af37]",
-    selectTrigger:
-      "bg-[#6a4b1b] border border-[#9e7c31] text-[#f0e4c1] focus:ring-[#d4af37] focus:border-[#d4af37]",
-    selectContent: "bg-[#3e2f0f] text-[#f0e4c1]",
-    buttonPrimary:
-      "bg-[#a36d00] hover:bg-[#d4af37] focus:ring-[#d4af37] text-[#42210b]",
-    buttonSecondary:
-      "bg-[#3b2e08] text-[#d4af37] hover:bg-[#a36d00]",
-    title: "text-[#d4af37]",
-  },
-};
+    T1: {
+      modal:
+        "rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 border border-blue-800 shadow-2xl text-white",
+
+      label: "text-[#a0c4ff] mb-1",
+      input:
+        "bg-slate-800 border border-blue-800 text-white focus:ring-blue-400 focus:border-blue-400",
+      selectTrigger:
+        "bg-slate-800 border border-blue-800 text-white focus:ring-blue-400 focus:border-blue-400",
+      selectContent: "bg-slate-900 text-white",
+
+      buttonPrimary:
+        "bg-blue-700 hover:bg-blue-500 focus:ring-blue-500 text-white",
+      buttonSecondary:
+        "bg-slate-900 text-blue-300 hover:bg-blue-700",
+      title: "text-blue-300",
+    },
+
+    T2: {
+      modal:
+        "rounded-2xl bg-gradient-to-br from-yellow-900 via-amber-900 to-orange-950 border border-amber-700 shadow-2xl text-[#f0e4c1]",
+
+      label: "text-[#f9d58b] mb-1",
+      input:
+        "bg-[#5c3b0d] border border-amber-700 text-[#f0e4c1] focus:ring-amber-400 focus:border-amber-400",
+      selectTrigger:
+        "bg-[#5c3b0d] border border-amber-700 text-[#f0e4c1] focus:ring-amber-400 focus:border-amber-400",
+      selectContent: "bg-[#3e2f0f] text-[#f0e4c1]",
+
+      buttonPrimary:
+        "bg-amber-700 hover:bg-amber-500 focus:ring-amber-500 text-[#0c0802]",
+      buttonSecondary:
+        "bg-[#3b2e08] text-amber-500 hover:bg-amber-900",
+      title: "text-amber-400",
+    },
+  };
+
 
  const styles = tierStyles[form.tier || "T1"]; // fallback to T1 if tier missing
 
-return (
-  <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-    <DialogContent
-      className={`max-w-lg rounded-lg shadow-lg ${styles.modal}`}
-    >
-      <DialogHeader>
-        <DialogTitle className={`text-2xl font-semibold ${styles.title}`}>
-          Edit Blueprint
-        </DialogTitle>
-      </DialogHeader>
+  return (
+    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        className={`max-w-lg rounded-lg shadow-lg overflow-hidden ${styles.modal}`}
+      >
+        <DialogHeader>
+          <DialogTitle className={`text-2xl font-semibold ${styles.title}`}>
+            Edit Blueprint
+          </DialogTitle>
+        </DialogHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Input type="hidden" name="id" value={form.id} />
+        <form onSubmit={handleSubmit} className="space-y-6 overflow-x-hidden">
+          <Input type="hidden" name="id" value={form.id} />
 
-        <div>
-          <Label htmlFor="editBlueprintName" className={styles.label}>
-            Blueprint Name
-          </Label>
-          <Input
-            id="editBlueprintName"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            required
-            className={styles.input}
-          />
-        </div>
+          <div>
+            <Label htmlFor="editBlueprintName" className={styles.label}>
+              Blueprint Name
+            </Label>
+            <Input
+              id="editBlueprintName"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              required
+              className={`${styles.input} w-full`}
+            />
+          </div>
 
-        <div>
-          <Label htmlFor="editBlueprintSellPrice" className={styles.label}>
-            Sell Price
-          </Label>
-          <Input
-            id="editBlueprintSellPrice"
-            name="sell_price"
-            type="number"
-            step="0.01"
-            value={form.sell_price}
-            onChange={handleChange}
-            required
-            className={styles.input}
-          />
-        </div>
+          <div>
+            <Label htmlFor="editBlueprintSellPrice" className={styles.label}>
+              Sell Price
+            </Label>
+            <Input
+              id="editBlueprintSellPrice"
+              name="sell_price"
+              type="number"
+              step="0.01"
+              value={form.sell_price}
+              onChange={handleChange}
+              required
+              className={`${styles.input} w-full`}
+            />
+          </div>
 
-        <div>
-          <Label htmlFor="editBlueprintCost" className={styles.label}>
-            Material Cost
-          </Label>
-          <Input
-            id="editBlueprintCost"
-            name="material_cost"
-            type="number"
-            step="0.01"
-            value={form.material_cost}
-            onChange={handleChange}
-            required
-            className={styles.input}
-          />
-        </div>
+          <div>
+            <Label htmlFor="editBlueprintCost" className={styles.label}>
+              Material Cost
+            </Label>
+            <Input
+              id="editBlueprintCost"
+              name="material_cost"
+              type="number"
+              step="0.01"
+              value={form.material_cost}
+              onChange={handleChange}
+              required
+              className={`${styles.input} w-full`}
+            />
+          </div>
 
-        <div>
-          <Label htmlFor="editBlueprintStation" className={styles.label}>
-            Manufacturing Station
-          </Label>
-          <Input
-            id="editBlueprintStation"
-            name="station_name"
-            value={form.station_name || ""}
-            onChange={handleChange}
-            className={styles.input}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="editBlueprintTier" className={styles.label}>
-            Tier
-          </Label>
-          <Select value={form.tier} onValueChange={handleTierChange}>
-            <SelectTrigger
-              id="editBlueprintTier"
-              className={styles.selectTrigger}
+          <div>
+            <Label htmlFor="editBlueprintStation" className={styles.label}>
+              Manufacturing Station
+            </Label>
+            <select
+              id="editBlueprintStation"
+              name="station_id"
+              value={form.station_id || ""}
+              onChange={handleChange}
+              className={`${styles.input} w-full rounded-md py-2 px-1.5`}
             >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className={styles.selectContent}>
-              <SelectItem value="T1">Tier 1</SelectItem>
-              <SelectItem value="T2">Tier 2</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+              <option value="">None (Use Jita)</option>
+              {stations.map((station) => (
+                <option key={station.station_id} value={station.station_id}>
+                  {station.name} ({station.station_id})
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {form.tier === "T2" && (
-          <>
-            <div>
-              <Label
-                htmlFor="editBlueprintInventionChance"
-                className={styles.label}
+          <div>
+            <Label htmlFor="editBlueprintTier" className={styles.label}>
+              Tier
+            </Label>
+            <Select value={form.tier} onValueChange={handleTierChange}>
+              <SelectTrigger
+                id="editBlueprintTier"
+                className={`${styles.selectTrigger} w-full`}
               >
-                Invention Chance (%)
-              </Label>
-              <Input
-                id="editBlueprintInventionChance"
-                name="invention_chance"
-                type="number"
-                min={0}
-                max={100}
-                step={0.1}
-                value={form.invention_chance ? form.invention_chance * 100 : ""}
-                onChange={handleInventionChanceChange}
-                className={styles.input}
-              />
-            </div>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className={styles.selectContent}>
+                <SelectItem value="T1">Tier 1</SelectItem>
+                <SelectItem value="T2">Tier 2</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div>
-              <Label
-                htmlFor="editBlueprintRunsPerCopy"
-                className={styles.label}
-              >
-                Runs per Invented Copy
-              </Label>
-              <Select
-                value={String(form.runs_per_copy || 10)}
-                onValueChange={handleRunsPerCopyChange}
-              >
-                <SelectTrigger
-                  id="editBlueprintRunsPerCopy"
-                  className={styles.selectTrigger}
+          {form.tier === "T2" && (
+            <>
+              <div>
+                <Label
+                  htmlFor="editBlueprintInventionChance"
+                  className={styles.label}
                 >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className={styles.selectContent}>
-                  <SelectItem value="10">10 Runs</SelectItem>
-                  <SelectItem value="1">1 Run</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </>
-        )}
+                  Invention Chance (%)
+                </Label>
+                <Input
+                  id="editBlueprintInventionChance"
+                  name="invention_chance"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={0.1}
+                  value={form.invention_chance ? form.invention_chance * 100 : ""}
+                  onChange={handleInventionChanceChange}
+                  className={`${styles.input} w-full`}
+                />
+              </div>
 
-        <DialogFooter>
-          <Button type="submit" className={styles.buttonPrimary}>
-            Save Changes
-          </Button>
-          <DialogClose asChild>
-            <Button type="button" variant="secondary" className={styles.buttonSecondary}>
-              Cancel
+              <div>
+                <Label
+                  htmlFor="editBlueprintRunsPerCopy"
+                  className={styles.label}
+                >
+                  Runs per Invented Copy
+                </Label>
+                <Select
+                  value={String(form.runs_per_copy || 10)}
+                  onValueChange={handleRunsPerCopyChange}
+                >
+                  <SelectTrigger
+                    id="editBlueprintRunsPerCopy"
+                    className={`${styles.selectTrigger} w-full`}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className={styles.selectContent}>
+                    <SelectItem value="10">10 Runs</SelectItem>
+                    <SelectItem value="1">1 Run</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+
+          <DialogFooter>
+            <Button type="submit" className={styles.buttonPrimary}>
+              Save Changes
             </Button>
-          </DialogClose>
-        </DialogFooter>
-      </form>
-    </DialogContent>
-  </Dialog>
-);
+            <DialogClose asChild>
+              <Button type="button" variant="secondary" className={styles.buttonSecondary}>
+                Cancel
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 }

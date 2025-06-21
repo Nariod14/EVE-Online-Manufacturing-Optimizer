@@ -4,9 +4,12 @@ import { mockBlueprints } from '@/types/blueprints';
 import { Material, mockMaterials } from '@/types/materials';
 import { mockStations } from '@/types/stations';
 import { mock } from 'node:test';
+import { mockOptimizeResponse } from '@/types/optimize';
 
 let localStations = [...mockStations];
 let localMaterials = [...mockMaterials];
+let localBlueprints = [...mockBlueprints];
+let localOptimizeResponse = mockOptimizeResponse;
 export const handlers = [
   // GET /api/stations
   http.get('/api/stations', () => {
@@ -64,43 +67,54 @@ export const handlers = [
     });
   }),
   // GET blueprints
-  http.get('/api/blueprints/blueprints', ({
-    request
-  }) => {
-    console.log("Registered handlers:", handlers.map(h => h.info?.path));
-    console.log('[MSW] Intercepted request:', request.url)
-    console.log("[MSW] mockBlueprints:", mockBlueprints);
-    return HttpResponse.json(mockBlueprints)
+  http.get("/api/blueprints/blueprints", ({ request }) => {
+    console.log("[MSW] GET /blueprints ->", localBlueprints);
+    return HttpResponse.json(localBlueprints);
   }),
+
+  // PUT update blueprint
+  http.put("/api/blueprints/blueprint/:id", async ({ request, params }) => {
+    const blueprintId = parseInt(params.id as string);
+    const body = await request.json() as { [key: string]: any};
+
+    console.log("Before update:", JSON.stringify(localBlueprints, null, 2));
+
+    localBlueprints = localBlueprints.map((bp) =>
+      bp.id === blueprintId
+        ? {
+            ...bp,
+            ...body,
+            materials: body.materials ?? bp.materials,
+          }
+        : bp
+    );
+
+    console.log("After update:", JSON.stringify(localBlueprints, null, 2));
+
+    return HttpResponse.json({ success: true });
+  }),
+
+
   // DELETE blueprint
-  http.delete("/api/blueprints/blueprint/:id", ({
-    params
-  }) => {
-    const {
-      id
-    } = params
-    console.log(`Mock delete blueprint ${id}`)
-    return HttpResponse.json({
-      success: true
-    })
+  http.delete("/api/blueprints/blueprint/:id", ({ params }) => {
+    const blueprintId = parseInt(params.id as string);
+    console.log(`Mock delete blueprint ${blueprintId}`);
+
+    localBlueprints = localBlueprints.filter((bp) => bp.id !== blueprintId);
+
+    return HttpResponse.json({ success: true });
   }),
-  // PUT update max or reset
-  http.put("/api/blueprints/blueprint/:id", async ({
-    request,
-    params
-  }) => {
-    const body = await request.json()
-    console.log(`Mock update blueprint ${params.id} with body:`, body)
-    return HttpResponse.json({
-      success: true
-    })
-  }),
-  // POST reset all max values
+
+  // POST reset max values
   http.post("/api/blueprints/blueprints/reset_max", () => {
-    console.log(`Mock reset all blueprint max values`)
-    return HttpResponse.json({
-      success: true
-    })
+    console.log("Mock reset all blueprint max values");
+
+    localBlueprints = localBlueprints.map((bp) => ({
+      ...bp,
+      max: null,
+    }));
+
+    return HttpResponse.json({ success: true });
   }),
 
   http.get('/api/materials/materials', () => {
@@ -163,6 +177,13 @@ export const handlers = [
 
     console.log(`🛰️ MSW Created Material ${newId}:`, created);
     return HttpResponse.json(created);
+  }),
+
+
+  // GET /api/blueprints/optimize
+  http.get('/api/blueprints/optimize', () => {
+    console.log("🧠 MSW Intercepted /api/blueprints/optimize");
+    return HttpResponse.json(localOptimizeResponse);
   }),
 
 ];
