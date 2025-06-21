@@ -1,11 +1,11 @@
-2025-06-21 11:41:24,580 - INFO - Starting EVE Online Manufacturing Optimizer
-2025-06-21 11:41:24,580 - INFO - Server is running at: http://127.0.0.1:5000
-2025-06-21 11:41:24,580 - INFO - Opening web browser...
-2025-06-21 11:41:24,637 - INFO - Instructions:
-2025-06-21 11:41:24,637 - INFO - 1. Use the web interface to manage blueprints and materials
-2025-06-21 11:41:24,637 - INFO - 2. Click 'Optimize Production' to calculate the most profitable manufacturing plan
-2025-06-21 11:41:24,637 - INFO - 3. Press Ctrl+C in this terminal to stop the server
-2025-06-21 11:41:24,641 - INFO - Serving on http://127.0.0.1:5000
-2025-06-21 11:41:25,056 - INFO - Materials retrieved successfully
-2025-06-21 11:41:25,059 - INFO - Blueprints retrieved successfully
-2025-06-21 11:41:25,939 - ERROR - 404 Not Found: GET /favicon.ico
+2025-06-21 14:24:25,026 - INFO - Starting EVE Online Manufacturing Optimizer
+2025-06-21 14:24:25,027 - INFO - Server is running at: http://127.0.0.1:5000
+2025-06-21 14:24:25,027 - INFO - Opening web browser...
+2025-06-21 14:24:25,094 - INFO - Instructions:
+2025-06-21 14:24:25,095 - INFO - 1. Use the web interface to manage blueprints and materials
+2025-06-21 14:24:25,095 - INFO - 2. Click 'Optimize Production' to calculate the most profitable manufacturing plan
+2025-06-21 14:24:25,095 - INFO - 3. Press Ctrl+C in this terminal to stop the server
+2025-06-21 14:24:25,100 - INFO - Serving on http://127.0.0.1:5000
+2025-06-21 14:24:26,538 - INFO - Blueprints retrieved successfully
+2025-06-21 14:24:26,546 - INFO - Materials retrieved successfully
+2025-06-21 14:24:26,548 - INFO - Blueprints retrieved successfully

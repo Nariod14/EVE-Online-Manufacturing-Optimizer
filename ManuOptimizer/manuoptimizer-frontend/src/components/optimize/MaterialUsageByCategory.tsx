@@ -38,12 +38,11 @@ function getUsageBarColor(percent: number): string {
   if (percent >= 180) return "bg-red-800";
   if (percent >= 160) return "bg-red-700";
   if (percent >= 140) return "bg-red-600";
-  if (percent >= 120) return "bg-orange-600";
-  if (percent >= 100) return "bg-orange-500";
-  if (percent >= 90) return "bg-yellow-500";
-  if (percent >= 70) return "bg-yellow-400";
+  if (percent >= 120) return "bg-red-500";
+  if (percent >= 90) return "bg-red-400";
+  if (percent >= 70) return "bg-yellow-500";
   if (percent >= 50) return "bg-green-500";
-  if (percent >= 30) return "bg-blue-500";
+  if (percent >= 30) return "bg-green-300";
   return "bg-blue-300";
 }
 
@@ -52,18 +51,17 @@ function getRemainingColor(percent: number): string {
   if (percent >= 180) return "text-red-800";
   if (percent >= 160) return "text-red-700";
   if (percent >= 140) return "text-red-600";
-  if (percent >= 120) return "text-orange-600";
-  if (percent >= 100) return "text-orange-500";
-  if (percent >= 90) return "text-yellow-500";
-  if (percent >= 70) return "text-yellow-400";
+  if (percent >= 120) return "text-red-500";
+  if (percent >= 90) return "text-red-400";
+  if (percent >= 70) return "text-yellow-500";
   if (percent >= 50) return "text-green-500";
-  if (percent >= 30) return "text-blue-500";
+  if (percent >= 30) return "text-green-300";
   return "text-blue-300";
 }
 
 export default function MaterialUsageByCategory({ usage }: Props) {
   const categorized: Record<string, Record<string, MaterialUsage>> = {};
-
+  const [open, setOpen] = useState(false);
   for (const material in usage) {
     const info = usage[material];
     let category = info.category?.trim() ?? "Other";
@@ -82,9 +80,8 @@ export default function MaterialUsageByCategory({ usage }: Props) {
           const materials = categorized[category];
           if (!materials) return null;
 
-          const [open, setOpen] = useState(false);
-          const totalUsedAmount = Object.values(materials).reduce((sum, m) => sum + m.used, 0);
-          const totalRemaining = Object.values(materials).reduce((sum, m) => sum + m.remaining, 0);
+          // const totalUsedAmount = Object.values(materials).reduce((sum, m) => sum + m.used, 0);
+          // const totalRemaining = Object.values(materials).reduce((sum, m) => sum + m.remaining, 0);
           const usedCount = Object.values(materials).filter((m) => m.used > 0).length;
           const totalCount = Object.keys(materials).length;
 
@@ -134,7 +131,7 @@ export default function MaterialUsageByCategory({ usage }: Props) {
                         <div key={name} className="space-y-1">
                           <div className="flex justify-between text-sm text-blue-100">
                             <div className="w-1/3 truncate">{name}</div>
-                            <div className="w-1/4 text-red-400 text-right">{info.used.toLocaleString()}</div>
+                            <div className="w-1/4 text-rose-400 text-right">{info.used.toLocaleString()}</div>
                             <div className={cn("w-1/4 text-right", remainingColor)}>{info.remaining.toLocaleString()}</div>
                             <div className={`w-1/5 text-right ${usageColor}`}>{percent.toFixed(1)}%</div>
                           </div>

@@ -212,7 +212,13 @@ def get_blueprints():
         for b in blueprints:
             materials = []
             for category, quantities in b.materials.items():
-                materials.append({category: quantities})
+                for name, quantity in quantities.items():
+                    materials.append({
+                        "name": name,
+                        "quantity": quantity,
+                        "category": category
+                    })
+
             bp_dict = {
                 "id": b.id,
                 "name": b.name,

@@ -81,31 +81,45 @@ export function EditBlueprintModal({
 function handleTierChange(value: "T1" | "T2") {
   setForm((prev) => {
     if (!prev) return prev;
+
+    // Handle T2 conversion
     if (value === "T2") {
-      return {
-        ...prev,
-        tier: "T2",
-        invention_chance: (prev as any).invention_chance ?? 0,
-        invention_cost: (prev as any).invention_cost ?? 0,
-        full_material_cost: (prev as any).full_material_cost ?? prev.material_cost ?? 0,
-        runs_per_copy: (prev as any).runs_per_copy ?? 10,
-      } as BlueprintT2;
-    } else {
-      // Use type assertion here to tell TypeScript these properties might exist
-      const { invention_chance, invention_cost, full_material_cost, runs_per_copy, ...rest } = 
-        prev as (BlueprintBase & { 
-          invention_chance?: number; 
-          invention_cost?: number; 
-          full_material_cost?: number; 
-          runs_per_copy?: number 
-        });
-      return {
-        ...rest,
-        tier: "T1",
-      } as BlueprintT1;
+      // For T1 → T2 conversion
+      if (prev.tier === "T1") {
+        return {
+          ...prev,
+          tier: "T2",
+          invention_chance: 0,
+          invention_cost: 0,
+          full_material_cost: prev.material_cost,
+          runs_per_copy: 10,
+        } as BlueprintT2;
+      }
+      // For T2 → T2 (no change needed)
+      return prev as BlueprintT2;
+    } 
+    // Handle T1 conversion
+    else {
+      // For T2 → T1 conversion
+      if (prev.tier === "T2") {
+        const { 
+          invention_chance, 
+          invention_cost, 
+          full_material_cost, 
+          runs_per_copy, 
+          ...baseProps 
+        } = prev;
+        return {
+          ...baseProps,
+          tier: "T1",
+        } as BlueprintT1;
+      }
+      // For T1 → T1 (no change needed)
+      return prev as BlueprintT1;
     }
   });
 }
+
 
 
 

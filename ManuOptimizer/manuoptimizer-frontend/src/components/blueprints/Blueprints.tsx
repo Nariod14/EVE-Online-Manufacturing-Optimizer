@@ -8,6 +8,7 @@ import AddBlueprintModal from "./AddBlueprintModal";
 import { Button } from "../ui/button";
 import { waitForMswReady } from "@/lib/mswReady";
 import { toast } from "sonner";
+import { s } from "vitest/dist/chunks/reporters.d.DL9pg5DB.js";
 
 
 
@@ -29,7 +30,7 @@ export const fetchBlueprints = async (
     setBlueprints(data);
     console.log("Fetched blueprints:", data);
     return data;
-  } catch (err: any) {
+  } catch (err) {
     console.error("Fetch error:", err);
     toast.error("Failed to load blueprints");
     return [];
@@ -147,7 +148,12 @@ useEffect(() => {
          className="w-fit text-sm bg-blue-700 hover:bg-blue-800 mx-auto"
          onClick={async () => {
            const statusEl = document.getElementById("update-blueprints-status");
-           if (statusEl) statusEl.textContent = "Updating blueprint prices...";
+           if (statusEl) { 
+            statusEl.textContent = "Updating blueprint prices..."
+            document.title = "Updating blueprint prices..."
+
+           };
+
 
            try {
              const response = await fetch("/api/blueprints/update_prices", {
@@ -163,8 +169,8 @@ useEffect(() => {
                const errorData = await response.json();
                if (statusEl) statusEl.textContent = errorData.error || "Failed to update prices.";
              }
-           } catch (error: any) {
-             if (statusEl) statusEl.textContent = "Error updating prices: " + error.message;
+           } catch (error) {
+             if (statusEl) statusEl.textContent = "Error updating prices: " + error;
            }
          }}
        >

@@ -1,7 +1,6 @@
 import { Toaster } from "sonner";
 import LoginPanel from "@/components/auth/LoginPanel";
 import Stations from "@/components/stations/Stations";
-import { mockBlueprints } from "@/types/blueprints";
 import BlueprintsPage from "@/components/blueprints/Blueprints";
 import Materials from "@/components/materials/Materials";
 import Optimize from "@/components/optimize/Optimize";

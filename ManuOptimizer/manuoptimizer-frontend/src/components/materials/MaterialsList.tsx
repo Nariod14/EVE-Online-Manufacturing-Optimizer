@@ -1,10 +1,7 @@
-import { useEffect, useState } from "react";
 import { Material } from "@/types/materials";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react"; // optional spinner icon
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
-import { waitForMswReady } from "@/lib/mswReady";
 
 interface GroupedMaterials {
     [category: string]: Material[];
@@ -27,66 +24,65 @@ export function MaterialList({ materials, loading, onEdit, onDelete }: MaterialL
 
   console.log("Rendering MaterialList with materials:", materials);
 
-  return (
-    
-    <div className="space-y-4">
-        {loading ? (
-          <div className="flex items-center space-x-2 text-gray-400 animate-pulse">
-            <Loader2 className="w-5 h-5 animate-spin" />
-            <span>Loading materials...</span>
-          </div>
-        ) : Object.keys(grouped).length === 0 ? (
-          <p className="text-sm text-gray-400">No materials found.</p>
-        ) : (
-          <Accordion type="multiple" className="w-full space-y-2">
-            {Object.entries(grouped)
-              .sort(([a], [b]) => a.localeCompare(b))
-              .map(([cat, mats]) => (
-                <AccordionItem key={cat} value={cat}>
-                  <AccordionTrigger className="text-blue-400 hover:no-underline text-left">
-                    <span className="text-lg font-semibold">{cat}</span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="rounded-md border text-stone-100 border-blue-900 overflow-hidden">
-                      <table className="w-full text-sm">
-                        <thead className="bg-slate-800">
-                          <tr>
-                            <th className="text-left py-2 px-3 text-blue-300">Name</th>
-                            <th className="text-left py-2 px-3 text-blue-300">Quantity</th>
-                            <th className="text-left py-2 px-3 text-blue-300">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {mats.map((mat) => (
-                            <tr key={mat.id} className="border-t border-blue-900">
-                              <td className="py-2 px-3">{mat.name}</td>
-                              <td className="py-2 px-3">{mat.quantity}</td>
-                              <td className="py-2 px-3 space-x-2">
-                                <Button
-                                  className="bg-blue-700 hover:bg-blue-800 text-white"
-                                  size="sm"
-                                  onClick={() => onEdit(mat)}
-                                >
-                                  Edit
-                                </Button>
-                                <Button
-                                  className="bg-red-700 hover:bg-red-900 text-white"
-                                  size="sm"
-                                  onClick={() => onDelete(mat.id)}
-                                >
-                                  Delete
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+ return (
+  <div className="space-y-6">
+    {loading ? (
+      <div className="flex items-center space-x-2 text-blue-300 animate-pulse">
+        <Loader2 className="w-5 h-5 animate-spin" />
+        <span>Loading materials...</span>
+      </div>
+    ) : Object.keys(grouped).length === 0 ? (
+      <p className="text-sm text-blue-300 italic">No materials found.</p>
+    ) : (
+      <Accordion type="multiple" className="w-full space-y-4">
+        {Object.entries(grouped)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([cat, mats]) => (
+            <AccordionItem
+              key={cat}
+              value={cat}
+              className="rounded-2xl border border-blue-800 bg-gradient-to-br from-blue-950 via-slate-900 to-slate-950 shadow-lg"
+            >
+              <AccordionTrigger className="px-4 py-3 text-left text-lg font-semibold text-blue-200 hover:no-underline hover:text-blue-300">
+                {cat}
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4 space-y-3">
+                {mats.map((mat) => (
+                  <div
+                    key={mat.id}
+                    className="flex justify-between items-center bg-slate-900/70 hover:bg-blue-900/60 border border-blue-800 rounded-xl px-4 py-2 shadow-sm transition-all"
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-blue-100">{mat.name}</span>
+                      <span className="text-sm text-blue-300">
+                        {mat.quantity.toLocaleString()} units
+                      </span>
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-          </Accordion>
-        )}
-    </div>
-  );
+
+                    <div className="space-x-2">
+                      <Button
+                        size="sm"
+                        className="bg-blue-700 hover:bg-blue-600 shadow-md hover:shadow-blue-500/30 text-white"
+                        onClick={() => onEdit(mat)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-red-700 hover:bg-red-600 shadow-md hover:shadow-red-500/30 text-white"
+                        onClick={() => onDelete(mat.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+      </Accordion>
+    )}
+  </div>
+);
+
 }

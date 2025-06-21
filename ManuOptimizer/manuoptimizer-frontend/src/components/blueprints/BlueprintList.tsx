@@ -13,8 +13,7 @@ import { Pencil, Trash2, RotateCcw, ChevronDown, ChevronUp } from "lucide-react"
 import type { Blueprint, BlueprintT2, BlueprintTier } from "@/types/blueprints";
 import { useMswReady } from "@/hooks/useMswReady";
 import { Material } from "@/types/materials";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { waitForMswReady } from "@/lib/mswReady";
+import { CardContent, CardDescription } from "../ui/card";
 import { ConfirmDeleteButton } from "../utils/utils";
 import { numberToWords } from "../utils/utils";
 
@@ -26,6 +25,7 @@ type SortKey =
   | "material_cost"
   | "full_material_cost"
   | "profit"
+  | "profit_percent"
   | "station_name"
   | "max"
   | "invention_chance";
@@ -95,6 +95,9 @@ export default function BlueprintsList({
   // Sorting state per tier
   const [t1Sort, setT1Sort] = useState<SortState>({ key: "name", direction: "asc" });
   const [t2Sort, setT2Sort] = useState<SortState>({ key: "name", direction: "asc" });
+
+  const [searchQuery, setSearchQuery] = useState("");
+
 
   const mswReady = useMswReady();
 
@@ -221,6 +224,15 @@ function sortBlueprints(arr: Blueprint[], sort: SortState) {
         const aProfit = a.sell_price - (a.tier === "T2" ? a.full_material_cost : a.material_cost);
         const bProfit = b.sell_price - (b.tier === "T2" ? b.full_material_cost : b.material_cost);
         return (aProfit - bProfit) * dir;
+      case "profit_percent": {
+        const aCost = a.tier === "T2" ? a.full_material_cost : a.material_cost;
+        const bCost = b.tier === "T2" ? b.full_material_cost : b.material_cost;
+
+        const aPct = aCost > 0 ? ((a.sell_price - aCost) / aCost) * 100 : 0;
+        const bPct = bCost > 0 ? ((b.sell_price - bCost) / bCost) * 100 : 0;
+
+        return (aPct - bPct) * dir;
+      }
       case "station_name":
       return (
         (a.station?.name || a.station_name || "Jita 4-4").localeCompare(
@@ -239,9 +251,70 @@ function sortBlueprints(arr: Blueprint[], sort: SortState) {
     }
   });
 }
+
+
+function filterBlueprints(bpList: Blueprint[], query: string): Blueprint[] {
+  const lower = query.trim().toLowerCase();
+  if (!lower) return bpList;
+
+  return bpList.filter((bp) => {
+    const sellPrice = bp.sell_price;
+    const materialCost = bp.material_cost;
+
+    const baseProfit = sellPrice - materialCost;
+    const baseProfitPct =
+      materialCost > 0 ? ((baseProfit / materialCost) * 100).toFixed(2) : "-";
+
+    const baseMatch =
+      bp.name?.toLowerCase().includes(lower) ||
+      bp.station_name?.toLowerCase().includes(lower) ||
+      String(sellPrice).includes(lower) ||
+      String(materialCost).includes(lower) ||
+      String(baseProfit).includes(lower) ||
+      baseProfitPct.includes(lower) ||
+      String(bp.max ?? "").includes(lower);
+
+    // Match against materials (names and optional quantities)
+    const materialsMatch = Array.isArray(bp.materials)
+      ? bp.materials.some((mat) => {
+          return (
+            mat.name?.toLowerCase().includes(lower) ||
+            String(mat.quantity).includes(lower)
+          );
+        })
+      : false;
+
+    if (bp.tier === "T2") {
+      const t2 = bp as BlueprintT2;
+      const fullProfit = sellPrice - t2.full_material_cost;
+      const fullProfitPct =
+        t2.full_material_cost > 0
+          ? ((fullProfit / t2.full_material_cost) * 100).toFixed(2)
+          : "-";
+
+      const t2Match =
+        String(t2.full_material_cost).includes(lower) ||
+        String(t2.invention_chance).includes(lower) ||
+        String(fullProfit).includes(lower) ||
+        fullProfitPct.includes(lower);
+
+      return baseMatch || t2Match || materialsMatch;
+    }
+
+    return baseMatch || materialsMatch;
+  });
+}
+
+
+
+
   // Split by tier
   const t1Blueprints = blueprints.filter((b) => b.tier === "T1");
   const t2Blueprints = blueprints.filter(bpTierCheck);
+
+  const filteredT1 = filterBlueprints(t1Blueprints, searchQuery);
+  const filteredT2 = filterBlueprints(t2Blueprints, searchQuery);
+
 
   // Table headers config
 // Allow any string for key, but only SortKey values are sortable
@@ -326,6 +399,17 @@ function renderHeader(
 
   return (
     <CardContent>
+      <CardDescription>
+        <div className="mb-4 flex justify-between items-center gap-4">
+          <Input
+            type="text"
+            placeholder="Search blueprints..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full max-w-md bg-blue-900 text-blue-200 border-blue-700"
+          />
+        </div>
+      </CardDescription>
           <Accordion type="multiple" className="mb-4">
             {/* T1 Section */}
             <AccordionItem value="t1" defaultChecked>
@@ -339,12 +423,12 @@ function renderHeader(
                 <span className="text-blue-200">Tier 1 Blueprints</span>
               </AccordionTrigger>
               <AccordionContent className="bg-gradient-to-br from-blue-950 via-blue- to-slate-950 hover:no-underline rounded-b-xl px-2 pb-4 pt-2">
-                { t1Blueprints.length ? (
+                { filteredT1.length ? (
                   <div className="overflow-x-auto">
                     <table className="min-w-full text-sm bg-blue-950/70 rounded-xl shadow">
                       <thead>{renderHeader(t1Headers, t1Sort, "T1", setT1Sort)}</thead>
                       <tbody>
-                        {sortBlueprints(t1Blueprints, t1Sort).map((bp) => {
+                        {sortBlueprints(filteredT1, t1Sort).map((bp) => {
                           const sellPrice = Math.round(bp.sell_price);
                           const materialCost = Math.round(bp.material_cost);
                           const profit = sellPrice - materialCost;
@@ -458,12 +542,12 @@ function renderHeader(
 
                 <AccordionContent className="bg-[#2d1e13] rounded-b-xl px-2 pb-4 pt-2 border-l-[8px] border-[#ff9800] shadow-[0_4px_20px_0_rgba(200,120,30,0.13)]">
 
-                {t2Blueprints.length ? (
+                {filteredT2.length ? (
                     <div className="overflow-x-auto">
                     <table className="min-w-full text-sm bg-[#2d1e13] rounded-xl shadow">
                         <thead>{renderHeader(t2Headers, t2Sort, "T2", setT2Sort)}</thead>
                         <tbody>
-                          {sortBlueprints(t2Blueprints, t2Sort).map((bp) => {
+                          {sortBlueprints(filteredT2, t2Sort).map((bp) => {
                             if (bpTierCheck(bp)) {
                                 const materialCost = Math.round(bp.material_cost);
                                 const sellPrice = Math.round(bp.sell_price);

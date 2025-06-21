@@ -34,9 +34,9 @@ export default function Optimize() {
       const data = await res.json();
       setResult(data);
       toast.success("Optimization complete!");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Optimization failed:", err);
-      toast.error("Failed to optimize: " + err.message);
+      toast.error("Failed to optimize: " + err);
     } finally {
       setLoading(false);
     }

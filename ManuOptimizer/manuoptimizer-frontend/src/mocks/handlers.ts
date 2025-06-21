@@ -1,15 +1,13 @@
 import { http, HttpResponse } from 'msw';
-import { S } from 'vitest/dist/chunks/config.d.D2ROskhv.js';
 import { mockBlueprints } from '@/types/blueprints';
 import { Material, mockMaterials } from '@/types/materials';
 import { mockStations } from '@/types/stations';
-import { mock } from 'node:test';
 import { mockOptimizeResponse } from '@/types/optimize';
 
 let localStations = [...mockStations];
 let localMaterials = [...mockMaterials];
 let localBlueprints = [...mockBlueprints];
-let localOptimizeResponse = mockOptimizeResponse;
+const localOptimizeResponse = mockOptimizeResponse;
 export const handlers = [
   // GET /api/stations
   http.get('/api/stations', () => {

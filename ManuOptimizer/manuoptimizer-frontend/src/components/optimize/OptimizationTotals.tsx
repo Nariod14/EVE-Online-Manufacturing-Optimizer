@@ -14,10 +14,6 @@ export default function OptimizationTotals({ data }: OptimizationTotalsProps) {
 
   
 
-  function formatISK(value: number) {
-    return value.toLocaleString("en-US") + " ISK";
-  }
-
   function getProfitColor(percent: number) {
     if (percent < 20) return 'text-red-400';
     if (percent < 35) return 'text-orange-400';
