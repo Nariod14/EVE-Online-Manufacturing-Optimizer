@@ -34,16 +34,16 @@ function getUsageColor(percent: number) {
   return "text-blue-300";
 }
 function getUsageBarColor(percent: number): string {
-  if (percent >= 200) return "bg-red-9000";
+  if (percent >= 200) return "bg-red-900";
   if (percent >= 180) return "bg-red-800";
   if (percent >= 160) return "bg-red-700";
   if (percent >= 140) return "bg-red-600";
   if (percent >= 120) return "bg-red-500";
-  if (percent >= 100) return "bg-red-400"; // Added a new range for 100-120
-  if (percent >= 90) return "bg-orange-400";
-  if (percent >= 70) return "bg-yellow-500";
-  if (percent >= 50) return "bg-yellow-200";
-  if (percent >= 30) return "bg-green-300";
+  if (percent >= 100) return "bg-red-400";
+  if (percent >= 90)  return "bg-red-300";    // Start red at 90+
+  if (percent >= 70)  return "bg-orange-400";
+  if (percent >= 50)  return "bg-yellow-500";
+  if (percent >= 30)  return "bg-green-300";
   return "bg-green-400";
 }
 
@@ -53,13 +53,14 @@ function getRemainingColor(percent: number): string {
   if (percent >= 160) return "text-red-700";
   if (percent >= 140) return "text-red-600";
   if (percent >= 120) return "text-red-500";
-  if (percent >= 100) return "text-red-400"; // Added a new range for 100-120
-  if (percent >= 90) return "text-orange-400";
-  if (percent >= 70) return "text-yellow-500";
-  if (percent >= 50) return "text-yellow-200";
-  if (percent >= 30) return "text-green-300";
+  if (percent >= 100) return "text-red-400";
+  if (percent >= 90)  return "text-red-300";    // Start red at 90+
+  if (percent >= 70)  return "text-orange-400";
+  if (percent >= 50)  return "text-yellow-500";
+  if (percent >= 30)  return "text-green-300";
   return "text-green-400";
 }
+
 
 export default function MaterialUsageByCategory({ usage }: Props) {
   const categorized: Record<string, Record<string, MaterialUsage>> = {};
