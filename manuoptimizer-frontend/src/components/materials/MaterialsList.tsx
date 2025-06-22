@@ -22,8 +22,6 @@ export function MaterialList({ materials, loading, onEdit, onDelete }: MaterialL
     grouped[cat].push(mat);
   }
 
-  console.log("Rendering MaterialList with materials:", materials);
-
  return (
   <div className="space-y-6">
     {loading ? (
