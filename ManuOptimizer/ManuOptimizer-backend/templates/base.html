@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVE Online Manufacturing Optimizer</title>
+</head>
+<body>
+    {% block content %}{% endblock %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+/**
+ * Dynamically appends additional material input fields for name and quantity.
+ *
+ * This function adds a pair of input fields to the element with ID 'additionalMaterials'.
+ * One field is for entering a material name, and the other is for specifying the quantity.
+ * Both fields are required for form submission.
+ */
+        function addAdditionalMaterial() {
+    $('#additionalMaterials').append('<input type="text" placeholder="Material Name" required><input type="number" placeholder="Quantity" required>');
+}
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const loginBtn = document.getElementById("eveLoginBtn");
+  const hiddenBtn = document.getElementById("eveLoginHiddenBtn");
+  const statusText = document.getElementById("loginStatus");
+
+  function triggerLogin() {
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Logging in...";
+    statusText.textContent = "Redirecting to EVE SSO...";
+    window.location.href = "/login"; // Starts the OAuth flow
+  }
+
+  if (loginBtn) {
+    loginBtn.addEventListener("click", triggerLogin);
+  }
+
+  if (hiddenBtn) {
+    hiddenBtn.addEventListener("click", triggerLogin);
+  }
+});
+
+
+/**
+ * Appends a new material input form to the blueprint materials section.
+ * 
+ * This function dynamically adds a new set of form fields for selecting a material
+ * and specifying its quantity within the blueprint form. It includes a dropdown 
+ * for selecting from predefined materials or specifying 'other', which reveals an 
+ * additional text input for entering a custom material name. A remove button is 
+ * also included to allow users to delete the added material input.
+ */
+ function addBlueprintMaterial() {
+    var newMaterial = `
+        <div class="material-input">
+            <select class="materialSection">
+                <option value="Minerals">Minerals</option>
+                <option value="Items">Items</option>
+                <option value="Components">Components</option>
+            </select>
+            <select class="materialName">
+                <option value="Tritanium">Tritanium</option>
+                <option value="Pyerite">Pyerite</option>
+                <option value="Mexallon">Mexallon</option>
+                <option value="Isogen">Isogen</option>
+                <option value="Nocxium">Nocxium</option>
+                <option value="Zydrine">Zydrine</option>
+                <option value="Megacyte">Megacyte</option>
+                <option value="other">Other</option>
+            </select>
+            <input type="text" class="otherMaterialName" placeholder="Other Material Name" style="display: none;">
+            <input type="number" class="materialQuantity" placeholder="Quantity" required>
+            <input type="number" step="0.01" class="materialUnitPrice" placeholder="Unit Price">
+            <button type="button" class="removeMaterialButton">Remove</button>
+            <hr>
+        </div>
+    `;
+    $('#blueprintMaterials').append(newMaterial);
+}
+
+
+// Handle material dropdown changes to show/hide "Other Material Name"
+$(document).on('change', '.materialName', function() {
+    if ($(this).val() === 'other') {
+        $(this).siblings('.otherMaterialName').show();
+    } else {
+        $(this).siblings('.otherMaterialName').hide();
+    }
+});
+
+// Handle removing a material input
+$(document).on('click', '.removeMaterialButton', function() {
+    $(this).closest('.material-input').remove();
+});
+
+// Handle blueprint type changes to show/hide invention fields
+$('#blueprintParseTier').on('change', function() {
+    if ($(this).val() === 'T2') {
+        $('#inventionFields').show();
+        $('#blueprintParseInventionData').prop('required', true);
+        $('#blueprintParseInventionChance').prop('required', true);
+    } else {
+        $('#inventionFields').hide();
+        $('#blueprintParseInventionData').prop('required', false);
+        $('#blueprintParseInventionChance').prop('required', false);
+        $('#blueprintParseInventionChance').val(''); // Optionally clear the field for T1
+    }
+});
+
+
+// Handle material dropdown changes to show/hide mineral select
+$('.materialSection').on('change', function() {
+    var selectedSection = $(this).val();
+    if (selectedSection === 'Minerals') {
+        $('.mineralSelectContainer').show();
+        $('.itemName').hide();
+    } else {
+        $('.mineralSelectContainer').hide();
+        $('.itemName').show();
+    }
+});
+
+// Handle form submission for adding a blueprint manually
+//TODO: update this to parser levels
+$('#blueprintForm').submit(function(e) {
+    e.preventDefault();
+
+    var materials = {
+        Minerals: {},
+        Items: {},
+        Components: {}
+    };
+
+    $('.material-input').each(function() {
+        var name = $(this).find('.materialName').val();
+        if (name === 'other') {
+            name = $(this).find('.otherMaterialName').val();
+        }
+        var quantity = parseInt($(this).find('.materialQuantity').val());
+        var unitPrice = parseFloat($(this).find('.materialUnitPrice').val()) || 0;
+        var section = $(this).find('.materialSection').val() || 'Minerals'; // Default to Minerals if not specified
+
+        if (name && quantity > 0) {
+            materials[section][name] = quantity;
+        }
+    });
+
+    var blueprintData = {
+        name: $('#blueprintName').val(),
+        materials: materials,
+        sell_price: parseFloat($('#blueprintSellPrice').val()),
+        material_cost: parseFloat($('#blueprintMaterialCost').val())
+    };
+
+    $.ajax({
+        url: '/api/blueprints/blueprint/manual',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(blueprintData),
+        success: function(response) {
+            alert('Blueprint added successfully');
+            loadBlueprints();
+            $('#blueprintForm')[0].reset(); // Reset the form after successful submission
+        },
+        error: function(xhr, status, error) {
+            console.error("Error submitting blueprint:", error);
+            alert('Error adding blueprint: ' + error);
+        }
+    });
+});
+
+// Handle form submission for adding a material
+$(document).ready(function() {
+    // Show/hide other material name input based on selection
+    $('#materialName').change(function() {
+        if ($(this).val() === 'other') {
+            $('#otherMaterialName').show();
+        } else {
+            $('#otherMaterialName').hide();
+        }
+    });
+
+    // Handle form submission
+    $('#materialForm').submit(function(e) {
+        e.preventDefault();
+        
+        var materialName = $('#materialName').val();
+        if (materialName === 'other') {
+            materialName = $('#otherMaterialName').val();
+        }
+        
+        var materialData = {
+            name: materialName,
+            quantity: parseInt($('#materialQuantity').val())
+        };
+
+        $.ajax({
+            url: ' /api/materials/materials',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(materialData),
+            success: function(response) {
+                alert('Material added successfully');
+                $('#materialForm')[0].reset();
+                $('#otherMaterialName').hide();
+                loadMaterials();
+            },
+            error: function(xhr, status, error) {
+                console.error("Error adding material:", error);
+                alert('Error adding material: ' + xhr.responseText);
+            }
+        });
+    });
+});
+
+// Function to load and display blueprints
+
+/**
+ * Loads and displays the list of blueprints from the server.
+ * 
+ * This function sends an AJAX GET request to the '/blueprint' endpoint to retrieve
+ * all available blueprints. Upon a successful response, it dynamically constructs
+ * an HTML table displaying each blueprint's name, sell price, and materials. It also
+ * includes action buttons for editing and deleting each blueprint, and updates the
+ * '#blueprintList' element with this table.
+ */
+ function loadBlueprints() {
+    $.ajax({
+        url: '/api/blueprints/blueprints',
+        method: 'GET',
+        success: function(response) {
+            // Separate blueprints by tier
+            var t1Blueprints = [];
+            var t2Blueprints = [];
+            response.forEach(function(blueprint) {
+                if (blueprint.tier === 'T2') {
+                    t2Blueprints.push(blueprint);
+                } else {
+                    t1Blueprints.push(blueprint);
+                }
+            });
+
+            // Helper: build T1 table (no invention chance), wrapped in .blueprint-section.t1
+            function buildT1Table(blueprints) {
+                var html = `<div class="blueprint-section t1">
+                  <table class="blueprint-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Sell Price</th>
+                        <th>Material Cost</th>
+                        <th>Materials</th>
+                        <th>Profit %</th>
+                        <th>Station</th>
+                        <th>Max</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>`;
+
+                blueprints.forEach(function(blueprint) {
+                    var sellPrice = blueprint.sell_price;
+                    var formattedSell = sellPrice.toLocaleString() + ' | (' + numberToWords(sellPrice) + ') isk';
+                    if (blueprint.used_jita_fallback) {
+                        formattedSell += ' <span style="color: orange;" title="Fallback to Jita pricing">&#9888;</span>';
+                    }
+                    var materialCost = Math.round(blueprint.material_cost);
+                    var formattedCost = materialCost.toLocaleString() + ' | (' + numberToWords(materialCost) + ') isk';
+                    var profit = sellPrice - materialCost;
+                    var profitPercentage = (profit / materialCost) * 100;
+                    var formattedProfit = profitPercentage.toFixed(2) + '%';
+
+                    html += `<tr>
+                        <td>${blueprint.name}</td>
+                        <td>${formattedSell}</td>
+                        <td>${formattedCost}</td>
+                        <td>
+                          <ul style="list-style: none; padding: 0; margin: 0;">`;
+
+                    blueprint.materials.forEach(function(material) {
+                        var category = Object.keys(material)[0];
+                        var quantities = material[category];
+                        html += `<li><strong>${category}</strong></li>
+                                <ul style="list-style: none; padding: 0; margin: 0;">`;
+                        for (var item in quantities) {
+                            html += `<li>&nbsp;&nbsp;${item}: ${quantities[item]}</li>`;
+                        }
+                        html += `</ul>`;
+                    });
+
+                    html += `</ul>
+                        </td>
+                        <td style="text-align: center;">${formattedProfit}</td>
+                        <td style="text-align: center;">${blueprint.station_name || 'Jita 4-4'}</td>
+                        <td style="text-align: center; width: 90px;">
+                          <input type="number" class="blueprint-max" data-id="${blueprint.id}" value="${blueprint.max || ''}" style="width: 60px; text-align: center;">
+                        </td>
+                        <td style="text-align: center; vertical-align: middle; width: 110px;">
+                          <div style="display: flex; flex-direction: column; gap: 6px; align-items: stretch;">
+                            <button onclick="editBlueprint(${blueprint.id})">Edit</button>
+                            <button onclick="deleteBlueprint(${blueprint.id})">Delete</button>
+                            <button onclick="resetBlueprintMax(${blueprint.id})">Reset Max</button>
+                          </div>
+                        </td>
+                      </tr>`;
+                });
+
+                html += `</tbody>
+                  </table>
+                  <button class="resetAllMaxButton">Reset All Max Values</button>
+                </div>`;
+
+                return html;
+            }
+
+
+            // Helper: build T2 table (with invention chance), wrapped in .blueprint-section.t2
+            function buildT2Table(blueprints) {
+                var html = `<div class="blueprint-section t2">
+                  <table class="blueprint-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Invention Chance</th>
+                        <th>Sell Price</th>
+                        <th>Material Cost</th>
+                        <th>Materials</th>
+                        <th>Profit %</th>
+                        <th>Station</th>
+                        <th>Max</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>`;
+
+                blueprints.forEach(function(blueprint) {
+                    var sellPrice = blueprint.sell_price;
+                    var formattedSell = sellPrice.toLocaleString() + ' | (' + numberToWords(sellPrice) + ') isk';
+                    if (blueprint.used_jita_fallback) {
+                        formattedSell += ' <span style="color: orange;" title="Fallback to Jita pricing">&#9888;</span>';
+                    }
+                    var fullMaterialCost = Math.round(blueprint.full_material_cost);
+                    var formattedCost = fullMaterialCost.toLocaleString() + ' | (' + numberToWords(fullMaterialCost) + ') isk';
+                    var profit = sellPrice - fullMaterialCost;
+                    var profitPercentage = (profit / fullMaterialCost) * 100;
+                    var formattedProfit = profitPercentage.toFixed(2) + '%';
+
+                    html += `<tr>
+                        <td>${blueprint.name}</td>
+                        <td>${blueprint.invention_chance ? (blueprint.invention_chance * 100).toFixed(1) + '%' : '-'}</td>
+                        <td>${formattedSell}</td>
+                        <td>${formattedCost}</td>
+                        <td>
+                          <ul style="list-style: none; padding: 0; margin: 0;">`;
+
+                    blueprint.materials.forEach(function(material) {
+                        var category = Object.keys(material)[0];
+                        var quantities = material[category];
+                        html += `<li><strong>${category}</strong></li>
+                                <ul style="list-style: none; padding: 0; margin: 0;">`;
+                        for (var item in quantities) {
+                            html += `<li>&nbsp;&nbsp;${item}: ${quantities[item]}</li>`;
+                        }
+                        html += `</ul>`;
+                    });
+
+                    html += `</ul>
+                        </td>
+                        <td style="text-align: center;">${formattedProfit}</td>
+                        <td style="text-align: center;">${blueprint.station_name || 'Jita 4-4'}</td>
+                        <td style="text-align: center; width: 90px;">
+                          <input type="number" class="blueprint-max" data-id="${blueprint.id}" value="${blueprint.max || ''}" style="width: 60px; text-align: center;">
+                        </td>
+                        <td style="text-align: center; vertical-align: middle; width: 110px;">
+                          <div style="display: flex; flex-direction: column; gap: 6px; align-items: stretch;">
+                            <button onclick="editBlueprint(${blueprint.id})">Edit</button>
+                            <button onclick="deleteBlueprint(${blueprint.id})">Delete</button>
+                            <button onclick="resetBlueprintMax(${blueprint.id})">Reset Max</button>
+                          </div>
+                        </td>
+                      </tr>`;
+                });
+
+                html += `</tbody>
+                  </table>
+                  <button class="resetAllMaxButton">Reset All Max Values</button>
+                </div>`;
+
+                return html;
+            }
+
+
+            // Accordion HTML, now with blueprint-section wrapping the tables
+            var html = `
+            <div class="blueprint-accordion">
+
+              <div class="accordion-item t1">
+                <button class="accordion-header" aria-expanded="false">
+                  <span class="tier-label t1">Tier 1 Blueprints</span>
+                  <span class="accordion-icon">&#9660;</span>
+                </button>
+                <div class="accordion-content" style="display: none;">
+                  ${t1Blueprints.length ? buildT1Table(t1Blueprints) : '<div style="padding:18px;">No Tier 1 blueprints found.</div>'}
+                </div>
+              </div>
+
+              <div class="accordion-item t2">
+                <button class="accordion-header" aria-expanded="fasle">
+                  <span class="tier-label t2">Tier 2 Blueprints</span>
+                  <span class="accordion-icon">&#9660;</span>
+                </button>
+                <div class="accordion-content" style="display: none;">
+                  ${t2Blueprints.length ? buildT2Table(t2Blueprints) : '<div style="padding:18px;">No Tier 2 blueprints found.</div>'}
+                </div>
+              </div>
+
+            </div>`;
+
+            $('#blueprintList').html(html);
+
+            // Accordion expand/collapse logic
+            $('.accordion-header').off('click').on('click', function() {
+                var expanded = $(this).attr('aria-expanded') === 'true';
+                $(this).attr('aria-expanded', !expanded);
+                var content = $(this).closest('.accordion-item').find('.accordion-content');
+                if (!expanded) {
+                    content.slideDown(200);
+                    $(this).find('.accordion-icon').html('&#9660;');
+                } else {
+                    content.slideUp(200);
+                    $(this).find('.accordion-icon').html('&#9654;');
+                }
+            });
+
+            // Bind click event for all Reset All Max Values buttons
+            $('.resetAllMaxButton').off('click').on('click', function() {
+                resetAllBlueprintMax();
+            });
+        }
+    });
+}
+
+
+
+
+
+
+
+/**
+ * Resets the max value for a blueprint.
+ * 
+ * This function sends an AJAX PUT request to the `/blueprint/:id` endpoint to set
+ * the max value for the blueprint with the given `id` to null. Upon a successful
+ * response, it shows an alert and reloads the list of blueprints. If there is an
+ * error, it shows an alert with the error message.
+ * 
+ * @param {number} id The ID of the blueprint to reset the max value for.
+ */
+function resetBlueprintMax(id) {
+    $.ajax({
+        url: `/api/blueprints/blueprint/${id}`,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({ max: null }),
+        success: function(response) {
+            alert('Blueprint max value reset successfully');
+            loadBlueprints();
+        },
+        error: function(xhr, status, error) {
+            console.error("Error resetting max:", error);
+            alert('Error resetting blueprint max');
+        }
+    });
+}
+
+/**
+ * Resets the max value for all blueprints.
+ * 
+ * This function sends an AJAX POST request to the `/blueprints/reset_max` endpoint
+ * to set the max value for all blueprints to null. Upon a successful response, it
+ * shows an alert and reloads the list of blueprints. If there is an error, it shows
+ * an alert with the error message.
+ */
+function resetAllBlueprintMax() {
+    console.log("Reset All Max Values button clicked"); // Debug log
+    $.ajax({
+        url: '/api/blueprints/blueprints/reset_max',
+        method: 'POST',
+        success: function(response) {
+            console.log("Response from server:", response); // Debug log
+            alert(response.message);
+            loadBlueprints(); // Reload blueprints to reflect changes
+        },
+        error: function(xhr, status, error) {
+            console.error("Error resetting all max values:", error);
+            alert('Error resetting all max values: ' + xhr.responseText);
+        }
+    });
+}
+
+
+
+
+
+
+
+/**
+ * Loads and displays the list of materials from the server.
+ * 
+ * This function sends an AJAX GET request to the '/material' endpoint to retrieve
+ * all available materials. Upon a successful response, it dynamically constructs
+ * an HTML table displaying each material's name and quantity. It also includes
+ * action buttons for editing and deleting each material, and updates the
+ * '#materialList' element with this table.
+ */
+ function loadMaterials() {
+  $.ajax({
+    url: '/api/materials/materials',
+    method: 'GET',
+    success: function (response) {
+      // Group materials by category
+      const grouped = {};
+      response.forEach((material) => {
+        const cat = material.category || 'Other';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(material);
+      });
+
+      // Build Accordion HTML
+      let html = '<div class="material-accordion">';
+
+      Object.keys(grouped).sort().forEach((cat) => {
+        html += `
+          <div class="accordion-item">
+            <button class="accordion-header" aria-expanded="false">
+              <span class="category-label">${cat}</span>
+              <span class="accordion-icon">&#9654;</span>
+            </button>
+            <div class="accordion-content" style="display: none;">
+              <table class="material-table">
+                <thead>
+                  <tr><th>Name</th><th>Quantity</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+        `;
+
+        grouped[cat].forEach((material) => {
+          html += `
+            <tr>
+              <td>${material.name}</td>
+              <td>${material.quantity}</td>
+              <td>
+                <button onclick="editMaterial(${material.id})">Edit</button>
+                <button onclick="deleteMaterial(${material.id})">Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+
+        html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      });
+
+      html += '</div>'; // Close .material-accordion
+
+      $('#materialList').html(html);
+
+      // Accordion logic
+      $('.accordion-header').off('click').on('click', function () {
+        const expanded = $(this).attr('aria-expanded') === 'true';
+        $(this).attr('aria-expanded', !expanded);
+        const content = $(this).closest('.accordion-item').find('.accordion-content');
+        if (!expanded) {
+          content.slideDown(200);
+          $(this).find('.accordion-icon').html('&#9660;');
+        } else {
+          content.slideUp(200);
+          $(this).find('.accordion-icon').html('&#9654;');
+        }
+      });
+    }
+  });
+}
+
+
+
+
+// Blueprint and Invention Parser from game data
+$('#blueprintParseForm').submit(function(e) {
+    e.preventDefault();
+
+    var rawMaterialText = $('#blueprintParseData').val();
+    var rawInventionText = $('#blueprintParseInventionData').val();
+    var lines = rawMaterialText.split('\n');
+    var blueprintName = lines[0].split('\t')[0].replace(' Blueprint', '');
+    var sellPrice = parseFloat($('#blueprintParseSellPrice').val()) || 0;
+    var makeCost = parseFloat($('#blueprintParseMakeCost').val()) || 0;
+    var inventionChance = parseFloat($('#blueprintParseInventionChance').val())/100 || null;
+    var tier = $('#blueprintParseTier').val();
+    var runs = $('#blueprintParseRunsPerCopy').val();
+    var selectedStation = $('#blueprintParseStation').val();
+
+    var inventionChanceField = $('#blueprintParseInventionChance');
+
+    if (tier === 'T2' && (!inventionChance || isNaN(parseFloat(inventionChance)))) {
+        inventionChance = 1;
+        inventionChanceField.val(100);
+    }
+
+    var blueprintData = {
+        name: blueprintName,
+        materials: rawMaterialText,
+        invention_materials: rawInventionText,
+        sell_price: sellPrice,
+        material_cost: makeCost,
+        invention_chance: inventionChance,
+        tier: tier,
+        runs_per_copy: runs,
+        station_id: selectedStation ? parseInt(selectedStation) : null
+    };
+
+    $.ajax({
+        url: '/api/blueprints/blueprints',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(blueprintData),
+        success: function(response) {
+            alert('Blueprint added successfully');
+            loadBlueprints();
+            $('#blueprintParseForm')[0].reset();
+            $('#blueprintParseTier').trigger('change');
+        },
+        error: function(xhr, status, error) {
+            console.error("Error submitting blueprint:", error);
+            alert('Error adding blueprint: ' + error);
+        }
+    });
+});
+
+
+
+// Blueprint Parser from ISK per hour
+$('#iskHourParseForm').submit(function(e) {
+    e.preventDefault();
+
+    var rawText = $('#iskHourParseData').val();
+    var sellPrice = parseFloat($('#iskHourSellPrice').val());
+    var makeCost = parseFloat($('#iskHourMakeCost').val());
+
+    // Extract blueprint name from the first line
+    // Example: "Component Material List for 1 Units of 'Coherent Asteroid Mining Crystal Type B II Blueprint' (ME: 2)"
+    var lines = rawText.split('\n');
+    var nameMatch = lines[0].match(/['"]?([^'"]+) Blueprint['"]?/i);
+    var blueprintName = nameMatch ? nameMatch[1] : "Unknown Blueprint";
+
+    // Send to backend for parsing and dependency expansion
+    var blueprintData = {
+        name: blueprintName,
+        materials: rawText, // Send raw text for backend parsing
+        sell_price: sellPrice,
+        material_cost: makeCost
+    };
+
+    $.ajax({
+        url: '/api/blueprints/blueprints',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(blueprintData),
+        success: function(response) {
+            alert(response.message || 'Blueprint added successfully');
+            loadBlueprints();
+            $('#iskHourParseForm')[0].reset();
+            if (response.dependencies_needed && response.dependencies_needed.length > 0) {
+                alert("You need to manufacture the following components:\n" + response.dependencies_needed.join('\n'));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error submitting blueprint:", error);
+            alert('Error adding blueprint: ' + error);
+        }
+    });
+});
+
+
+// Handles the form submission for updating materials from the game parser
+$('#availableMaterialsForm').submit(function(e) {
+    e.preventDefault();
+    var lines = $('#availableMaterialsData').val().split('\n');
+    var materials = {};
+    var updateType = $('input[name="updateType"]:checked').val();
+
+    lines.forEach(function(line) {
+        var parts = line.trim().split('\t');
+        if (parts.length === 2) {
+            var name = parts[0].trim();
+            var quantity = parseInt(parts[1].trim().replace(/,/g, ''));
+            if (!isNaN(quantity)) {
+                materials[name] = quantity;
+            }
+        }
+    });
+
+    $.ajax({
+        url: '/api/materials/update_materials',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            materials: materials,
+            updateType: updateType
+        }),
+        success: function(response) {
+            alert('Materials updated successfully');
+            loadMaterials();
+            $('#availableMaterialsForm')[0].reset();
+        },
+        error: function(xhr, status, error) {
+            console.error("Error updating materials:", error);
+            alert('Error updating materials: ' + error);
+        }
+    });
+});
+
+
+// Function to edit a blueprint
+
+
+/**
+ * Fetches and loads data for editing a blueprint.
+ *
+ * This function sends a GET request to retrieve the blueprint details
+ * for a given ID. Upon a successful response, it populates the form
+ * fields in the edit modal with the blueprint's data, including name,
+ * sell price, material cost, and tier. If the blueprint is of tier T2,
+ * it displays additional fields for invention chance. Materials data
+ * is also loaded into the form. If an error occurs during the request,
+ * it logs the error and alerts the user.
+ *
+ * @param {number} id The ID of the blueprint to edit.
+ */
+
+function editBlueprint(id) {
+    $.ajax({
+        url: '/api/blueprints/blueprint/' + id,
+        method: 'GET',
+        success: function(blueprint) {
+        $('#editBlueprintId').val(blueprint.id);
+        $('#editBlueprintName').val(blueprint.name);
+        $('#editBlueprintSellPrice').val(blueprint.sell_price);
+        $('#editBlueprintMaterials').empty();
+        $('#editBlueprintCost').val(blueprint.material_cost);
+        $('#editBlueprintStation').val(blueprint.station_id || '');
+
+        // Set tier
+        $('#editBlueprintTier').val(blueprint.tier || 'T1');
+        if (blueprint.tier === 'T2') {
+            $('#inventionChanceGroup').show();
+            $('#editBlueprintInventionChance').val(blueprint.invention_chance ? (blueprint.invention_chance * 100) : '');
+        } else {
+            $('#inventionChanceGroup').hide();
+            $('#editBlueprintInventionChance').val('');
+        }
+
+        // Handle nested materials
+        for (var section in blueprint.materials) {
+            if (blueprint.materials.hasOwnProperty(section)) {
+            var sectionMaterials = blueprint.materials[section];
+            for (var material in sectionMaterials) {
+                if (sectionMaterials.hasOwnProperty(material)) {
+                addEditBlueprintMaterial(section, material, sectionMaterials[material]);
+                }
+            }
+            }
+        }
+        loadStationsIntoDropdown();
+        $('#editBlueprintModal').show();
+        },
+        error: function(xhr, status, error) {
+        console.error("Error fetching blueprint:", error);
+        alert('Error fetching blueprint details.');
+        }
+    });
+}
+
+// Show/hide invention chance field on tier change
+$('#editBlueprintTier').on('change', function() {
+if ($(this).val() === 'T2') {
+    $('#inventionChanceGroup').show();
+} else {
+    $('#inventionChanceGroup').hide();
+    $('#editBlueprintInventionChance').val('');
+}
+});
+
+
+function addEditBlueprintMaterial(section = 'Minerals', name = '', quantity = '') {
+  var newMaterial = `
+    <div class="material-input">
+      <select class="editMaterialSection">
+        <option value="Minerals" ${section === 'Minerals' ? 'selected' : ''}>Minerals</option>
+        <option value="Items" ${section === 'Items' ? 'selected' : ''}>Items</option>
+        <option value="Components" ${section === 'Components' ? 'selected' : ''}>Components</option>
+        <option value="Invention Materials" ${section === 'Invention Materials' ? 'selected' : ''}>Invention Materials</option>
+      </select>
+      <input type="text" class="editMaterialName" placeholder="Material Name" value="${name}" required>
+      <input type="number" class="editMaterialQuantity" placeholder="Quantity" value="${quantity}" required>
+      <button type="button" class="removeMaterialButton">Remove</button>
+      <hr>
+    </div>
+  `;
+  $('#editBlueprintMaterials').append(newMaterial);
+}
+
+// Handles the form submission for updating a blueprint
+$('#editBlueprintForm').submit(function(e) {
+  e.preventDefault();
+
+  var id = $('#editBlueprintId').val();
+  var name = $('#editBlueprintName').val();
+  var sell_price = parseFloat($('#editBlueprintSellPrice').val());
+  var materials = { Minerals: {}, Items: {}, Components: {}};
+  var material_cost = parseFloat($('#editBlueprintCost').val());
+  var blueprintTier = $('#editBlueprintTier').val();
+  var station_id = $('#editBlueprintStation').val() ? parseInt($('#editBlueprintStation').val()) : null
+  
+  
+
+  if (blueprintTier === 'T2') {
+    materials['Invention Materials'] = {};
+    var inventionChanceValue = parseFloat($('#editBlueprintInventionChance').val());
+    var true_invention_chance = inventionChanceValue ? inventionChanceValue / 100 : null;
+    var runs_per_copy = parseInt($('#editBlueprintRunsPerCopy').val());
+  }
+  
+
+  // Collect material inputs
+  $('#editBlueprintMaterials .material-input').each(function() {
+    var section = $(this).find('.editMaterialSection').val();
+    var materialName = $(this).find('.editMaterialName').val();
+    var quantity = parseInt($(this).find('.editMaterialQuantity').val());
+
+    if (materialName && quantity > 0) {
+      materials[section][materialName] = quantity;
+    }
+  });
+
+  // Remove empty sections
+  for (var section in materials) {
+    if (Object.keys(materials[section]).length === 0) {
+      delete materials[section];
+    }
+  }
+
+  // Create the blueprintData object
+  var blueprintData = {
+    id: id,
+    name: name,
+    sell_price: sell_price,
+    materials: materials,
+    material_cost: material_cost,
+    blueprint_tier: blueprintTier,
+    invention_chance: true_invention_chance,
+    runs_per_copy: runs_per_copy,
+    station_id: station_id
+  };
+
+  $.ajax({
+    url: '/api/blueprints/blueprint/' + id,
+    method: 'PUT',
+    contentType: 'application/json',
+    data: JSON.stringify(blueprintData),
+    success: function(response) {
+      alert('Blueprint updated successfully');
+      closeEditBlueprintModal();
+      loadBlueprints(); // Reload the list of blueprints
+    },
+    error: function(xhr, status, error) {
+      console.error("Error updating blueprint:", error);
+      alert('Error updating blueprint.');
+    }
+  });
+});
+
+function closeEditBlueprintModal() {
+  $('#editBlueprintModal').hide();
+}
+
+
+// Toggle the visibility of the 'Other Material Name' input based on the value of the 'Edit Material Name' select
+$(document).on('change', '.editMaterialName', function() {
+  if ($(this).val() === 'other') {
+    $(this).siblings('.editOtherMaterialName').show();
+  } else {
+    $(this).siblings('.editOtherMaterialName').hide();
+  }
+});
+
+// Update the max value for a blueprint
+$(document).on('change', '.blueprint-max', function() {
+    var id = $(this).data('id');
+    var max = $(this).val();
+    $.ajax({
+        url: '/api/blueprints/blueprint/' + id,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({ max: max }),
+        success: function(response) {
+            console.log('Blueprint max updated successfully');
+        },
+        error: function(xhr, status, error) {
+            console.error("Error updating blueprint max:", error);
+        }
+    });
+});
+
+
+$(document).on('click', '.removeEditMaterialButton', function() {
+  $(this).closest('.edit-material-input').remove();
+});
+
+// Function to delete a blueprint
+
+/**
+ * Deletes a blueprint.
+ * 
+ * This function prompts the user to confirm deletion, and if they do, sends a
+ * DELETE request to the '/blueprint/:id' endpoint to delete the blueprint. Upon
+ * success, it alerts the user and reloads the list of blueprints.
+ * 
+ * @param {number} id The ID of the blueprint to delete.
+ */
+
+function deleteBlueprint(id) {
+    if (confirm("Are you sure you want to delete this blueprint?")) {
+        $.ajax({
+            url: '/api/blueprints/blueprint/' + id,
+            method: 'DELETE',
+            success: function(response) {
+                alert('Blueprint deleted successfully');
+                loadBlueprints();
+            }
+        });
+    }
+}
+
+document.getElementById('updatePricesBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('price-update-status');
+  statusEl.textContent = 'Updating prices...';
+
+  try {
+    const response = await fetch('/api/blueprints/update_prices', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      statusEl.textContent = data.message || 'Prices updated successfully!';
+
+      // Await the reload functions if they're async
+      if (typeof loadBlueprints === 'function') {
+        try {
+          await loadBlueprints();
+        } catch (err) {
+          console.error('Failed to load blueprints:', err);
+        }
+      }
+
+      if (typeof loadMaterials === 'function') {
+        try {
+          await loadMaterials();
+        } catch (err) {
+          console.error('Failed to load materials:', err);
+        }
+      }
+
+    } else {
+      const errorData = await response.json();
+      statusEl.textContent = errorData.error || 'Failed to update prices.';
+    }
+  } catch (error) {
+    console.error('Fetch error:', error);
+    statusEl.textContent = 'Error updating prices: ' + error.message;
+  }
+});
+
+
+/**
+ * Edits the quantity of a material.
+ * 
+ * This function prompts the user for a new quantity, and if provided, sends a
+ * PUT request to the '/material/:id' endpoint to update the material. Upon
+ * success, it alerts the user and reloads the list of materials.
+ * 
+ * @param {number} id The ID of the material to edit.
+ */
+function editMaterial(id) {
+  $.ajax({
+    url: '/api/materials/material/' + id,
+    method: 'GET',
+    success: function(material) {
+      $('#editMaterialId').val(material.id);
+      $('#editMaterialQuantity').val(material.quantity);
+      $('#editMaterialTypeID').val(material.type_id || '');
+      $('#editMaterialCategory').val(material.category || '');
+      $('#editMaterialModal').show();
+    },
+    error: function(xhr, status, error) {
+      console.error("Error fetching material:", error);
+      alert('Error fetching material details.');
+    }
+  });
+}
+
+// Function to update a material
+$('#editMaterialForm').on('submit', function(e) {
+  e.preventDefault();
+
+  const id = $('#editMaterialId').val();
+  const quantity = parseInt($('#editMaterialQuantity').val());
+  const type_id = $('#editMaterialTypeID').val();
+
+  const dropdownVal = $('#editMaterialCategorySelect').val(); // ✅ FIXED
+  const manualVal = $('#editMaterialCategoryManual').val();
+
+  const category = dropdownVal === 'Other' ? manualVal : dropdownVal;
+
+  console.log("Sending payload:", {
+    quantity,
+    type_id,
+    category
+  });
+
+  $.ajax({
+    url: '/api/materials/material/' + id,
+    method: 'PUT',
+    contentType: 'application/json',
+    data: JSON.stringify({
+      quantity: quantity,
+      type_id: type_id ? parseInt(type_id) : undefined,
+      category: category || undefined
+    }),
+    success: function(response) {
+      alert('Material updated successfully');
+      $('#editMaterialModal').hide();
+      loadMaterials(); // refresh table
+    },
+    error: function(xhr, status, error) {
+      console.error("Error updating material:", error);
+      alert('Failed to update material.');
+    }
+  });
+});
+
+
+$('#editMaterialCategorySelect').on('change', function() {
+  if (this.value === 'Other') {
+    $('#editMaterialCategoryManual').show();
+  } else {
+    $('#editMaterialCategoryManual').hide();
+    $('#editMaterialCategoryManual').val(''); // clear manual input if hidden
+  }
+});
+
+function closeEditMaterialModal() {
+    $('#editMaterialModal').hide();
+}
+
+
+/**
+ * Deletes a material.
+ * 
+ * This function prompts the user to confirm deletion, and if they do, sends a
+ * DELETE request to the '/material/:id' endpoint to delete the material. Upon
+ * success, it alerts the user and reloads the list of materials.
+ * 
+ * @param {number} id The ID of the material to delete.
+ */
+function deleteMaterial(id) {
+    if (confirm("Are you sure you want to delete this material?")) {
+        $.ajax({
+            url: '/api/materials/material' + id,
+            method: 'DELETE',
+            success: function(response) {
+                alert('Material deleted successfully');
+                loadMaterials();
+            }
+        });
+    }
+}
+
+document.getElementById('update-materials-btn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('update-status');
+    statusEl.textContent = 'Updating material info...';
+
+    try {
+      const response = await fetch('/api/materials/update_material_info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        statusEl.textContent = data.message || 'Material info updated successfully!';
+        loadMaterials();
+      } else {
+        const errorData = await response.json();
+        statusEl.textContent = errorData.ERROR || 'Failed to update material info.';
+      }
+    } catch (error) {
+      statusEl.textContent = 'Error updating material info: ' + error.message;
+    }
+  });
+
+// Call these functions when the page loads
+$(document).ready(function() {
+    loadBlueprints();
+    loadMaterials();
+    loadStationsIntoDropdown();
+    loadStationsAccordion();
+});
+
+async function loadStationsIntoDropdown() {
+  const dropdowns = [
+    document.getElementById('editBlueprintStation'),
+    document.getElementById('blueprintParseStation')
+  ];
+
+  try {
+    const res = await fetch('/api/stations');
+    const stations = await res.json();
+
+    for (const dropdown of dropdowns) {
+      if (!dropdown) continue;
+
+      dropdown.innerHTML = '<option value="">None (Use Jita)</option>';
+      stations.forEach(station => {
+        const option = document.createElement('option');
+        option.value = station.station_id;
+        option.textContent = `${station.name} (${station.station_id})`;
+        dropdown.appendChild(option);
+      });
+    }
+  } catch (err) {
+    console.error("Failed to load stations into dropdown(s):", err);
+  }
+}
+
+
+// Add a new station
+document.addEventListener('DOMContentLoaded', () => {
+  const addStationForm = document.getElementById('addStationForm');
+  if (!addStationForm) return;
+
+  addStationForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const name = document.getElementById('stationName').value.trim();
+    const station_id = parseInt(document.getElementById('stationId').value.trim(), 10);
+
+    const response = await fetch('/api/stations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, station_id })
+    });
+
+    const result = await response.json();
+    const statusDiv = document.getElementById('stationAddStatus');
+
+    if (response.ok) {
+      statusDiv.innerText = '✅ Station added successfully!';
+      statusDiv.style.color = 'green';
+      addStationForm.reset();
+      loadStationsAccordion();
+      loadStationsIntoDropdown(); // If you have a function to refresh the station dropdown
+      loadStationModal(); // Refresh modal content
+    } else {
+      statusDiv.innerText = `❌ ${result.error}`;
+      statusDiv.style.color = 'red';
+    }
+  });
+});
+
+
+
+function openAddStationModal() {
+  document.getElementById('addStationModal').style.display = 'block';
+}
+
+function closeAddStationModal() {
+  document.getElementById('addStationModal').style.display = 'none';
+}
+
+async function loadStationsAccordion() {
+  const container = $('#stationAccordionContainer');
+  const res = await fetch('/api/stations');
+
+  if (!res.ok) {
+    container.html('<p style="color:red;">Failed to load stations.</p>');
+    return;
+  }
+
+  const stations = await res.json();
+
+  if (!stations.length) {
+    container.html('<p style="color:#aaa;">No stations added yet.</p>');
+    return;
+  }
+
+  let html = '<div class="material-accordion"><div class="accordion-item">';
+
+  html += `
+    <button class="accordion-header" aria-expanded="false">
+      <span class="category-label">Stations</span>
+      <span class="accordion-icon">&#9654;</span>
+    </button>
+    <div class="accordion-content" style="display: none;">
+      <table class="material-table">
+        <thead>
+          <tr><th>Name</th><th>ID</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+  `;
+
+  stations.forEach(station => {
+    html += `
+      <tr>
+        <td>${station.name}</td>
+        <td>${station.station_id}</td>
+        <td>
+          <button onclick='openEditStationModal(${JSON.stringify(station)})'>Edit</button>
+          <button onclick='deleteStation(${station.id})' style='color:red;'>Delete</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `
+        </tbody>
+      </table>
+    </div>
+  </div></div>`;
+
+  container.html(html);
+
+  // Accordion logic
+  $('.accordion-header').off('click').on('click', function () {
+    const expanded = $(this).attr('aria-expanded') === 'true';
+    $(this).attr('aria-expanded', !expanded);
+    const content = $(this).closest('.accordion-item').find('.accordion-content');
+    if (!expanded) {
+      content.slideDown(200);
+      $(this).find('.accordion-icon').html('&#9660;');
+    } else {
+      content.slideUp(200);
+      $(this).find('.accordion-icon').html('&#9654;');
+    }
+  });
+}
+
+
+/**
+ * Opens the Edit Station modal and pre-populates the fields with the given station's info.
+ * @param {Object} station - Station object with id, name, and station_id properties
+ */
+function openEditStationModal(station) {
+  document.getElementById('editStationIdHidden').value = station.id;
+  document.getElementById('editStationName').value = station.name;
+  document.getElementById('editStationStationId').value = station.station_id;
+  document.getElementById('editStationStatus').textContent = '';
+  document.getElementById('editStationModal').style.display = 'block';
+}
+
+function closeEditStationModal() {
+  document.getElementById('editStationModal').style.display = 'none';
+}
+
+document.getElementById('editStationForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('editStationIdHidden').value;
+  const name = document.getElementById('editStationName').value.trim();
+  const station_id = parseInt(document.getElementById('editStationStationId').value, 10);
+
+  if (!name || !station_id) {
+    document.getElementById('editStationStatus').textContent = 'Name and Station ID are required.';
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/stations/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, station_id }),
+    });
+
+    if (res.ok) {
+      document.getElementById('editStationStatus').textContent = 'Station updated successfully!';
+      loadStationsAccordion();
+      loadStationsIntoDropdown();
+      setTimeout(() => closeEditStationModal(), 1000);
+    } else {
+      const err = await res.json();
+      document.getElementById('editStationStatus').textContent = 'Error: ' + (err.error || 'Unknown error');
+    }
+  } catch (error) {
+    document.getElementById('editStationStatus').textContent = 'Network error';
+  }
+});
+
+/**
+ * Loads the station modal with data from the backend.
+ *
+ * Fetches the list of stations from the backend, and if successful, populates the
+ * station list div with input fields and buttons to edit and delete each station.
+ * If the fetch fails, it displays an error message in the list div.
+ *
+ * Lastly, it sets the display style of the modal to block, making it visible.
+ */
+async function loadStationModal() {
+  const modal = document.getElementById('stationModal');
+  const listDiv = document.getElementById('stationList');
+
+  const res = await fetch('/api/stations');
+  if (!res.ok) {
+    listDiv.innerHTML = '<p style="color:red;">Failed to load stations.</p>';
+    return;
+  }
+  const stations = await res.json();
+
+  listDiv.innerHTML = stations.map(station => `
+    <div style="margin-bottom:8px; border-bottom:1px solid #ddd; padding-bottom:6px;">
+      <input type="text" data-id="${station.id}" class="editStationName" value="${station.name}" style="width:60%; margin-right:6px;">
+      <input type="number" data-id="${station.id}" class="editStationId" value="${station.station_id}" style="width:30%; margin-right:6px;">
+      <button onclick="updateStation(${station.id})" style="margin-right:4px;">Save</button>
+      <button onclick="deleteStation(${station.id})" style="color:red;">Delete</button>
+    </div>
+  `).join('');
+
+  modal.style.display = 'block';
+}
+
+function closeStationModal() {
+  document.getElementById('stationModal').style.display = 'none';
+}
+
+
+
+async function updateStation(id) {
+  const nameInput = document.querySelector(`.editStationName[data-id='${id}']`);
+  const idInput = document.querySelector(`.editStationId[data-id='${id}']`);
+  const name = nameInput.value.trim();
+  const station_id = parseInt(idInput.value.trim(), 10);
+
+  if (!name || !station_id) {
+    alert('Name and Station ID cannot be empty');
+    return;
+  }
+
+  const res = await fetch(`/api/stations/${id}`, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ name, station_id }),
+  });
+
+  if (res.ok) {
+    alert('Station updated!');
+    loadStationModal();
+    loadStationsIntoDropdown(); // If you have this
+  } else {
+    const err = await res.json();
+    alert('Error: ' + (err.error || 'Unknown error'));
+  }
+}
+
+async function deleteStation(id) {
+  if (!confirm('Are you sure you want to delete this station?')) return;
+
+  const res = await fetch(`/api/stations/${id}`, { method: 'DELETE' });
+  if (res.ok) {
+    alert('Station deleted!');
+    loadStationModal();
+    loadStationsIntoDropdown(); // Refresh dropdown if needed
+  } else {
+    const err = await res.json();
+    alert('Error: ' + (err.error || 'Unknown error'));
+  }
+}
+
+
+
+
+/**
+ * Sends a GET request to the '/optimize' endpoint to run the optimization algorithm.
+ * Upon successful response, formats the results as a JSON string and displays them
+ * in the '#results' element on the page.
+ */
+ function optimize() {
+    $.ajax({
+        url: '/api/blueprints/optimize',
+        method: 'GET',
+        success: function(response) {
+            let resultsHtml = `
+                <div class="optimize-container container my-4">
+                  <h2 class="mb-3 text-primary">Optimization Results</h2>
+                  <div class="mb-2">
+                    <span class="fw-bold">Total Profit:</span>
+                    <span class="text-success">${response.total_profit.toLocaleString('en-US')}</span>
+                    <span class="text-muted">(${numberToWords(response.total_profit)}) ISK</span>
+                  </div>
+                  <div class="mb-2">
+                    <span class="fw-bold">True Profit (after material costs):</span>
+                    <span class="text-success">${response.true_profit.toLocaleString('en-US')}</span>
+                    <span class="text-muted">(${numberToWords(response.true_profit)}) ISK</span>
+                  </div>
+                  <div class="mb-3">
+                    <span class="fw-bold">True Profit Percentage:</span>
+                    <span class="text-info">${((response.true_profit / response.total_profit) * 100).toFixed(2)}%</span>
+                  </div>
+            `;
+
+            // Dependencies Needed
+            if (response.dependencies_needed && Object.keys(response.dependencies_needed).length > 0) {
+                resultsHtml += `
+                  <h4 class="mt-4">Required Component Production</h4>
+                  <table class="table table-striped table-sm">
+                    <thead><tr><th>Component</th><th>Quantity Needed</th></tr></thead>
+                    <tbody>
+                `;
+                Object.entries(response.dependencies_needed)
+                    .sort((a, b) => a[0].localeCompare(b[0]))
+                    .forEach(([dep, qty]) => {
+                        resultsHtml += `<tr><td>${dep}</td><td>${qty.toLocaleString()}</td></tr>`;
+                    });
+                resultsHtml += '</tbody></table>';
+            }
+
+            // Production Plan
+            resultsHtml += `
+              <h4 class="mt-4">Production Plan</h4>
+              <table class="table table-bordered table-sm">
+                <thead><tr><th>Blueprint</th><th>Quantity</th></tr></thead>
+                <tbody>
+            `;
+            Object.entries(response.what_to_produce)
+                .filter(([_, qty]) => qty > 0)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .forEach(([bp, qty]) => {
+                    resultsHtml += `<tr><td>${bp}</td><td>${qty.toLocaleString()}</td></tr>`;
+                });
+            resultsHtml += '</tbody></table>';
+
+            // Material Usage by Category
+            resultsHtml += '<h4 class="mt-4">Material Usage by Category</h4>';
+            const knownMinerals = ['Tritanium', 'Pyerite', 'Mexallon', 'Isogen', 'Nocxium', 'Zydrine', 'Megacyte', 'Morphite'];
+            const categorizedMaterials = {
+                'Minerals': {},
+                'Components': {},
+                'Items': {},
+                'Invention Materials': {},
+                'Reaction Materials': {},
+                'Salvaged Materials': {},
+                'Planetary Materials': {},
+                'Fuel': {},
+                'Other': {}
+            };
+
+            for (const material in response.material_usage) {
+                const usage = response.material_usage[material];
+                let category = usage.category?.trim() ?? 'Other';
+                if (knownMinerals.includes(material)) {
+                    category = 'Minerals';
+                }
+                if (!(category in categorizedMaterials)) {
+                    category = 'Other';
+                }
+                categorizedMaterials[category][material] = usage;
+            }
+
+            Object.entries(categorizedMaterials).forEach(([category, mats]) => {
+                if (Object.keys(mats).length > 0) {
+                    resultsHtml += `
+                      <h5 class="mt-3">${category}</h5>
+                      <table class="table table-hover table-sm">
+                        <thead><tr><th>Material</th><th>Used</th><th>Remaining</th></tr></thead>
+                        <tbody>
+                    `;
+                    Object.entries(mats)
+                        .sort((a, b) => a[0].localeCompare(b[0]))
+                        .forEach(([material, usage]) => {
+                            const remainingClass = usage.remaining < 0 ? 'text-danger fw-bold' : '';
+                            resultsHtml += `
+                              <tr>
+                                <td>${material}</td>
+                                <td>${usage.used.toLocaleString()}</td>
+                                <td class="${remainingClass}">${usage.remaining.toLocaleString()}</td>
+                              </tr>
+                            `;
+                        });
+                    resultsHtml += '</tbody></table>';
+                }
+            });
+
+            // Bottleneck Materials
+            resultsHtml += '<h4 class="mt-4">Bottleneck Materials</h4><ul class="list-group">';
+            const bottlenecks = [];
+            for (const material in response.material_usage) {
+                const usage = response.material_usage[material];
+                const used = usage.used;
+                const total = usage.used + usage.remaining;
+                if (total > 0) {
+                    const usagePercentage = (used / total) * 100;
+                    if (usagePercentage > 90) {
+                        bottlenecks.push({ name: material, percentage: usagePercentage });
+                    }
+                }
+            }
+            bottlenecks.sort((a, b) => b.percentage - a.percentage);
+            bottlenecks.forEach(bottleneck => {
+                const badgeClass = getUsageBadgeClass(bottleneck.percentage);
+                resultsHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>${bottleneck.name}</span>
+                                <span class="badge ${badgeClass} rounded-pill">${bottleneck.percentage.toFixed(2)}% used</span>
+                                </li>`;
+            });
+
+            resultsHtml += '</ul>';
+
+            resultsHtml += '</div>';
+
+            $('#results').html(resultsHtml);
+
+            // Optionally, re-load materials and blueprints if needed
+            if (typeof loadMaterials === "function") loadMaterials();
+            if (typeof loadBlueprints === "function") loadBlueprints();
+        },
+        error: function(xhr, status, error) {
+            console.error("Error optimizing:", xhr.responseText);
+            let errorMessage = "Error during optimization";
+            try {
+                const errorObj = JSON.parse(xhr.responseText);
+                errorMessage += ": " + (errorObj.error || "Unknown error");
+            } catch(e) {
+                errorMessage += ": " + xhr.responseText;
+            }
+            alert(errorMessage);
+        }
+    });
+}
+
+function getUsageBadgeClass(percentage) {
+    if (percentage >= 200) return 'badge-danger';      // super red
+    if (percentage >= 120) return 'badge-warning';     // orange/yellow
+    if (percentage >= 90)  return 'badge-critical';    // gold
+    if (percentage >= 60)  return 'badge-caution';     // blueish
+    return 'badge-normal';                             // default blue
+}
+
+
+
+/**
+ * Converts a given number to its English word representation. I coudn't find a library for this, so I wrote it myself.
+ * 
+ * @param {number} num The number to convert.
+ * @returns {string} The English word representation of the number.
+ */
+function numberToWords(num) {
+    var ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    var tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    var teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+
+    function convert(n) {
+        if (n < 10) return ones[n];
+        if (n < 20) return teens[n - 10];
+        if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
+        if (n < 1000) return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + convert(n % 100) : '');
+        if (n < 1000000) return convert(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + convert(n % 1000) : '');
+        if (n < 1000000000) return convert(Math.floor(n / 1000000)) + ' Million' + (n % 1000000 ? ' ' + convert(n % 1000000) : '');
+        return convert(Math.floor(n / 1000000000)) + ' Billion' + (n % 1000000000 ? ' ' + convert(n % 1000000000) : '');
+    }
+
+    return convert(Math.floor(num));
+}
+
+
+    </script>
+</body>
+</html>
