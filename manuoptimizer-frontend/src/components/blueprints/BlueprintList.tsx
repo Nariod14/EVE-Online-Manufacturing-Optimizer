@@ -414,7 +414,7 @@ function renderHeader(
             {/* T1 Section */}
             <AccordionItem value="t1" defaultChecked>
               <AccordionTrigger
-                className="text-lg font-semibold text-blue-100 bg-gradient-to-r from-blue-800 via-blue-700 to-blue-900 hover:no-underline rounded-t-xl px-4 py-3"
+                className="text-lg font-semibold text-blue-100 bg-gradient-to-r from-blue-800 via-blue-700 to-blue-900 hover:no-underline rounded-t-xl rounded-b-none px-4 py-3"
                 style={{
                   borderBottom: "2px solid #60a5fa",
                   boxShadow: "0 2px 8px 0 #2563eb22",
@@ -530,7 +530,7 @@ function renderHeader(
             {/* T2 Section */}
             <AccordionItem value="t2">
               <AccordionTrigger
-                className="text-lg font-semibold bg-gradient-to-r from-orange-400 via-orange-500 to-yellow-500 text-orange-900 hover:no-underline rounded-t-xl px-4 py-3"
+                className="text-lg font-semibold bg-gradient-to-r from-orange-400 via-orange-500 to-yellow-500 text-orange-900 hover:no-underline rounded-t-none px-4 py-3"
                 style={{
                   borderBottom: "2px solid #f59e42",
                   boxShadow: "0 2px 8px 0 #f59e4222",
