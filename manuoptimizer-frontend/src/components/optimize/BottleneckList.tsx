@@ -11,27 +11,35 @@ function getUsagePercentage(used: number, total: number): number {
   return (used / total) * 100;
 }
 
-function getUsageBadgeClass(percentage: number): string {
-  if (percentage >= 200) return "bg-red-800 text-red-200";
-  if (percentage >= 120) return "bg-yellow-800 text-yellow-100";
-  if (percentage >= 90) return "bg-orange-700 text-orange-100";
-  if (percentage >= 60) return "bg-blue-700 text-blue-100";
-  return "bg-blue-900 text-blue-300";
+function getUsageBadgeClass(percent: number): string {
+  if (percent >= 200) return "bg-red-900 text-red-100";
+  if (percent >= 180) return "bg-red-800 text-red-100";
+  if (percent >= 160) return "bg-red-700 text-red-50";
+  if (percent >= 140) return "bg-red-600 text-red-50";
+  if (percent >= 120) return "bg-red-500 text-red-50";
+  if (percent >= 100) return "bg-red-400 text-red-100";
+  if (percent >= 90)  return "bg-yellow-400 text-yellow-900"; // 90-99% is yellow
+  if (percent >= 70)  return "bg-green-400 text-green-900";
+  if (percent >= 50)  return "bg-blue-400 text-blue-900";
+  if (percent >= 30)  return "bg-blue-300 text-blue-900";
+  return "bg-blue-200 text-blue-900";
 }
+
 
 function getUsageBarColor(percent: number): string {
   if (percent >= 200) return "bg-red-900";
   if (percent >= 180) return "bg-red-800";
   if (percent >= 160) return "bg-red-700";
   if (percent >= 140) return "bg-red-600";
-  if (percent >= 120) return "bg-orange-600";
-  if (percent >= 100) return "bg-orange-500";
-  if (percent >= 90) return "bg-yellow-500";
-  if (percent >= 70) return "bg-yellow-400";
-  if (percent >= 50) return "bg-green-500";
-  if (percent >= 30) return "bg-blue-500";
-  return "bg-blue-300";
+  if (percent >= 120) return "bg-red-500";
+  if (percent >= 100) return "bg-red-400";
+  if (percent >= 90)  return "bg-yellow-400"; // 90-99% is yellow
+  if (percent >= 70)  return "bg-green-400";
+  if (percent >= 50)  return "bg-blue-400";
+  if (percent >= 30)  return "bg-blue-300";
+  return "bg-blue-200";
 }
+
 
 export default function BottleneckList({ materialUsage }: BottleneckListProps) {
   const bottlenecks = Object.entries(materialUsage)
