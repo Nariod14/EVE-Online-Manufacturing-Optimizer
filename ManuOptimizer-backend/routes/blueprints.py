@@ -14,7 +14,7 @@ from urllib3.util.retry import Retry
 
 import pulp
 from .utils import expand_materials, fetch_price, get_lowest_jita_sell_price, get_lowest_jita_sell_prices_loop, get_material_category_lookup, get_item_info, get_material_quantity, normalize_name, parse_blueprint_text, parse_ingame_invention_text, refresh_access_token
-from models import BlueprintT2,Blueprint as BlueprintModel, Station, db, Material
+from models import BlueprintT2, Blueprint as BlueprintModel, Station, db, Material
 from flask import Blueprint
 from pulp import LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus, PULP_CBC_CMD
 
@@ -43,7 +43,9 @@ def add_blueprint():
         material_cost = data.get('material_cost', 0)
         blueprint_tier = data.get('tier', 'T1')
         invention_chance = data.get('invention_chance', None)
-        runs_per_copy = int(data.get('runs_per_copy', 10))
+        runs_per_copy_raw = data.get('runs_per_copy')
+        runs_per_copy = int(runs_per_copy_raw) if runs_per_copy_raw is not None else None
+
         
         
         headers = {
@@ -156,7 +158,7 @@ def add_blueprint():
                 existing.tier = blueprint_tier
                 db.session.commit()
                 return jsonify({"message": "Blueprint updated successfully"}), 200
-            new_blueprint = Blueprint(
+            new_blueprint = BlueprintModel(
                 name=name,
                 type_id=typeID,
                 materials=normalized_materials,
@@ -490,8 +492,11 @@ def update_prices():
             # Calculate full_material_cost including invention materials adjusted by invention chance and runs
             if bp.tier == 'T2' and bp.invention_chance and bp.runs_per_copy:
                 try:
-                    # invention_chance is percentage, convert to decimal
-                    invention_chance_decimal = bp.invention_chance / 100.0
+                    # if invention_chance is percentage, convert to decimal
+                    if bp.invention_chance > 1:
+                        invention_chance_decimal = bp.invention_chance / 100.0
+                    else:
+                        invention_chance_decimal = bp.invention_chance
                     if invention_chance_decimal > 0:
                         invention_cost_per_run = invention_cost / (invention_chance_decimal * bp.runs_per_copy)
                     else:
