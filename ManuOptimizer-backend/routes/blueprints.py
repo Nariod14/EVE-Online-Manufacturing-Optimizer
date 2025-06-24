@@ -13,7 +13,7 @@ from urllib3.util.retry import Retry
 
 
 import pulp
-from .utils import expand_materials, fetch_price, get_lowest_jita_sell_price, get_material_category_lookup, get_material_info, get_material_quantity, get_station_sell_price, normalize_name, parse_blueprint_text, parse_ingame_invention_text
+from .utils import expand_materials, fetch_price, get_lowest_jita_sell_price, get_lowest_jita_sell_prices_loop, get_material_category_lookup, get_item_info, get_item_info_with_prices, get_material_quantity, get_station_sell_price, normalize_name, parse_blueprint_text, parse_ingame_invention_text, refresh_access_token
 from models import BlueprintT2,Blueprint as BlueprintModel, Station, db, Material
 from flask import Blueprint
 from pulp import LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus, PULP_CBC_CMD
@@ -37,27 +37,78 @@ blueprints_bp = Blueprint('blueprints', __name__,url_prefix='/api/blueprints')
 def add_blueprint():
     try:
         data = request.json
-        raw_materials_text = data['materials']
-        raw_invention_text = data.get('invention_materials', '')
-        sell_price = data['sell_price']
-        material_cost = data['material_cost']
+        raw_blueprint_paste = data['blueprint_paste']
+        raw_invention_paste = data.get('invention_materials', '')
+        sell_price = data.get('sell_price', 0)
+        material_cost = data.get('material_cost', 0)
         blueprint_tier = data.get('tier', 'T1')
         invention_chance = data.get('invention_chance', None)
         runs_per_copy = int(data.get('runs_per_copy', 10))
+        
+        
+        headers = {
+            'User-Agent': 'ManuOptimizer 1.0 nariod14@gmail.com'
+        }
 
 
         category_lookup = get_material_category_lookup()
-        normalized_materials, name, detected_material_cost = parse_blueprint_text(raw_materials_text, category_lookup)
+        normalized_materials, name = parse_blueprint_text(raw_blueprint_paste, category_lookup)
+        logger.info(f"Parsed blueprint name: {name}")
+        
+        blueprint_info = get_item_info([name])
+        typeID = blueprint_info.get(normalize_name(name), {}).get("type_id", 0)
+        
+        if not typeID:
+            logger.warning(f"Blueprint name not found in SDE: {name}, unable to resolve typeID.")
+            return jsonify({"error": f"Blueprint name not found in SDE: {name}, unable to resolve typeID. This shouldnt happen, please report this on github issues."}), 400
+
+        
+        # Get cost and sell price
+        if sell_price == 0 or sell_price is None:
+            sell_price, source = get_lowest_jita_sell_price(typeID, headers=headers)
+        
+        if not material_cost:
+            # Step 1: Flatten material names
+            material_names = [
+                item_name
+                for category in normalized_materials.values()
+                for item_name in category.keys()
+            ]
+
+            # Step 1: Get type IDs from names
+            material_info = get_item_info(material_names)
+            type_id_map = {
+                normalize_name(name): info["type_id"]
+                for name, info in material_info.items()
+            }
+
+            # Step 2: Fetch prices using your working loop method
+            type_ids = list(set(type_id_map.values()))
+            price_map = get_lowest_jita_sell_prices_loop(type_ids, headers=headers)
+
+            # Step 3: Total up cost
+            material_cost = 0
+            for category, materials in normalized_materials.items():
+                for mat_name, quantity in materials.items():
+                    norm = normalize_name(mat_name)
+                    tid = type_id_map.get(norm)
+                    unit_price = price_map.get(tid, 0.0)
+                    material_cost += quantity * unit_price
+
+
 
         # T2 invention cost calculation
         invention_materials_dict = {}
         invention_cost = 0
-        if blueprint_tier == "T2" and raw_invention_text.strip():
-            invention_materials_dict, invention_cost = parse_ingame_invention_text(raw_invention_text)
+        if blueprint_tier == "T2" and raw_invention_paste.strip():
+            invention_materials_dict, invention_cost = parse_ingame_invention_text(raw_invention_paste)
             if invention_materials_dict:
                 if "Invention Materials" not in normalized_materials:
                     normalized_materials["Invention Materials"] = {}
                 normalized_materials["Invention Materials"].update(invention_materials_dict)
+              
+            if invention_chance and invention_chance > 1:
+                invention_chance /= 100
             # Refined invention cost calculation
             if invention_chance and invention_chance > 0:
                 detected_invention_cost = invention_cost / (invention_chance * runs_per_copy)
@@ -65,15 +116,13 @@ def add_blueprint():
                 detected_invention_cost = 0
             
             
-            full_material_cost = detected_material_cost + detected_invention_cost
-
-        if material_cost == 0 or material_cost is None:
-            material_cost = detected_material_cost
+            full_material_cost = material_cost + detected_invention_cost
 
         # Save/update logic
         if blueprint_tier == "T2":
             existing = BlueprintT2.query.filter_by(name=name).first()
             if existing:
+                existing.type_id = typeID
                 existing.materials = normalized_materials
                 existing.sell_price = sell_price
                 existing.material_cost = material_cost
@@ -87,6 +136,7 @@ def add_blueprint():
                 return jsonify({"message": "Blueprint updated successfully"}), 200
             new_blueprint = BlueprintT2(
                 name=name,
+                type_id=typeID,
                 materials=normalized_materials,
                 sell_price=sell_price,
                 material_cost= material_cost,
@@ -97,7 +147,7 @@ def add_blueprint():
                 runs_per_copy=runs_per_copy
                 
             )
-        else:
+        else: # T1 case
             existing = BlueprintModel.query.filter_by(name=name).first()
             if existing:
                 existing.materials = normalized_materials
@@ -108,6 +158,7 @@ def add_blueprint():
                 return jsonify({"message": "Blueprint updated successfully"}), 200
             new_blueprint = Blueprint(
                 name=name,
+                type_id=typeID,
                 materials=normalized_materials,
                 sell_price=sell_price,
                 material_cost=material_cost,
@@ -334,8 +385,17 @@ def update_prices():
         }
         if access_token:
             headers['Authorization'] = f'Bearer {access_token}'
+            
+            test = requests.get("https://esi.evetech.net/verify", headers=headers)
+            if test.status_code == 401:
+                # token expired — try refreshing
+                access_token = refresh_access_token()
+                if not access_token:
+                    logger.error("Token refresh failed. User must re-authenticate.")
+                    return jsonify({"error": "Login expired, please re-authenticate"}), 403
+                headers["Authorization"] = f"Bearer {access_token}"
 
-        from sqlalchemy import or_
+    
 
         materials = Material.query.all()
 
@@ -358,7 +418,7 @@ def update_prices():
         # Stage blueprint fetch jobs
         for bp in blueprints:
             if not bp.type_id:
-                info = get_material_info([bp.name])
+                info = get_item_info([bp.name])
                 logger.debug(f"Lookup result for '{bp.name}': {info}")
                 bp.type_id = info[normalize_name(bp.name)]['type_id']
             else:

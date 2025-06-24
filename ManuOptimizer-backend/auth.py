@@ -19,6 +19,11 @@ AUTH_URL = "https://login.eveonline.com/v2/oauth/authorize"
 TOKEN_URL = "https://login.eveonline.com/v2/oauth/token"
 VERIFY_URL = "https://esi.evetech.net/verify"
 
+print("CLIENT_ID:", CLIENT_ID)
+print("CLIENT_SECRET:", CLIENT_SECRET)
+print("CALLBACK_URL:", CALLBACK_URL)
+
+
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -34,8 +39,16 @@ def login():
     state = secrets.token_urlsafe(16)  # random string
     session['oauth_state'] = state
 
-    auth_url = f"https://login.eveonline.com/v2/oauth/authorize/?response_type=code&redirect_uri={CALLBACK_URL}&client_id={CLIENT_ID}&scope={SCOPES}&state={state}"
-
+    auth_url = (
+        f"https://login.eveonline.com/v2/oauth/authorize/"
+        f"?response_type=code"
+        f"&redirect_uri={CALLBACK_URL}"
+        f"&client_id={CLIENT_ID}"
+        f"&scope={SCOPES}"
+        f"&state={state}"
+        f"&prompt=login"
+    )
+    
     return redirect(auth_url)
 
 @auth_bp.route('/callback')
@@ -48,9 +61,14 @@ def callback():
         data={"grant_type": "authorization_code", "code": code},
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
-
+    
     token_data = response.json()
+
     access_token = token_data.get("access_token")
+    refresh_token = token_data.get("refresh_token")
+
+    session["token"] = access_token
+    session["refresh_token"] = refresh_token
 
     verify = requests.get(
         VERIFY_URL, headers={"Authorization": f"Bearer {access_token}"}
@@ -60,7 +78,7 @@ def callback():
     character_id = verify.get("CharacterID")
     if not character_id:
         logger.error("Failed to get character ID from verify response")
-        return redirect(url_for('index'))
+        return redirect(url_for('serve_frontend'))
 
     # Get character info using character_id
     headers = {'Authorization': f'Bearer {access_token}'}
@@ -76,10 +94,18 @@ def callback():
 
     logger.info(f"Logged in as {character_name} — Access Token: {access_token}. Try not to share this.")
 
-    return redirect(url_for('index'))
+    return redirect(url_for('serve_frontend'))
 
+
+
+@auth_bp.route('/auth/status')
+def auth_status():
+    return {
+        "logged_in": 'character_name' in session,
+        "character_name": session.get('character_name')
+    }
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
     session.clear()
-    return redirect(url_for('index'))
+    return redirect(url_for('serve_frontend'))

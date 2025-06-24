@@ -19,7 +19,10 @@ from models import BlueprintT2, db, Blueprint, Material
 # Constants
 JITA_REGION_ID = 10000002  # The Forge
 JITA_STATION_ID = 60003760  # Caldari Navy Assembly Plant
-
+CLIENT_ID = os.getenv("EVE_CLIENT_ID")
+CLIENT_SECRET = os.getenv("EVE_CLIENT_SECRET")
+TOKEN_URL = "https://login.eveonline.com/v2/oauth/token"
+PRICE_CACHE_TTL = 600  # seconds = 10 minutes
 
 
 
@@ -87,7 +90,7 @@ def fetch_price(type_id, station_id, headers):
 
 
 
-def get_material_info(material_names):
+def get_item_info(material_names):
     # Get the path to the SDE
     base_path = getattr(sys, '_MEIPASS', os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
     sde_path = os.path.join(base_path, 'sde', 'mini_sde.sqlite')
@@ -160,7 +163,7 @@ def parse_blueprint_text(raw_text, category_lookup=None):
         return parse_iskhour_format(lines, category_lookup)
     # --- In-game format detection ---
     if any("Blueprint" in l and "\t" in l for l in lines):
-        return parse_ingame_format(lines)
+        return parse_ingame_format(lines, category_lookup)
     # --- Fallback in case of unknown format ---
     return {}, "Unknown", 0
 
@@ -272,10 +275,14 @@ def parse_ingame_invention_text(raw_text):
 
 
 
+from collections import defaultdict
+
 def parse_ingame_format(lines, category_lookup=None):
-    blueprint_name = lines[0].split('\t')[0].replace(' Blueprint', '')
+    # First line contains blueprint name and typeID
+    first_line_parts = lines[0].split('\t')
+    blueprint_name = first_line_parts[0].replace(' Blueprint', '').strip()
+
     materials_by_category = defaultdict(dict)
-    total_cost = 0
 
     if category_lookup is None:
         category_lookup = {}
@@ -284,26 +291,23 @@ def parse_ingame_format(lines, category_lookup=None):
         clean_line = line.strip()
         if not clean_line or clean_line.lower().startswith(('item\t', 'material\t')):
             continue
-
+        
         if '\t' in clean_line:
             parts = [p.strip() for p in clean_line.split('\t')]
+
             if len(parts) < 2:
                 continue
+
             try:
                 name = parts[0]
                 quantity = int(float(parts[1]))
 
-                # Get category from lookup or fallback
                 category = category_lookup.get(name, 'Uncategorized')
                 materials_by_category[category][name] = quantity
-
-                if len(parts) >= 4 and parts[3]:
-                    unit_price = float(parts[3].replace(",", ""))
-                    total_cost += quantity * unit_price
             except Exception:
                 continue
 
-    return materials_by_category, blueprint_name, total_cost
+    return materials_by_category, blueprint_name
 
 
 def get_material_category_lookup():
@@ -346,34 +350,123 @@ JITA_STATION_ID = 60003760
 
 import time
 
+cache = {}
+
 def get_lowest_jita_sell_price(type_id, headers, retries=2):
     url = f"https://esi.evetech.net/latest/markets/{JITA_REGION_ID}/orders/?order_type=sell&type_id={type_id}"
 
+    cached = cache.get(type_id)
+    local_headers = headers.copy()
+
+    use_cache = False
+
+    if cached:
+        age = time.time() - cached.get("timestamp", 0)
+        if age < PRICE_CACHE_TTL:
+            local_headers["If-None-Match"] = cached["etag"]
+            use_cache = True
+        else:
+            logger.info(f"Cache expired for {type_id} (age={age:.1f}s)")
+
     for attempt in range(retries + 1):
         try:
-            response = requests.get(url, headers=headers, timeout=10)  # timeout explicitly set
+            response = requests.get(url, headers=local_headers, timeout=10)
+
+            if response.status_code == 304 and cached and use_cache:
+                logger.info(f"Used cached data for type_id {type_id}")
+                return cached["lowest_price"], "cached"
+
+
             response.raise_for_status()
 
+            etag = response.headers.get("ETag")
             orders = response.json()
             jita_orders = [o for o in orders if o.get("location_id") == JITA_STATION_ID]
-
             if not jita_orders:
-                logger.warning(f"No Jita 4-4 orders for type_id {type_id}, falling back to region-wide.")
+                logger.warning(f"No Jita 4-4 orders for {type_id}, falling back to region")
                 jita_orders = orders
 
             if not jita_orders:
-                logger.warning(f"No sell orders at all for type_id {type_id} in Jita region.")
                 return None, "not_found"
 
-            lowest_price = min(order['price'] for order in jita_orders)
-            logger.info(f"Lowest sell price for type_id {type_id} in Jita: {lowest_price}")
-            return lowest_price, "jita"
+            lowest_price = min(order["price"] for order in jita_orders)
 
+            # Cache result
+            if etag:
+                cache[type_id] = {
+                    "etag": etag,
+                    "lowest_price": lowest_price,
+                    "timestamp": time.time()
+                }
+
+            return lowest_price, "jita"
         except Exception as e:
-            logger.error(f"Attempt {attempt+1}: Error fetching Jita sell price for type_id {type_id}: {e}")
+            logger.error(f"Attempt {attempt+1} failed: {e}")
             time.sleep(1)
 
     return None, "error"
+
+def get_lowest_jita_sell_prices_loop(type_ids: list[int], headers, retries=2) -> dict[int, float | None]:
+    """
+    Loop-based version of batch price fetch, since ESI doesn't support true batching.
+    Uses your caching-aware get_lowest_jita_sell_price.
+    """
+    prices = {}
+
+    for tid in type_ids:
+        price, _ = get_lowest_jita_sell_price(tid, headers=headers, retries=retries)
+        prices[tid] = price if price is not None else 0.0
+
+    return prices
+
+
+def get_item_info_with_prices(material_names: list[str], headers: dict = {"User-Agent": "ManuOptimizer"}) -> dict[str, dict]:
+    normalized_names = [unicodedata.normalize('NFC', name) for name in material_names]
+
+    base_path = getattr(sys, '_MEIPASS', os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    sde_path = os.path.join(base_path, 'sde', 'mini_sde.sqlite')
+
+    if not os.path.exists(sde_path):
+        logger.error(f"SDE database not found at: {sde_path}")
+        raise FileNotFoundError(f"SDE database not found at: {sde_path}")
+
+    conn = sqlite3.connect(sde_path)
+    cursor = conn.cursor()
+
+    placeholders = ', '.join('?' for _ in normalized_names)
+    query = f'''
+        SELECT i.typeName, i.typeID
+        FROM invTypes i
+        WHERE i.typeName IN ({placeholders})
+    '''
+
+    cursor.execute(query, normalized_names)
+    rows = cursor.fetchall()
+    conn.close()
+
+    # Now normalize names for keys
+    name_to_type_id = {
+        normalize_name(type_name): type_id
+        for type_name, type_id in rows
+    }
+
+    type_ids = list(name_to_type_id.values())
+    prices = get_lowest_jita_sell_prices_batch(type_ids, headers)
+
+    result = {}
+    for mat_name in material_names:
+        norm = normalize_name(mat_name)
+        tid = name_to_type_id.get(norm)
+        price = prices.get(tid)
+        result[norm] = {
+            'type_id': tid if tid else 0,
+            'price': price if price is not None else 0.0
+        }
+
+    return result
+
+
+
 
 
 # Temporary cache for structure orders
@@ -390,17 +483,28 @@ CACHE_TTL = 60 * 5  # 5 minutes
 def get_station_sell_price(type_id, station_id, headers):
     now = time.time()
     cached = structure_order_cache.get(station_id)
+    use_cache = False
 
-    if not cached or now - cached[0] > CACHE_TTL:
+    if cached:
+        age = now - cached[0]
+        if age < CACHE_TTL:
+            logger.debug(f"Using cached data for station {station_id} (age: {age:.1f}s)")
+            use_cache = True
+        else:
+            logger.info(f"Cache expired for station {station_id} (age: {age:.1f}s)")
+
+    if not use_cache:
         url = f"https://esi.evetech.net/latest/markets/structures/{station_id}/"
         all_orders = []
         page = 1
 
         try:
             logger.info(f"Fetching structure orders at {station_id}")
+
             while True:
                 paged_url = f"{url}?page={page}"
                 res = requests.get(paged_url, headers=headers)
+
                 if res.status_code == 500:
                     logger.warning(f"Server error on page {page} — stopping early.")
                     break
@@ -414,6 +518,7 @@ def get_station_sell_price(type_id, station_id, headers):
                     break
                 page += 1
 
+            # Update cache
             structure_order_cache[station_id] = (now, all_orders)
 
         except requests.exceptions.RequestException as e:
@@ -422,6 +527,7 @@ def get_station_sell_price(type_id, station_id, headers):
     else:
         all_orders = cached[1]
 
+    # Filter sell orders for this type_id
     sell_orders = [
         order for order in all_orders
         if not order['is_buy_order'] and order['type_id'] == type_id
@@ -435,6 +541,29 @@ def get_station_sell_price(type_id, station_id, headers):
     logger.info(f"Lowest sell price for type_id {type_id} at structure {station_id}: {lowest}")
 
     return lowest, "structure"
+
+
+
+
+
+def refresh_access_token():
+    refresh_token = session.get("refresh_token")
+    if not refresh_token:
+        return None
+
+    response = requests.post(
+        TOKEN_URL,
+        auth=(CLIENT_ID, CLIENT_SECRET),
+        data={"grant_type": "refresh_token", "refresh_token": refresh_token},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+
+    if response.status_code == 200:
+        data = response.json()
+        session["token"] = data.get("access_token")
+        return session["token"]
+    else:
+        return None
 
 # Price fetching updates
 def fetch_market_price(blueprint_name, region_id, station_id=None, use_region=False):
