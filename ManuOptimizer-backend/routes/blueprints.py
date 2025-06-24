@@ -13,7 +13,7 @@ from urllib3.util.retry import Retry
 
 
 import pulp
-from .utils import expand_materials, fetch_price, get_lowest_jita_sell_price, get_lowest_jita_sell_prices_loop, get_material_category_lookup, get_item_info, get_item_info_with_prices, get_material_quantity, get_station_sell_price, normalize_name, parse_blueprint_text, parse_ingame_invention_text, refresh_access_token
+from .utils import expand_materials, fetch_price, get_lowest_jita_sell_price, get_lowest_jita_sell_prices_loop, get_material_category_lookup, get_item_info, get_material_quantity, normalize_name, parse_blueprint_text, parse_ingame_invention_text, refresh_access_token
 from models import BlueprintT2,Blueprint as BlueprintModel, Station, db, Material
 from flask import Blueprint
 from pulp import LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus, PULP_CBC_CMD
@@ -398,11 +398,6 @@ def update_prices():
     
 
         materials = Material.query.all()
-
-        # Group datacores separately for later use
-        invention_materials = [m for m in materials if m.category == "Invention Materials"]
-        base_materials = [m for m in materials if m.category != "Invention Materials"]
-
         blueprints = BlueprintModel.query.all()
 
         unique_type_ids = set()
@@ -461,6 +456,7 @@ def update_prices():
 
         for bp in blueprints:
             price_data = prices.get(bp.type_id)
+
             if price_data:
                 bp.sell_price = price_data[0]
                 bp.used_jita_fallback = fallback_flags.get(bp.type_id, False)
@@ -473,39 +469,40 @@ def update_prices():
             invention_cost = 0.0
 
             name_to_type_id = {mat.name: mat.type_id for mat in materials}
+            type_id_to_price = {mat.type_id: prices.get(mat.type_id, (None,))[0] for mat in materials}
 
             for category, materials_dict in bp.materials.items():
                 for mat_name, qty in materials_dict.items():
                     type_id = name_to_type_id.get(mat_name)
-                    unit_price = material_price_map.get(type_id)
+                    unit_price = type_id_to_price.get(type_id)
 
-                    # Skip cost addition for invention materials for now
-                    if category == "Invention Materials":
-                        if unit_price is not None:
-                            invention_cost += unit_price * qty
+                    if unit_price is None:
+                        logger.warning(f"No price for material {mat_name} (type_id: {type_id}) in blueprint {bp.name}")
                         continue
 
-                    if unit_price is not None:
-                        total_cost += unit_price * qty
+                    if category == "Invention Materials":
+                        invention_cost += unit_price * qty
                     else:
-                        logger.warning(f"No price for material {mat_name} (type_id: {type_id}) in blueprint {bp.name}")
+                        total_cost += unit_price * qty
 
             bp.material_cost = round(total_cost, 2)
 
-            # T2-specific invention cost handling
-            if bp.tier == 'T2' and bp.invention_chance and bp.invention_cost and bp.runs_per_copy:
-                # Replace user-defined invention_cost with calculated one if datacores available
-                if invention_cost > 0:
-                    try:
-                        invention_cost_per_run = invention_cost / (bp.invention_chance * bp.runs_per_copy)
-                        bp.full_material_cost = round(bp.material_cost + invention_cost_per_run, 2)
-                    except ZeroDivisionError:
-                        bp.full_material_cost = bp.material_cost
-                        logger.warning(f"ZeroDivisionError in invention cost calculation for {bp.name}")
-                else:
+            # Calculate full_material_cost including invention materials adjusted by invention chance and runs
+            if bp.tier == 'T2' and bp.invention_chance and bp.runs_per_copy:
+                try:
+                    # invention_chance is percentage, convert to decimal
+                    invention_chance_decimal = bp.invention_chance / 100.0
+                    if invention_chance_decimal > 0:
+                        invention_cost_per_run = invention_cost / (invention_chance_decimal * bp.runs_per_copy)
+                    else:
+                        invention_cost_per_run = 0
+                    bp.full_material_cost = round(bp.material_cost + invention_cost_per_run, 2)
+                except ZeroDivisionError:
                     bp.full_material_cost = bp.material_cost
+                    logger.warning(f"ZeroDivisionError in invention cost calculation for {bp.name}")
             else:
                 bp.full_material_cost = bp.material_cost
+
 
         db.session.commit()
         return jsonify({"message": "Prices updated successfully"}), 200
