@@ -18,9 +18,9 @@ interface AddMaterialModalProps {
   onSubmit: (data: { materialsText: string; updateType: "replace" | "add"; }) => Promise<void>
 }
 
-export function AddMaterialModal({ open, onClose }: AddMaterialModalProps) {
+export function AddMaterialModal({ open, onClose, onSubmit }: AddMaterialModalProps) {
   const [materialsText, setMaterialsText] = useState("");
-  const [updateType, setUpdateType] = useState<"replace" | "add">("replace");
+  const [updateType, setUpdateType] = useState<"replace" | "add">("add");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -51,7 +51,7 @@ export function AddMaterialModal({ open, onClose }: AddMaterialModalProps) {
 
     setLoading(true);
     try {
-      const res = await fetch("/materials/update_materials", {
+      const res = await fetch("/api/materials/update_materials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ materials, updateType }),
@@ -63,8 +63,9 @@ export function AddMaterialModal({ open, onClose }: AddMaterialModalProps) {
       }
 
       setMaterialsText("");
-      setUpdateType("replace");
+      setUpdateType("add");
       setSuccess(true);
+      onSubmit({ materialsText, updateType });
       setTimeout(() => onClose(), 1500);
     } catch (err: any) {
       console.error("Error submitting materials:", err);
@@ -94,6 +95,7 @@ export function AddMaterialModal({ open, onClose }: AddMaterialModalProps) {
 
           <RadioGroup
             defaultValue="add"
+            value={updateType}
             onValueChange={(val) => setUpdateType(val as "replace" | "add")}
             className="flex flex-col gap-4 text-blue-200"
           >
