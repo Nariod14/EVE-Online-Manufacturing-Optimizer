@@ -13,7 +13,7 @@ export type BlueprintBase = {
   sell_price: number;
   max?: number | null;
   material_cost: number;
-  tier: "T1" | "T2";
+  tier: BlueprintTier;
   station_id?: number | null;
   region_id: number;
   use_jita_sell: boolean;
@@ -50,7 +50,7 @@ export const mockBlueprints = [
     sell_price: 1200000,
     max: null,
     material_cost: 900000,
-    tier: "T1",
+    tier: "T1" as const,
     station_id: 60011866, // Jita
     region_id: 10000002,
     use_jita_sell: true,
@@ -68,7 +68,7 @@ export const mockBlueprints = [
     sell_price: 500000,
     max: null,
     material_cost: 400000,
-    tier: "T1",
+    tier: "T1" as const,
     station_id: 60003760, // Amarr
     region_id: 10000002,
     use_jita_sell: true,
@@ -87,7 +87,7 @@ export const mockBlueprints = [
     sell_price: 6200000,
     max: null,
     material_cost: 4100000,
-    tier: "T2",
+    tier: "T2" as const,
     station_id: 60011866, // Jita
     region_id: 10000002,
     use_jita_sell: true,
@@ -110,7 +110,7 @@ export const mockBlueprints = [
     sell_price: 15000000,
     max: null,
     material_cost: 10000000,
-    tier: "T2",
+    tier: "T2" as const,
     station_id: 60005686, // Dodixie
     region_id: 10000002,
     use_jita_sell: true,
@@ -131,7 +131,7 @@ export const mockBlueprints = [
     sell_price: 100000,
     max: null,
     material_cost: 50000,
-    tier: "T1",
+    tier: "T1" as const,
     station_id: 60004588, // Rens
     region_id: 10000002,
     use_jita_sell: true,

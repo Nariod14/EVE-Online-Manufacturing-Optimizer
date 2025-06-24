@@ -10,7 +10,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from flask import Blueprint
-from .utils import get_material_category_lookup, get_material_info, normalize_name
+from .utils import get_material_category_lookup, get_item_info, normalize_name
 from models import BlueprintT2, db, Material
 from flask import Blueprint
 
@@ -70,11 +70,11 @@ def add_material():
         if material:
             logger.info(f"Updating existing material: {data['name']}")
             material.quantity = data['quantity']
-            material.type_id = data.get('type_id') or get_material_info(data['name'])['type_id']
-            material.category = data.get('category') or get_material_info(data['name'])['category']
+            material.type_id = data.get('type_id') or get_item_info(data['name'])['type_id']
+            material.category = data.get('category') or get_item_info(data['name'])['category']
         else:
             logger.info(f"Adding new material: {data['name']}")
-            new_material = Material(name=data['name'], quantity=data['quantity'], type_id=data.get('type_id'), category=data.get('category') or get_material_info(data['name'])['category'])
+            new_material = Material(name=data['name'], quantity=data['quantity'], type_id=data.get('type_id'), category=data.get('category') or get_item_info(data['name'])['category'])
             db.session.add(new_material)
         
         db.session.commit()
@@ -111,7 +111,7 @@ def get_materials():
 
         # Use SDE-based info for fallback category lookup
         names = [m.name for m in materials]
-        sde_info = get_material_info(names)
+        sde_info = get_item_info(names)
 
         result = []
         for m in materials:
@@ -142,7 +142,7 @@ def update_materials():
         logger.info(f"Update type: {update_type}")
 
         all_names = list(materials.keys())
-        material_info = get_material_info(all_names)  # Dict[str, {"type_id": ..., "category": ...}]
+        material_info = get_item_info(all_names)  # Dict[str, {"type_id": ..., "category": ...}]
 
         if update_type == 'replace':
             Material.query.delete()
@@ -183,7 +183,7 @@ def update_material_info():
         materials = Material.query.all()
         
         for material in materials:
-            material_info = get_material_info([material.name])[material.name]
+            material_info = get_item_info([material.name])[material.name]
             material.type_id = material_info['type_id']
             material.category = material_info['category']
             logger.info(f"Updated material '{material.name}' (type_id: {material.type_id}, category: {material.category})")

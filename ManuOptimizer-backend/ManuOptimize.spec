@@ -9,9 +9,9 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ('templates', 'templates'),
-        ('static', 'static'),
-        ('sde/mini_sde.sqlite', 'sde')  # Add the mini SDE here
+        ('out', 'out'),
+        ('sde/mini_sde.sqlite', 'sde'),  # Add the mini SDE here
+        ('.env', '.')
     ],
     hiddenimports=[],
     hookspath=[],

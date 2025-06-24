@@ -101,9 +101,9 @@ export default function BlueprintsList({
 
   const mswReady = useMswReady();
 
-  useEffect(() => {
-    fetchBlueprints?.();
-  }, []);
+// useEffect(() => {
+//   fetchBlueprints?.();
+// }, [fetchBlueprints]);
 
 
   function bpTierCheck(bp: Blueprint): bp is BlueprintT2 {
@@ -111,8 +111,6 @@ export default function BlueprintsList({
   }
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this blueprint?")) return;
-
     const res = await fetch(`/api/blueprints/blueprint/${id}`, { method: "DELETE" });
 
     if (res.ok) {
@@ -317,29 +315,29 @@ function filterBlueprints(bpList: Blueprint[], query: string): Blueprint[] {
 
 
   // Table headers config
-// Allow any string for key, but only SortKey values are sortable
-    const t1Headers: { key: string; label: string }[] = [
-        { key: "name", label: "Name" },
-        { key: "sell_price", label: "Sell Price" },
-        { key: "material_cost", label: "Material Cost" },
-        { key: "materials", label: "Materials" }, // not sortable
-        { key: "profit", label: "Profit %" },
-        { key: "station_name", label: "Station" },
-        { key: "max", label: "Max" },
-        { key: "actions", label: "Actions" }, // not sortable
-    ];
-    
-    const t2Headers: { key: string; label: string }[] = [
-        { key: "name", label: "Name" },
-        { key: "invention_chance", label: "Invention Chance %" },
-        { key: "sell_price", label: "Sell Price" },
-        { key: "full_material_cost", label: "Full Material Cost" },
-        { key: "materials", label: "Materials" }, // not sortable
-        { key: "profit", label: "Profit %" },
-        { key: "station_name", label: "Station" },
-        { key: "max", label: "Max" },
-        { key: "actions", label: "Actions" }, // not sortable
-      ];
+const t1Headers: { key: string; label: string }[] = [
+  { key: "name", label: "Name" },
+  { key: "sell_price", label: "Sell Price" },
+  { key: "material_cost", label: "Material Cost" },
+  { key: "materials", label: "Materials" },
+  { key: "profit_percent", label: "Profit %" },
+  { key: "station_name", label: "Station" },
+  { key: "max", label: "Max" },
+  { key: "actions", label: "Actions" },
+];
+
+const t2Headers: { key: string; label: string }[] = [
+  { key: "name", label: "Name" },
+  { key: "invention_chance", label: "Invention Chance %" },
+  { key: "sell_price", label: "Sell Price" },
+  { key: "full_material_cost", label: "Full Material Cost" },
+  { key: "materials", label: "Materials" },
+  { key: "profit_percent", label: "Profit %" },
+  { key: "station_name", label: "Station" },
+  { key: "max", label: "Max" },
+  { key: "actions", label: "Actions" },
+];
+
       
   // Table renderers
 function renderHeader(
@@ -358,6 +356,7 @@ function renderHeader(
           "material_cost",
           "full_material_cost",
           "profit",
+          "profit_percent",
           "station_name",
           "max",
           "invention_chance",

@@ -1,14 +1,75 @@
 import { http, HttpResponse } from 'msw';
-import { mockBlueprints } from '@/types/blueprints';
+import { Blueprint, BlueprintT1, BlueprintT2, mockBlueprints } from '@/types/blueprints';
 import { Material, mockMaterials } from '@/types/materials';
 import { mockStations } from '@/types/stations';
 import { mockOptimizeResponse } from '@/types/optimize';
-
 let localStations = [...mockStations];
 let localMaterials = [...mockMaterials];
-let localBlueprints = [...mockBlueprints];
+
 const localOptimizeResponse = mockOptimizeResponse;
+
+interface BlueprintPayload {
+  blueprint_paste: string;
+  invention_materials: string;
+  sell_price: number;
+  material_cost: number;
+  tier: string;
+  invention_chance: number;
+  runs_per_copy: number;
+}
+
+let localBlueprints: Blueprint[] = [...mockBlueprints];
+let nextId = mockBlueprints.length + 1;
+
+// Simple in-memory login state
+let isLoggedIn = false;
+
 export const handlers = [
+ // Simulate EVE login redirect flow
+   http.get('/login', () => {
+     console.log("🔐 MSW Intercepted /login");
+     // Simulate redirect to EVE OAuth (but we skip the real OAuth)
+     isLoggedIn = true;
+     return HttpResponse.redirect('/callback'); // mock OAuth provider redirecting back
+   }),
+
+  // Simulate OAuth callback
+  http.get('/callback', () => {
+    console.log('🔐 MSW Intercepted /callback');
+
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('isLoggedIn', 'true');
+    }
+
+    return new Response(null, { status: 302, headers: { Location: '/' } });
+  }),
+
+
+   // Auth status
+  http.get('/auth/status', () => {
+    const loggedIn = typeof window !== 'undefined' && localStorage.getItem('isLoggedIn') === 'true';
+
+    console.log('MSW /auth/status, loggedIn:', loggedIn);
+
+    return new Response(JSON.stringify({
+      character_name: loggedIn ? 'Nariod Naren' : undefined,
+      logged_in: loggedIn,
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }),
+
+
+
+   // Logout
+  http.post('/logout', () => {
+    console.log('🔓 MSW Intercepted /logout');
+    localStorage.removeItem('isLoggedIn'); // Clear dev mock storage
+    return new Response(null, { status: 200 });
+  }),
+
+ 
   // GET /api/stations
   http.get('/api/stations', () => {
     console.log("🛰️ MSW Intercepted /api/stations");
@@ -183,5 +244,74 @@ export const handlers = [
     console.log("🧠 MSW Intercepted /api/blueprints/optimize");
     return HttpResponse.json(localOptimizeResponse);
   }),
+
+  // POST /api/blueprints/blueprints to add a new blueprint by the parser
+  http.post('/api/blueprints/blueprints', async ({ request }) => {
+    console.log('📦 MSW Intercepted POST /api/blueprints/blueprints');
+
+    const body = await request.json() as BlueprintPayload;
+
+    const {
+      blueprint_paste,
+      invention_materials,
+      sell_price,
+      material_cost,
+      tier,
+      invention_chance,
+      runs_per_copy,
+    } = body;
+
+    // Parse name and type ID from blueprint_paste first line
+    const [firstLine] = blueprint_paste.trim().split('\n');
+    const [nameRaw, typeIdRaw] = firstLine.split('\t');
+    const name = nameRaw.replace(' Blueprint', '').trim();
+    const type_id = parseInt(typeIdRaw?.trim() || '0');
+
+    if (!name || isNaN(type_id)) {
+      return HttpResponse.json({ error: 'Invalid blueprint format' }, { status: 400 });
+    }
+
+    // Use a copy or a slice of mockMaterials for this blueprint
+    // Optionally, you can customize or filter mockMaterials based on input
+    const materialsForBlueprint = [...mockMaterials];
+
+    let newBlueprint: Blueprint;
+
+    if (tier === 'T2') {
+      newBlueprint = {
+        id: nextId++,
+        name,
+        type_id,
+        materials: materialsForBlueprint,
+        sell_price: sell_price ?? 0,
+        material_cost: material_cost ?? 0,
+        full_material_cost: 0,
+        invention_cost: 0,
+        invention_chance: invention_chance ?? 0,
+        runs_per_copy: runs_per_copy ?? 10,
+        tier: 'T2',
+        region_id: 0,
+        use_jita_sell: false,
+        used_jita_fallback: false,
+      } satisfies BlueprintT2;
+    } else {
+      newBlueprint = {
+        id: nextId++,
+        name,
+        type_id,
+        materials: materialsForBlueprint,
+        sell_price: sell_price ?? 0,
+        material_cost: material_cost ?? 0,
+        tier: 'T1',
+        region_id: 0,
+        use_jita_sell: false,
+        used_jita_fallback: false,
+      } satisfies BlueprintT1;
+    }
+
+    localBlueprints.push(newBlueprint);
+
+    return HttpResponse.json({ message: 'Blueprint added successfully' }, { status: 201 });
+  })
 
 ];

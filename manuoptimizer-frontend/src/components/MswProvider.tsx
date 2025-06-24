@@ -11,11 +11,7 @@ export function MswProvider() {
             onUnhandledRequest: 'warn',
           }).then(() => {
             console.log('[MSW] Worker started');
-            window.__msw = true;
-            if ('__MSW_READY__' in globalThis) {
-              globalThis.__MSW_READY__ = true;
-            }
-            
+            globalThis.__MSW_READY__ = true;
           });
         })
         .catch((err) => {
