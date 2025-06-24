@@ -8,6 +8,9 @@ class Blueprint(db.Model):
     type_id = db.Column(db.Integer, nullable=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     materials = db.Column(db.JSON, nullable=False)
+    def get_normalized_materials(self):
+        from routes.utils import normalize_materials_structure
+        return normalize_materials_structure(self.materials)
     sell_price = db.Column(db.Float, nullable=False)
     max = db.Column(db.Integer, nullable=True)
     material_cost = db.Column(db.Float, nullable=False)

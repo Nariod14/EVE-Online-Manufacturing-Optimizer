@@ -1,6 +1,7 @@
 export type OptimizeResponse = {
   total_profit: number;
-  true_profit: number;
+  true_profit_jita: number;
+  true_profit_inventory: number;
   dependencies_needed: Record<string, number>;
   what_to_produce: Record<string, number>;
   material_usage: Record<
@@ -15,7 +16,8 @@ export type OptimizeResponse = {
 
 export const mockOptimizeResponse: OptimizeResponse = {
   total_profit: 420000000,
-  true_profit: 278000000,
+  true_profit_jita: 278000000,          // Profit if you bought all materials at Jita
+  true_profit_inventory: 314000000,     // Profit accounting for your inventory (example value)
   dependencies_needed: {
     "R.A.M. Energy Tech": 10,
     "Morphite Coolant Tube": 5,
@@ -39,3 +41,4 @@ export const mockOptimizeResponse: OptimizeResponse = {
     "Nanoelectrical Microprocessor": { used: 50, remaining: 5, category: "Reaction Materials" },
   },
 };
+

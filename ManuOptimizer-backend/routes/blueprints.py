@@ -13,10 +13,10 @@ from urllib3.util.retry import Retry
 
 
 import pulp
-from .utils import expand_materials, fetch_price, get_lowest_jita_sell_price, get_lowest_jita_sell_prices_loop, get_material_category_lookup, get_item_info, get_material_quantity, normalize_name, parse_blueprint_text, parse_ingame_invention_text, refresh_access_token
+from .utils import compute_expanded_materials, expand_materials, fetch_price, get_lowest_jita_sell_price, get_lowest_jita_sell_prices_loop, get_material_category_lookup, get_item_info, get_material_quantity, normalize_materials_structure, normalize_name, parse_blueprint_text, parse_ingame_invention_text, refresh_access_token
 from models import BlueprintT2, Blueprint as BlueprintModel, Station, db, Material
 from flask import Blueprint
-from pulp import LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus, PULP_CBC_CMD
+from pulp import LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus, PULP_CBC_CMD, LpAffineExpression
 
 
 
@@ -262,16 +262,18 @@ def get_blueprints():
         blueprints = BlueprintModel.query.all()
         logger.info("Blueprints retrieved successfully")
         response = []
+        
         for b in blueprints:
             materials = []
-            for category, quantities in b.materials.items():
+            normalized = normalize_materials_structure(b.materials)
+
+            for category, quantities in normalized.items():
                 for name, quantity in quantities.items():
                     materials.append({
                         "name": name,
                         "quantity": quantity,
                         "category": category
                     })
-
             bp_dict = {
                 "id": b.id,
                 "name": b.name,
@@ -472,41 +474,44 @@ def update_prices():
 
             name_to_type_id = {mat.name: mat.type_id for mat in materials}
             type_id_to_price = {mat.type_id: prices.get(mat.type_id, (None,))[0] for mat in materials}
+            
+            for bp in blueprints:
+                total_cost = 0.0
+                invention_cost = 0.0
 
-            for category, materials_dict in bp.materials.items():
-                for mat_name, qty in materials_dict.items():
-                    type_id = name_to_type_id.get(mat_name)
-                    unit_price = type_id_to_price.get(type_id)
+                name_to_type_id = {mat.name: mat.type_id for mat in materials}
+                type_id_to_price = {mat.type_id: prices.get(mat.type_id, (None,))[0] for mat in materials}
 
-                    if unit_price is None:
-                        logger.warning(f"No price for material {mat_name} (type_id: {type_id}) in blueprint {bp.name}")
-                        continue
+                normalized = bp.get_normalized_materials()
 
-                    if category == "Invention Materials":
-                        invention_cost += unit_price * qty
-                    else:
-                        total_cost += unit_price * qty
+                for category, materials_dict in normalized.items():
+                    for mat_name, qty in materials_dict.items():
+                        type_id = name_to_type_id.get(mat_name)
+                        unit_price = type_id_to_price.get(type_id)
 
-            bp.material_cost = round(total_cost, 2)
+                        if unit_price is None:
+                            logger.warning(f"No price for material {mat_name} (type_id: {type_id}) in blueprint {bp.name}")
+                            continue
 
-            # Calculate full_material_cost including invention materials adjusted by invention chance and runs
-            if bp.tier == 'T2' and bp.invention_chance and bp.runs_per_copy:
-                try:
-                    # if invention_chance is percentage, convert to decimal
-                    if bp.invention_chance > 1:
-                        invention_chance_decimal = bp.invention_chance / 100.0
-                    else:
-                        invention_chance_decimal = bp.invention_chance
-                    if invention_chance_decimal > 0:
-                        invention_cost_per_run = invention_cost / (invention_chance_decimal * bp.runs_per_copy)
-                    else:
-                        invention_cost_per_run = 0
-                    bp.full_material_cost = round(bp.material_cost + invention_cost_per_run, 2)
-                except ZeroDivisionError:
+                        if category == "Invention Materials":
+                            invention_cost += unit_price * qty
+                        else:
+                            total_cost += unit_price * qty
+
+                bp.material_cost = round(total_cost, 2)
+
+                # Full material cost calculation
+                if bp.tier == 'T2' and bp.invention_chance and bp.runs_per_copy:
+                    try:
+                        invention_chance_decimal = bp.invention_chance / 100.0 if bp.invention_chance > 1 else bp.invention_chance
+                        invention_cost_per_run = invention_cost / (invention_chance_decimal * bp.runs_per_copy) if invention_chance_decimal > 0 else 0
+                        bp.full_material_cost = round(bp.material_cost + invention_cost_per_run, 2)
+                    except ZeroDivisionError:
+                        bp.full_material_cost = bp.material_cost
+                        logger.warning(f"ZeroDivisionError in invention cost calculation for {bp.name}")
+                else:
                     bp.full_material_cost = bp.material_cost
-                    logger.warning(f"ZeroDivisionError in invention cost calculation for {bp.name}")
-            else:
-                bp.full_material_cost = bp.material_cost
+
 
 
         db.session.commit()
@@ -519,101 +524,178 @@ def update_prices():
 
 
 
+from collections import defaultdict
+from pulp import LpProblem, LpMaximize, LpVariable, lpSum, value, LpStatus, PULP_CBC_CMD
+
 @blueprints_bp.route('/optimize', methods=['GET'])
 def optimize():
     try:
+        # Load blueprints and materials
         blueprints = BlueprintModel.query.all()
         material_objs = {m.name: m for m in Material.query.all()}
         materials = {name: m.quantity for name, m in material_objs.items()}
+        
+        logger.info("Materials loaded: %s", materials)
 
         if not blueprints or not materials:
             return jsonify({"status": "No optimal solution found"}), 400
 
-        # --- Collect all unique materials and their categories ---
+        # Collect all unique materials and their categories
         all_materials = set()
         material_categories = {}
-        for b in blueprints:
-            if isinstance(b.materials, dict):
-                for category, sub_category in b.materials.items():
-                    if isinstance(sub_category, dict):
-                        for material in sub_category.keys():
-                            all_materials.add(material)
-                            material_categories[material] = category
-            else:
-                for material in b.materials.keys():
-                    all_materials.add(material)
-                    material_categories[material] = "Other"
 
-        # --- Add missing materials to DB with quantity 0 ---
+        for b in blueprints:
+            normalized = b.get_normalized_materials()
+            for category, materials_dict in normalized.items():
+                for material in materials_dict.keys():
+                    all_materials.add(material)
+                    material_categories[material] = category
+
+        # Add missing materials to DB with quantity 0 if not present
+        new_materials_added = False
         for material in all_materials:
             if material not in materials:
-                new_material = Material(name=material, quantity=0)
-                db.session.add(new_material)
+                db.session.add(Material(name=material, quantity=0))
                 materials[material] = 0
-        db.session.commit()
+                new_materials_added = True
+        if new_materials_added:
+            db.session.commit()
 
-        prob = LpProblem("Modules Optimization", LpMaximize)
+        # Create variables: production quantity per blueprint
         x = {b.name: LpVariable(f"x_{b.name}", lowBound=0, cat='Integer') for b in blueprints}
 
-        # --- Objective function ---
-        prob += lpSum((b.sell_price - b.material_cost) * x[b.name] for b in blueprints)
+        # Precompute profit per blueprint for readability
+        profit_per_bp = {b.name: (b.sell_price - b.material_cost) for b in blueprints}
 
-        # --- Material constraints using expanded dependencies ---
-        all_required_materials = defaultdict(lambda: 0)
-        t1_dependencies = defaultdict(float)
+        # --- STEP 1: Maximize profit ---
+
+        prob = LpProblem("Modules Optimization - Step 1 Max Profit", LpMaximize)
+        prob += lpSum(profit_per_bp[b.name] * x[b.name] for b in blueprints)
+
+        # Material constraints using symbolic LP expressions
+        all_required_materials_expr = defaultdict(LpAffineExpression)
         for b in blueprints:
-            expanded = expand_materials(b, blueprints, quantity=1, t1_dependencies=t1_dependencies)
+            expanded = expand_materials(b, blueprints, quantity=1)
             for mat, qty in expanded.items():
-                all_required_materials[mat] += qty * x[b.name]
+                all_required_materials_expr[mat] += qty * x[b.name]
+        for mat, qty in materials.items():
+            prob += all_required_materials_expr[mat] <= qty
 
-        for mat, quantity in materials.items():
-            prob += all_required_materials[mat] <= quantity
-
-        # --- Max constraints for blueprints ---
+        # Max production constraints
         for b in blueprints:
             if b.max is not None:
                 prob += x[b.name] <= b.max
 
+        # Solve Step 1
         prob.solve(PULP_CBC_CMD(msg=False))
+        logger.info("Optimization Step 1 Status: %s", LpStatus[prob.status])
 
-        logger.info("Optimization Status: %s", LpStatus[prob.status])
+        if LpStatus[prob.status] != 'Optimal':
+            logger.error("No optimal profit solution found.")
+            return jsonify({"status": "No optimal profit solution found"}), 400
 
-        if LpStatus[prob.status] == 'Optimal':
-            dependencies_needed = defaultdict(float)
+        optimal_profit_value = value(prob.objective)
+        logger.info(f"Optimal Profit: {optimal_profit_value}")
+
+        # --- STEP 2: Fix profit to optimal value and maximize material consumption ---
+
+        prob2 = LpProblem("Modules Optimization - Step 2 Max Consumption", LpMaximize)
+        x2 = {b.name: LpVariable(f"x2_{b.name}", lowBound=0, cat='Integer') for b in blueprints}
+
+        all_required_materials_expr2 = defaultdict(LpAffineExpression)
+        for b in blueprints:
+            expanded = expand_materials(b, blueprints, quantity=1)
+            for mat, qty in expanded.items():
+                all_required_materials_expr2[mat] += qty * x2[b.name]
+
+        for mat, qty in materials.items():
+            prob2 += all_required_materials_expr2[mat] <= qty
+
+        for b in blueprints:
+            if b.max is not None:
+                prob2 += x2[b.name] <= b.max
+
+        profit_expr2 = lpSum(profit_per_bp[b.name] * x2[b.name] for b in blueprints)
+        prob2 += profit_expr2 >= optimal_profit_value - 1e-5
+
+        total_consumption_expr = lpSum(all_required_materials_expr2[m] for m in all_required_materials_expr2)
+        prob2 += total_consumption_expr
+
+        prob2.solve(PULP_CBC_CMD(msg=False))
+        logger.info("Optimization Step 2 Status: %s", LpStatus[prob2.status])
+
+        if LpStatus[prob2.status] != 'Optimal':
+            logger.error("No optimal consumption solution found given fixed profit.")
+            return jsonify({"status": "No optimal consumption solution found"}), 400
+
+        # Calculate material usage explicitly per blueprint per material (like old method)
+        final_material_usage = {}
+        # Initialize usage dictionary
+        usage_totals = defaultdict(float)
+
+        # For each material, sum usage over blueprints * produced amount
+        for m_name in materials.keys():
+            total_used = 0.0
             for b in blueprints:
-                n_to_produce = int(value(x[b.name]) or 0)
-                if n_to_produce == 0:
+                qty_produced = int(value(x2[b.name]) or 0)
+                if qty_produced == 0:
                     continue
-                t1_deps = defaultdict(float)
-                expand_materials(b, blueprints, quantity=n_to_produce, t1_dependencies=t1_deps)
-                for t1_name, qty in t1_deps.items():
-                    dependencies_needed[t1_name] += qty
-                    
-            results = {
-                "status": "Optimal",
-                "total_profit": sum(b.sell_price * value(x[b.name]) for b in blueprints),
-                "what_to_produce": {b.name: int(value(x[b.name]) or 0) for b in blueprints},
-                "material_usage": {
-                    m_name: {
-                        "used": sum(get_material_quantity(b, m_name) * int(value(x[b.name]) or 0) for b in blueprints),
-                        "remaining": m_qty - sum(get_material_quantity(b, m_name) * int(value(x[b.name]) or 0) for b in blueprints),
-                        "category": getattr(material_objs.get(m_name), 'category', "Other(Likely Unused or other Built Components)")
-                    } for m_name, m_qty in materials.items()
-                },
-                "true_profit": sum((b.sell_price - b.material_cost) * value(x[b.name]) for b in blueprints),
-                "dependencies_needed": {k: int(v) for k, v in dependencies_needed.items() if v > 0}
+                expanded_mats = compute_expanded_materials(b, qty_produced, blueprints)
+                total_used += expanded_mats.get(m_name, 0.0)
+            usage_totals[m_name] = total_used
+
+        for m_name, m_qty in materials.items():
+            used = usage_totals.get(m_name, 0)
+            used_int = int(round(used))
+            final_material_usage[m_name] = {
+                "used": used_int,
+                "remaining": m_qty - used_int,
+                "category": getattr(material_objs.get(m_name), 'category', "Other")
             }
-            logger.info("Optimization completed successfully")
-            logger.info("Results: %s", results)
-            return jsonify(results), 200
 
-        elif LpStatus[prob.status] == 'Unbounded':
-            logger.error("Optimization problem is unbounded.")
-            return jsonify({"error": "Optimization problem is unbounded. Check your constraints and input data."}), 400
+        # Compute dependencies needed for T1 (optional, as before)
+        dependencies_needed = defaultdict(float)
+        for b in blueprints:
+            n_to_produce = int(value(x2[b.name]) or 0)
+            if n_to_produce == 0:
+                continue
+            t1_deps = defaultdict(float)
+            expand_materials(b, blueprints, quantity=n_to_produce, t1_dependencies=t1_deps)
+            for t1_name, qty in t1_deps.items():
+                dependencies_needed[t1_name] += qty
 
-        else:
-            logger.error("No optimal solution found.")
-            return jsonify({"status": "No optimal solution found"}), 400
+        # 1. "Jita profit" (old method): as if you bought everything at Jita sell price
+        true_profit_jita = sum((b.sell_price - b.material_cost) * value(x2[b.name]) for b in blueprints)
+
+        # 2. Inventory-aware profit (new method)
+        actual_material_cost = 0.0
+        for m_name, m_qty in materials.items():
+            used = usage_totals.get(m_name, 0)
+            used_int = int(round(used))
+            mat_obj = material_objs.get(m_name)
+            unit_cost = getattr(mat_obj, 'sell_price', None) # Jita sell price
+            if unit_cost is not None:
+                need_to_buy = max(0, used_int - m_qty)
+                actual_material_cost += need_to_buy * unit_cost
+
+        total_sell_value = sum(b.sell_price * value(x2[b.name]) for b in blueprints)
+        true_profit_inventory = total_sell_value - actual_material_cost
+
+        # 3. Return both in your results
+        results = {
+            "status": "Optimal",
+            "total_profit": total_sell_value,
+            "true_profit_jita": true_profit_jita,
+            "true_profit_inventory": true_profit_inventory,
+            "what_to_produce": {b.name: int(value(x2[b.name]) or 0) for b in blueprints},
+            "material_usage": final_material_usage,
+            "dependencies_needed": {k: int(v) for k, v in dependencies_needed.items() if v > 0}
+        }
+
+
+        logger.info("Optimization completed successfully")
+        logger.info("Results: %s", results)
+        return jsonify(results), 200
 
     except Exception as e:
         logger.error("An error occurred during optimization: %s", str(e))
