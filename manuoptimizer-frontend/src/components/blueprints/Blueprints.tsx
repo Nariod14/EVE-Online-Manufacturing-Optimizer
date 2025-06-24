@@ -9,6 +9,7 @@ import { Button } from "../ui/button";
 import { waitForMswReady } from "@/lib/mswReady";
 import { toast } from "sonner";
 import { s } from "vitest/dist/chunks/reporters.d.DL9pg5DB.js";
+import { Alert, AlertDescription } from "../ui/alert";
 
 
 
@@ -46,6 +47,9 @@ export default function BlueprintsPage() {
   const [editTier, setEditTier] = useState<"T1" | "T2" | null>(null);
   const [loading, setLoading] = useState(false);
   const [blueprints, setBlueprints] = useState<Blueprint[]>([]);
+  const [statusEl, setStatusEl] = useState<HTMLDivElement | null>(null);
+  const [statusMsg, setStatusMsg] = useState<string>("");
+
 
   function handleEdit(bp: Blueprint, tier: "T1" | "T2") {
     setEditingBlueprint(bp);
@@ -112,6 +116,30 @@ useEffect(() => {
     }
   }
 
+  const handleUpdate = async () => {
+    setStatusMsg("Updating blueprint prices...");
+    document.title = "Updating blueprint prices...";
+
+    try {
+      const response = await fetch("/api/blueprints/update_prices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStatusMsg(data.message || "Prices updated successfully!");
+        fetchBlueprints(setBlueprints, setLoading);
+        document.title = "Eve Manufacturing Optimizer";
+      } else {
+        const errorData = await response.json();
+        setStatusMsg(errorData.error || "Failed to update prices.");
+      }
+    } catch (error) {
+      setStatusMsg("Error updating prices: " + error);
+    }
+  };
+
 
 
 
@@ -143,43 +171,38 @@ useEffect(() => {
       loading={loading}
       fetchBlueprints={() => fetchBlueprints(setBlueprints, setLoading)}
     />
-     <div className="flex flex-col items-start gap-2 px-6 pt-4">
-       <Button
-         id="update-blueprints-btn"
-         className="w-fit text-sm bg-blue-700 hover:bg-blue-800 mx-auto"
-         onClick={async () => {
-           const statusEl = document.getElementById("update-blueprints-status");
-           if (statusEl) { 
-            statusEl.textContent = "Updating blueprint prices..."
-            document.title = "Updating blueprint prices..."
-           };
+   <div className="flex flex-col items-center gap-2 px-6 pt-4">
+     <Button
+       id="update-blueprints-btn"
+       className="w-fit text-sm bg-blue-700 hover:bg-blue-800 mx-auto"
+       onClick={handleUpdate}
+     >
+       Update All Blueprint Prices (Cost and Sell)
+     </Button>
 
-
-           try {
-             const response = await fetch("/api/blueprints/update_prices", {
-               method: "POST",
-               headers: { "Content-Type": "application/json" },
-             });
-
-             if (response.ok) {
-               const data = await response.json();
-               if (statusEl) statusEl.textContent = data.message || "Prices updated successfully!";
-               fetchBlueprints(setBlueprints, setLoading);
-               document.title = "Eve Manufacturing Optimizer";
-             } else {
-               const errorData = await response.json();
-               if (statusEl) statusEl.textContent = errorData.error || "Failed to update prices.";
-             }
-           } catch (error) {
-             if (statusEl) statusEl.textContent = "Error updating prices: " + error;
-           }
-         }}
+     {statusMsg && (
+       <Alert
+         className="
+           w-full
+           flex
+           justify-center
+           items-center
+           text-blue-300
+           font-semibold
+           bg-blue-950/60
+           border border-blue-700
+           rounded-xl
+           py-2
+           mt-2
+           shadow-lg
+           animate-in fade-in
+           text-center
+         "
        >
-         Update All Blueprint Prices (Cost and Sell)
-       </Button>
-
-       <div id="update-blueprints-status" className="text-sm text-blue-400 font-semibold" />
-     </div>
+         <AlertDescription className="w-full text-center justify-center text-blue-300">{statusMsg}</AlertDescription>
+       </Alert>
+     )}
+   </div>
 
      <EditBlueprintModal
        open={editModalOpen}
