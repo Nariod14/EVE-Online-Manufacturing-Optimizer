@@ -2,6 +2,7 @@ import { Material } from "@/types/materials";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react"; // optional spinner icon
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
+import { ConfirmDeleteButton } from "../utils/utils";
 
 interface GroupedMaterials {
     [category: string]: Material[];
@@ -65,13 +66,9 @@ export function MaterialList({ materials, loading, onEdit, onDelete }: MaterialL
                       >
                         Edit
                       </Button>
-                      <Button
-                        size="sm"
-                        className="bg-red-700 hover:bg-red-600 shadow-md hover:shadow-red-500/30 text-white"
-                        onClick={() => onDelete(mat.id)}
-                      >
+                      <ConfirmDeleteButton onDelete={() => onDelete(mat.id)}>
                         Delete
-                      </Button>
+                      </ConfirmDeleteButton>
                     </div>
                   </div>
                 ))}

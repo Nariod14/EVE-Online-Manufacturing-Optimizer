@@ -69,6 +69,67 @@ export const handlers = [
     return new Response(null, { status: 200 });
   }),
 
+  http.post('/api/materials/update_materials', async ({ request }) => {
+    console.log('📦 MSW Intercepted /api/materials/update_materials');
+
+    try {
+      const body = await request.json() as {
+        materials: Record<string, number>;
+        updateType: 'add' | 'replace';
+      };
+
+      const { materials, updateType } = body;
+
+      const nextId = (() => {
+        const ids = localMaterials.map(m => m.id);
+        return ids.length ? Math.max(...ids) + 1 : 1;
+      })();
+
+      if (updateType === 'replace') {
+        console.log('🔁 Replacing all materials');
+
+        localMaterials = Object.entries(materials).map(([name, quantity], idx) => ({
+          id: nextId + idx,
+          name,
+          quantity,
+          sell_price: null,
+          type_id: null,
+          category: null,
+        }));
+      } else if (updateType === 'add') {
+        console.log('➕ Adding/updating materials');
+
+        const materialMap = new Map(localMaterials.map((m) => [m.name, m]));
+
+        for (const [name, quantity] of Object.entries(materials)) {
+          const existing = materialMap.get(name);
+          if (existing) {
+            existing.quantity = quantity;
+          } else {
+            materialMap.set(name, {
+              id: nextId + materialMap.size,
+              name,
+              quantity,
+              sell_price: null,
+              type_id: null,
+              category: null,
+            });
+          }
+        }
+
+        localMaterials = Array.from(materialMap.values());
+      }
+
+      console.log('✅ Materials updated:', localMaterials);
+      return HttpResponse.json({ message: 'Materials updated successfully' }, { status: 200 });
+
+    } catch (err) {
+      console.error('❌ Error parsing update_materials request:', err);
+      return HttpResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+  }),
+
+
  
   // GET /api/stations
   http.get('/api/stations', () => {

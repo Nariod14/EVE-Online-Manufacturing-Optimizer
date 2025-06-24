@@ -3,3 +3,5 @@
 /ManuOptimizer-backend/dist
 __temp_pipreqsnb_folder/_pipreqsnb_temp_file.py
 ManuOptimizer-backend/instances/eve_optimizer.db
+.vscode/settings.json
+ManuOptimizer-backend/instances/eve_optimizer.db

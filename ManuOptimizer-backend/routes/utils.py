@@ -43,15 +43,23 @@ def normalize_name(name: str) -> str:
 
 def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None):
     expanded = defaultdict(float)
-    for section_name, section in bp.materials.items():
+
+    # Normalize materials if needed
+    if isinstance(bp.materials, list):
+        normalized = normalize_materials_structure(bp.materials)
+    else:
+        normalized = bp.materials
+
+    for section_name, section in normalized.items():
         for mat, qty in section.items():
             sub_bp = next((b for b in blueprints if b.name == mat), None)
+
             if section_name == "Invention Materials" and hasattr(bp, "invention_chance") and bp.invention_chance and hasattr(bp, "runs_per_copy") and bp.runs_per_copy:
                 attempts_needed = quantity / (bp.runs_per_copy * bp.invention_chance)
                 expanded[mat] += qty * attempts_needed
+
             elif sub_bp:
                 if getattr(sub_bp, "tier", "T1") == "T1":
-                    # Log T1 dependency
                     if t1_dependencies is not None:
                         t1_dependencies[mat] = t1_dependencies.get(mat, 0) + qty * quantity
                     sub_mats = expand_materials(sub_bp, blueprints, qty * quantity, t1_dependencies)
@@ -64,16 +72,64 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None):
                     expanded[mat] += qty * quantity
             else:
                 expanded[mat] += qty * quantity
+
     return expanded
 
+
+
+def normalize_materials_structure(materials_raw):
+    """
+    Ensures materials are in the nested dict format:
+    {
+    "Minerals": {
+        "Tritanium": 100,
+        "Pyerite": 50
+    },
+    ...
+    }
+    """
+    if isinstance(materials_raw, dict):
+        return materials_raw  # Already in correct format
+
+    elif isinstance(materials_raw, list):
+        normalized = {}
+        for entry in materials_raw:
+            name = entry.get("name")
+            quantity = entry.get("quantity", 0)
+            category = entry.get("category", "Other")
+            if not name:
+                continue
+
+            if category not in normalized:
+                normalized[category] = {}
+            normalized[category][name] = quantity
+
+        return normalized
+
+    else:
+        # fallback to empty
+        return {}
+
 def get_material_quantity(blueprint, material_name):
-    if isinstance(blueprint.materials, dict):
-        quantity = 0
-        for sub_category in blueprint.materials.values():
+    quantity = 0
+
+    materials = blueprint.materials
+
+    if isinstance(materials, dict):
+        for sub_category in materials.values():
             if isinstance(sub_category, dict):
                 quantity += sub_category.get(material_name, 0)
-        return quantity
-    return blueprint.materials.get(material_name, 0)
+            elif isinstance(sub_category, list):  # optional fallback
+                for item in sub_category:
+                    if isinstance(item, dict) and item.get("name") == material_name:
+                        quantity += item.get("quantity", 0)
+    elif isinstance(materials, list):
+        for item in materials:
+            if isinstance(item, dict) and item.get("name") == material_name:
+                quantity += item.get("quantity", 0)
+
+    return quantity
+
 
 def fetch_price(type_id, station_id, headers):
     if station_id:
@@ -132,6 +188,14 @@ def get_item_info(material_names):
         for name in material_names
     }
 
+def compute_expanded_materials(blueprint, quantity, blueprints):
+    """Returns dict of materials (including Items) required to produce quantity units of blueprint"""
+    t1_deps = defaultdict(float)
+    expanded = expand_materials(blueprint, blueprints, quantity=quantity, t1_dependencies=t1_deps)
+    combined = defaultdict(float, expanded)
+    for k, v in t1_deps.items():
+        combined[k] += v
+    return combined
 
 def get_item_name(type_id):
     base_path = getattr(sys, '_MEIPASS', os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
