@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 import sys
 import logging
@@ -11,7 +12,6 @@ from routes.blueprints import blueprints_bp
 from routes.stations import stations_bp
 from auth import auth_bp
 from dotenv import load_dotenv
-load_dotenv()
 
 
 # Configure logging
@@ -24,6 +24,22 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+def get_env_path():
+    # If running as a PyInstaller bundle
+    if getattr(sys, 'frozen', False):
+        # sys._MEIPASS is the temp folder where PyInstaller unpacks files
+        base_path = sys._MEIPASS
+        env_path = os.path.join(os.path.dirname(sys.executable), '.env')
+        if not os.path.exists(env_path):
+            # fallback: try in the temp folder
+            env_path = os.path.join(base_path, '.env')
+        return env_path
+    else:
+        # Running as script
+        return os.path.join(os.path.dirname(__file__), '.env')
+
+load_dotenv(dotenv_path=get_env_path())
 
 def create_app():
     if getattr(sys, 'frozen', False):
@@ -47,8 +63,15 @@ def create_app():
         static_url_path="/"
     )
 
-    CORS(flask_app)
+    CORS(flask_app,
+         supports_credentials=True,
+         origins=["http://127.0.0.1:5000"],
+    )
+    flask_app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    flask_app.config['SESSION_COOKIE_SECURE'] = False
+    flask_app.permanent_session_lifetime = timedelta( minutes=20)
     flask_app.secret_key = os.getenv("FLASK_SECRET_KEY")
+    logger.info(f"Flask secret key set: {flask_app.secret_key}")
     flask_app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 
     db.init_app(flask_app)
@@ -71,5 +94,14 @@ def create_app():
     def not_found_error(error):
         logger.error(f"404 Not Found: {request.method} {request.path}")
         return jsonify({"error": "Not found"}), 404
+    
+    @flask_app.route('/session-test')
+    def session_test():
+        session['test'] = 'hello'
+        return {'test': session.get('test')}
+    
+    @flask_app.before_request
+    def make_session_permanent():
+        session.permanent = True
 
     return flask_app

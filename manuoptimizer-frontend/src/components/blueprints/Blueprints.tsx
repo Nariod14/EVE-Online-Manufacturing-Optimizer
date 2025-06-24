@@ -23,6 +23,7 @@ export const fetchBlueprints = async (
   setLoading(true);
 
   try {
+    console.log("MSW ready. Requesting /api/blueprints/blueprints. Fetching blueprints...");
     const res = await fetch("/api/blueprints/blueprints");
     if (!res.ok) throw new Error("Failed to fetch blueprints");
 
@@ -84,7 +85,7 @@ useEffect(() => {
 }, [blueprints]);
 
   async function handleAddBlueprintSubmit(data: {
-    materials: string;
+    blueprintPaste: string;
     sell_price: number;
     material_cost: number;
     tier: "T1" | "T2";
@@ -151,7 +152,6 @@ useEffect(() => {
            if (statusEl) { 
             statusEl.textContent = "Updating blueprint prices..."
             document.title = "Updating blueprint prices..."
-
            };
 
 
@@ -165,6 +165,7 @@ useEffect(() => {
                const data = await response.json();
                if (statusEl) statusEl.textContent = data.message || "Prices updated successfully!";
                fetchBlueprints(setBlueprints, setLoading);
+               document.title = "Eve Manufacturing Optimizer";
              } else {
                const errorData = await response.json();
                if (statusEl) statusEl.textContent = errorData.error || "Failed to update prices.";
@@ -190,8 +191,12 @@ useEffect(() => {
      <AddBlueprintModal open={addModalOpen} 
      onClose={() => setAddModalOpen(false) 
      } 
-     onSubmit={handleAddBlueprintSubmit
-     } />
+     onSubmit={handleAddBlueprintSubmit}
+     onBlueprintAdded={() => {
+       console.log("🔁 Running fetchBlueprints after add");
+       fetchBlueprints(setBlueprints, setLoading);
+     }} />
+
    </Card>
  );
 }

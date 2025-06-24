@@ -1,16 +1,23 @@
-// lib/mswReady.ts
-let ready = false
+let ready = false;
+
 const readyPromise = new Promise<void>((resolve) => {
-  if (ready) return resolve()
+  if (ready || (typeof globalThis !== 'undefined' && globalThis.__MSW_READY__ === true)) {
+    ready = true;
+    resolve();
+    return;
+  }
+
   Object.defineProperty(globalThis, '__MSW_READY__', {
-    set: () => {
-      ready = true
-      resolve()
+    set: (v) => {
+      if (v === true) {
+        ready = true;
+        resolve();
+      }
     },
-    configurable: true
-  })
-})
+    configurable: true,
+  });
+});
 
 export function waitForMswReady() {
-  return readyPromise
+  return readyPromise;
 }
