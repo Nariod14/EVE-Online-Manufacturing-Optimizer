@@ -100,6 +100,19 @@ def callback():
 
 @auth_bp.route('/auth/status')
 def auth_status():
+    token = session.get("token")
+
+    if not token:
+        return {"logged_in": False, "character_name": None}
+
+    # Proactively verify the token
+    verify = requests.get("https://esi.evetech.net/verify", headers={"Authorization": f"Bearer {token}"})
+
+    if verify.status_code != 200:
+        # Clear session on invalid token
+        session.clear()
+        return {"logged_in": False, "character_name": None}
+
     return {
         "logged_in": 'character_name' in session,
         "character_name": session.get('character_name')
