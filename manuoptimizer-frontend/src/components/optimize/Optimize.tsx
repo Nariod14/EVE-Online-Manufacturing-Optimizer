@@ -44,7 +44,8 @@ export default function Optimize() {
 
   const optimizationData = result !== null ? {
     total_profit: result.total_profit,
-    true_profit: result.true_profit,
+    true_profit_jita: result.true_profit_jita,
+    true_profit_inventory: result.true_profit_inventory,
   } : null;
   
 
