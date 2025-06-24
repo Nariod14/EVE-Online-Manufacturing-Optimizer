@@ -123,7 +123,7 @@ export default function Stations() {
              </CardHeader>
 
              <CardContent className="px-6 pb-6">
-               <Accordion type="single" collapsible defaultValue="stations">
+               <Accordion type="single" collapsible>
                  <AccordionItem
                    value="stations"
                    className="border-none bg-slate-900/60 rounded-xl overflow-hidden"

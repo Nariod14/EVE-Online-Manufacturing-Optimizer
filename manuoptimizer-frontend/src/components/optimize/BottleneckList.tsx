@@ -18,11 +18,12 @@ function getUsageBadgeClass(percent: number): string {
   if (percent >= 140) return "bg-red-600 text-red-50";
   if (percent >= 120) return "bg-red-500 text-red-50";
   if (percent >= 100) return "bg-red-400 text-red-100";
-  if (percent >= 90)  return "bg-yellow-400 text-yellow-900"; // 90-99% is yellow
-  if (percent >= 70)  return "bg-green-400 text-green-900";
-  if (percent >= 50)  return "bg-blue-400 text-blue-900";
-  if (percent >= 30)  return "bg-blue-300 text-blue-900";
-  return "bg-blue-200 text-blue-900";
+  if (percent >= 95)  return "bg-red-300 text-red-900";      // 95-99% = light red
+  if (percent >= 90)  return "bg-yellow-400 text-yellow-900"; // 90-94% = yellow
+  if (percent >= 70)  return "bg-orange-400 text-orange-900";
+  if (percent >= 50)  return "bg-yellow-500 text-yellow-900";
+  if (percent >= 30)  return "bg-green-300 text-green-900";
+  return "bg-green-400 text-green-900";
 }
 
 
@@ -33,12 +34,14 @@ function getUsageBarColor(percent: number): string {
   if (percent >= 140) return "bg-red-600";
   if (percent >= 120) return "bg-red-500";
   if (percent >= 100) return "bg-red-400";
-  if (percent >= 90)  return "bg-yellow-400"; // 90-99% is yellow
-  if (percent >= 70)  return "bg-green-400";
-  if (percent >= 50)  return "bg-blue-400";
-  if (percent >= 30)  return "bg-blue-300";
-  return "bg-blue-200";
+  if (percent >= 95)  return "bg-red-300";      // 95-99% = light red
+  if (percent >= 90)  return "bg-yellow-400";   // 90-94% = yellow
+  if (percent >= 70)  return "bg-orange-400";
+  if (percent >= 50)  return "bg-yellow-500";
+  if (percent >= 30)  return "bg-green-300";
+  return "bg-green-400";
 }
+
 
 
 export default function BottleneckList({ materialUsage }: BottleneckListProps) {

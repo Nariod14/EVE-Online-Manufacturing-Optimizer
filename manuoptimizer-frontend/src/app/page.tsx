@@ -1,11 +1,22 @@
+'use client';
 import { Toaster } from "sonner";
 import LoginPanel from "@/components/auth/LoginPanel";
 import Stations from "@/components/stations/Stations";
 import BlueprintsPage from "@/components/blueprints/Blueprints";
 import Materials from "@/components/materials/Materials";
 import Optimize from "@/components/optimize/Optimize";
+import { waitForMswReady } from "@/lib/mswReady";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [mswReady, setMswReady] = useState(false)
+
+  useEffect(() => {
+    waitForMswReady().then(() => {
+      console.log('MSW is fully ready, now rendering app')
+      setMswReady(true)
+    })
+  }, [])
   return (
     <> 
     <Toaster
