@@ -420,55 +420,6 @@ def get_lowest_jita_sell_prices_loop(type_ids: list[int], headers, retries=2) ->
     return prices
 
 
-def get_item_info_with_prices(material_names: list[str], headers: dict = {"User-Agent": "ManuOptimizer"}) -> dict[str, dict]:
-    normalized_names = [unicodedata.normalize('NFC', name) for name in material_names]
-
-    base_path = getattr(sys, '_MEIPASS', os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-    sde_path = os.path.join(base_path, 'sde', 'mini_sde.sqlite')
-
-    if not os.path.exists(sde_path):
-        logger.error(f"SDE database not found at: {sde_path}")
-        raise FileNotFoundError(f"SDE database not found at: {sde_path}")
-
-    conn = sqlite3.connect(sde_path)
-    cursor = conn.cursor()
-
-    placeholders = ', '.join('?' for _ in normalized_names)
-    query = f'''
-        SELECT i.typeName, i.typeID
-        FROM invTypes i
-        WHERE i.typeName IN ({placeholders})
-    '''
-
-    cursor.execute(query, normalized_names)
-    rows = cursor.fetchall()
-    conn.close()
-
-    # Now normalize names for keys
-    name_to_type_id = {
-        normalize_name(type_name): type_id
-        for type_name, type_id in rows
-    }
-
-    type_ids = list(name_to_type_id.values())
-    prices = get_lowest_jita_sell_prices_batch(type_ids, headers)
-
-    result = {}
-    for mat_name in material_names:
-        norm = normalize_name(mat_name)
-        tid = name_to_type_id.get(norm)
-        price = prices.get(tid)
-        result[norm] = {
-            'type_id': tid if tid else 0,
-            'price': price if price is not None else 0.0
-        }
-
-    return result
-
-
-
-
-
 # Temporary cache for structure orders
 structure_order_cache = defaultdict(list)
 

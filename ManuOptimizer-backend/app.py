@@ -1,5 +1,6 @@
 from datetime import timedelta
 import os
+import secrets
 import sys
 import logging
 import traceback
@@ -73,6 +74,7 @@ def create_app():
     flask_app.secret_key = os.getenv("FLASK_SECRET_KEY")
     logger.info(f"Flask secret key set: {flask_app.secret_key}")
     flask_app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+    session_version_key = secrets.token_hex(16)
 
     db.init_app(flask_app)
     Migrate(flask_app, db)
@@ -101,7 +103,12 @@ def create_app():
         return {'test': session.get('test')}
     
     @flask_app.before_request
-    def make_session_permanent():
+    def enforce_session_version():
         session.permanent = True
 
+        # Force re-authentication if session version is old or missing
+        if session.get('session_version') != session_version_key:
+            session.clear()
+            session['session_version'] = session_version_key
+            
     return flask_app
