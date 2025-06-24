@@ -14,12 +14,17 @@ import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { toast } from "react-hot-toast";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { E } from "vitest/dist/chunks/environment.d.cL3nLXbE.js";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ScrollArea } from "../ui/scroll-area";
+import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
+import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 
 interface AddBlueprintModalProps {
   open: boolean
   onSubmit: (data: {
-    materials: string;
+    blueprintPaste: string;
     sell_price: number;
     material_cost: number;
     tier: "T1" | "T2";
@@ -28,6 +33,7 @@ interface AddBlueprintModalProps {
     runs_per_copy?: number;
   }) => Promise<void>
   onClose: () => void
+  onBlueprintAdded?: () => void
 }
 
 
@@ -40,6 +46,15 @@ const tierStyles = {
 
     input:
       "bg-slate-800 border border-blue-700 text-blue-100 placeholder:text-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+
+    li:
+      "text-blue-100",
+
+    dropdown:
+      "bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 border border-blue-800 text-blue-100 shadow-lg rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+    
+    dropdownItem:
+      "px-4 py-2 rounded-md text-blue-100 hover:bg-blue-800 hover:text-blue-200 focus:bg-blue-900 focus:text-white cursor-pointer transition-colors",
 
     selectTrigger:
       "bg-slate-800 border border-blue-700 text-blue-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
@@ -65,6 +80,15 @@ const tierStyles = {
 
     input:
       "bg-[#4a2e08] border border-amber-600 text-[#f0e4c1] placeholder:text-amber-300 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 ",
+    
+    li:
+      "text-amber-100",
+    
+    dropdown:
+      "bg-[#4a2e08] border border-amber-700 text-[#f0e4c1] shadow-lg rounded-xl focus:ring-2 px-3 focus:ring-amber-400 focus:border-amber-400",
+    
+    dropdownItem:
+      "px-4 py-2 rounded-md text-amber-100 hover:bg-amber-900 hover:text-amber-200 focus:bg-amber-950 focus:text-white cursor-pointer transition-colors",
 
     selectTrigger:
       "bg-[#4a2e08] border border-amber-600 text-[#f0e4c1] focus:ring-2 focus:ring-amber-400 focus:border-amber-400",
@@ -79,76 +103,166 @@ const tierStyles = {
 
     title: "text-amber-400",
 
-    description: "text-amber-300",
+    description: "text-amber-400",
   },
 };
 
-export default function AddBlueprintModal({ open, onClose }: AddBlueprintModalProps) {
+export default function AddBlueprintModal({ 
+  open,
+  onClose,
+  onBlueprintAdded 
+}: AddBlueprintModalProps) {
   const [tier, setTier] = useState<"T1" | "T2">("T1");
   const [mode, setMode] = useState<"game" | "isk">("game");
   const [blueprintData, setBlueprintData] = useState("");
   const [inventionData, setInventionData] = useState("");
   const [inventionChance, setInventionChance] = useState("");
+  const runsPerCopyOptions = [1, 10];
+  const [runsPerCopy, setRunsPerCopy] = useState(runsPerCopyOptions[0]);
   const [sellPrice, setSellPrice] = useState("");
   const [makeCost, setMakeCost] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
   const styles = tierStyles[tier];
 
-  const showInvention = tier === "T2";
+  const showInvention = tier === "T2" && mode === "game";
 
-  async function handleSubmit(e: React.FormEvent) {
+  const parsedMaterials = useMemo(() => {
+    const lines = blueprintData.trim().split("\n");
+    const inventionLines = inventionData.trim().split("\n");
+
+    const preview: Record<string, { name: string; quantity: number; unitPrice?: number }[]> = {};
+    let blueprintName = "";
+    let blueprintTypeId = "";
+    let isFirstLine = true;
+
+    function parseLines(lines: string[], isInvention = false) {
+      let localCategory = isInvention ? "Invention Materials / Uncategorized" : "Uncategorized";
+      let localParsingTable = false;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        if (isFirstLine && !isInvention) {
+          const [name, typeId] = line.split("\t");
+          blueprintName = name?.replace("Blueprint", "").trim();
+          blueprintTypeId = typeId?.trim();
+          isFirstLine = false;
+          continue;
+        }
+
+        if (/^(Items|Minerals|Components|Planetary materials|Datacores|Optional items)$/i.test(line)) {
+          localCategory = isInvention
+            ? `Invention Materials / ${line}`
+            : line;
+          if (line === "Optional items" && isInvention && lines[i + 2]?.startsWith("No item selected")) {
+            i += 2;
+            continue;
+          }
+          preview[localCategory] = [];
+          localParsingTable = false;
+          continue;
+        }
+
+        if (/^Item\tRequired\tAvailable\tEst\..*price\ttypeID$/i.test(line)) {
+          localParsingTable = true;
+          continue;
+        }
+
+        if (!localParsingTable) continue;
+
+        const [name, requiredStr, _available, unitPriceStr] = line.split("\t");
+        const required = parseInt(requiredStr);
+        const unitPrice = parseFloat(unitPriceStr);
+
+        if (name && !isNaN(required)) {
+          // Adjust unit price for invention materials to reflect invention chance
+          const adjustedUnitPrice = isInvention && inventionChance
+            ? (isNaN(unitPrice) ? undefined : unitPrice / (parseFloat(inventionChance) > 1 ? parseFloat(inventionChance) / 100 : parseFloat(inventionChance)))
+            : (isNaN(unitPrice) ? undefined : unitPrice);
+
+          preview[localCategory] ??= [];
+          preview[localCategory].push({
+            name: name.trim(),
+            quantity: required,
+            unitPrice: adjustedUnitPrice,
+          });
+        }
+      }
+    }
+
+    parseLines(lines);
+    if (showInvention) parseLines(inventionLines, true);
+
+    const orderedPreview: typeof preview = {};
+
+    if (blueprintName && blueprintTypeId) {
+      orderedPreview["Blueprint Info"] = [
+        { name: `Name: ${blueprintName}`, quantity: 0 },
+        { name: `Type ID: ${blueprintTypeId}`, quantity: 0 },
+      ];
+    }
+
+    if (inventionChance && showInvention) {
+      orderedPreview["Invention Metadata"] = [
+        { name: `Invention Chance: ${inventionChance}%`, quantity: 0 },
+      ];
+    }
+
+    // Append rest
+    for (const [k, v] of Object.entries(preview)) {
+      if (!(k in orderedPreview)) orderedPreview[k] = v;
+    }
+
+    return orderedPreview;
+  }, [blueprintData, inventionData, inventionChance, showInvention]);
+
+
+
+
+
+  async function handleSubmit(e: { preventDefault: () => void; }) {
     e.preventDefault();
     setLoading(true);
-
-    const url = mode === "isk" ? "/api/blueprints/blueprint" : "/api/blueprints/from-game";
-    const body =
-      mode === "isk"
-        ? {
-            name: extractBlueprintName(blueprintData),
-            materials: blueprintData,
-            sell_price: parseFloat(sellPrice),
-            material_cost: parseFloat(makeCost),
-          }
-        : {
-            blueprintData,
-            inventionData,
-            inventionChance,
-            sellPrice,
-            makeCost,
-            tier,
-          };
-
+    setError(null);
+    setSuccess(false);
     try {
-      const res = await fetch(url, {
+      const res = await fetch("/api/blueprints/blueprints", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          blueprint_paste: blueprintData,
+          invention_materials: inventionData,
+          sell_price: parseFloat(sellPrice) || 0,
+          material_cost: parseFloat(makeCost) || 0,
+          tier,
+          invention_chance: inventionChance ? parseFloat(inventionChance) : null,
+          runs_per_copy: tier === "T2" ? runsPerCopy : null
+        }),
       });
-
-      if (!res.ok) throw new Error("Failed to add blueprint");
-
-      toast.success("Blueprint added successfully");
-      onClose();
-    } catch (error) {
-      toast.error("Failed to add blueprint");
-      console.error("Error adding blueprint:", error);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Unknown error");
+      }
+      setSuccess(true);
+      setTimeout(() => onClose(), 1500);
+    } catch (err: any) {
+      console.error("Error adding blueprint:", err);
+      setError(err.message || "Failed to add blueprint");
     } finally {
+      onBlueprintAdded?.();
+      console.log("Added blueprint data:", blueprintData);
       setLoading(false);
     }
   }
 
-  function extractBlueprintName(raw: string): string {
-    const lines = raw.split("\n");
-    const match = lines[0]?.match(/['"]?([^'"]+) Blueprint['"]?/i);
-    return match ? match[1] : "Unknown Blueprint";
-  }
-
-  
 
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={tierStyles[tier].modal + " w-full max-w-2xl scale-110"}>
+      <DialogContent className={tierStyles[tier].modal + " w-full max-w-2xl scale-110 max-h-[90vh] overflow-y-auto"}>
         <DialogHeader className="mb-4">
           <DialogTitle className={tierStyles[tier].title + " text-lg font-semibold"}>
             Add Blueprint
@@ -212,9 +326,34 @@ export default function AddBlueprintModal({ open, onClose }: AddBlueprintModalPr
                   <Input
                     placeholder="Invention chance % (e.g. 42.5)"
                     value={inventionChance}
-                    onChange={(e) => setInventionChance(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || !isNaN(parseFloat(value))) {
+                        setInventionChance(value);
+                      }
+                    }}
                     className={`${styles.input} placeholder:${styles.label}`}
                   />
+                  <div>
+                    <label
+                      htmlFor="blueprintParseRunsPerCopy"
+                      className={styles.label}
+                    >
+                      Runs per Invented Copy
+                    </label>
+                    <div className="mt-2" />
+                    <select
+                      id="blueprintParseRunsPerCopy"
+                      name="blueprintParseRunsPerCopy"
+                      value={runsPerCopy}
+                      onChange={e => setRunsPerCopy(Number(e.target.value))}
+                      className={`${styles.selectTrigger} ${styles.dropdown} h-10 pl-4`}
+                    >
+                      <option className={styles.dropdownItem} value={10} selected>10 Runs</option>
+                      <option className={styles.dropdownItem} value={1}>1 Run</option>
+                    </select>
+                  </div>
+
                 </>
               )}
             </>
@@ -229,15 +368,75 @@ export default function AddBlueprintModal({ open, onClose }: AddBlueprintModalPr
             />
           )}
 
+          {Object.keys(parsedMaterials).length > 0 && (
+            <div className={`${styles.input} rounded-lg p-4 text-sm`}>
+              <strong className={`block mb-2 ${styles.title}`}>Parsed Preview:</strong>
+              <ScrollArea className={`h-80 pr-2`}>
+                {Object.entries(parsedMaterials).map(([category, items]) => (
+                  <div key={category} className="mb-4">
+                    <div className={`${styles.title} font-semibold mb-1`}>{category}</div>
+                    <ul className={`${styles.label} space-y-1`}>
+                      {items.map(({ name, quantity, unitPrice }) => (
+                        <li key={name} className={`${styles.li} flex justify-between`}>
+                          {category === "Blueprint Info" || category === "Invention Metadata" ? (
+                            <span className={styles.li}>{name}</span>
+                          ) : (
+                            <>
+                              <span className={styles.li}>{name}</span>
+                              <span className={styles.li}>
+                                {quantity} {unitPrice !== undefined ? `× ${unitPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK` : ""}
+                              </span>
+                            </>
+                          )}
+                        </li>
+                      ))}
+                      {category !== "Blueprint Info" && category !== "Invention Metadata" && (
+                        <li className="flex justify-between">
+                          <span className={styles.description}>Total:</span>
+                          <span className={styles.label}>
+                            {items.reduce((acc, { quantity, unitPrice }) => acc + (quantity * (unitPrice ?? 0)), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK
+                          </span>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                ))}
+                <div className="mt-4">
+                  <strong className={`block mb-2 ${styles.title}`}>Est. Price:</strong>
+                  <span className={styles.label}>
+                    {Object.values(parsedMaterials).reduce((acc, items) => acc + items.reduce((acc, { quantity, unitPrice }) => acc + (quantity * (unitPrice ?? 0)), 0), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK
+                  </span>
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+
+
+
+          {error && (
+            <div className="flex items-center gap-2 text-red-400 text-sm">
+              <AlertTriangle className="w-4 h-4" />
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="flex items-center gap-2 text-green-400 text-sm">
+              <CheckCircle2 className="w-4 h-4" />
+              Blueprint added successfully!
+            </div>
+          )}
+
+
           <div className="grid grid-cols-2 gap-4">
             <Input
-              placeholder="Sell Price"
+              placeholder="Sell Price (Leave as 0 for auto)"
               value={sellPrice}
               onChange={(e) => setSellPrice(e.target.value)}
               className={`${styles.input} placeholder:${styles.label}`}
             />
             <Input
-              placeholder="Make Cost"
+              placeholder="Make Cost (Leave as 0 for auto)"
               value={makeCost}
               onChange={(e) => setMakeCost(e.target.value)}
               className={`${styles.input} placeholder:${styles.label}`}

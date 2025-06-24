@@ -128,7 +128,7 @@ export default function Materials() {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <Accordion type="single" collapsible defaultValue="materials">
+            <Accordion type="single" collapsible>
               <AccordionItem
                 value="materials"
                 className="border-none bg-slate-900/60 rounded-xl overflow-hidden"
@@ -153,7 +153,10 @@ export default function Materials() {
                       className="text-sm bg-blue-700 hover:bg-blue-800"
                       onClick={async () => {
                         const statusEl = document.getElementById("update-status");
-                        if (statusEl) statusEl.textContent = "Updating material info...";
+                        if (statusEl) {
+                          statusEl.textContent = "Updating material info...";
+                          document.title = "Updating material info...";
+                        } 
                         try {
                           const response = await fetch("/api/materials/update_material_info", {
                             method: "POST",
@@ -164,6 +167,7 @@ export default function Materials() {
                             if (statusEl)
                               statusEl.textContent = data.message || "Material info updated successfully!";
                             fetchMaterials();
+                            document.title = "EVE Manufacturing Optimizer";
                           } else {
                             const errorData = await response.json();
                             if (statusEl)

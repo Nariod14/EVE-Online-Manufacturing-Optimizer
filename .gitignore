@@ -1,2 +1,5 @@
 /app.log
 /ManuOptimizer.git/refs
+/ManuOptimizer-backend/dist
+__temp_pipreqsnb_folder/_pipreqsnb_temp_file.py
+ManuOptimizer-backend/instances/eve_optimizer.db

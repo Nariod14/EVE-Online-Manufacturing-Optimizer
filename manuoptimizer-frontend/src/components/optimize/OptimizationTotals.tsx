@@ -19,23 +19,24 @@ function getProfitClass(percent: number): string {
   if (percent < 25) return 'text-orange-400'; // Meh
 
   if (percent < 35) {
-    // Ideal zone: green + soft glow
-    return 'text-green-400 font-semibold drop-shadow-[0_0_4px_#22c55e]';
+    // Ideal zone: lime with soft glow
+    return 'text-lime-400 font-semibold shadow-green-400/30 drop-shadow-sm';
   }
 
   if (percent < 50) {
-    // Above target: bright lime + glow
-    return 'text-lime-300 font-semibold drop-shadow-[0_0_6px_#a3e635] animate-pulse after:content-["⭐️"]';
+    // Above target: emerald with stronger glow
+    return 'text-emerald-400 font-semibold shadow-lime-400/40 drop-shadow-md after:content-["⭐️"]';
   }
 
   if (percent < 70) {
-    // Jackpot: blue + glow + animation
-    return 'text-emerald-400 font-bold animate-pulse drop-shadow-[0_0_8px_#60a5fa] after:content-["🌟"]';
+    // Jackpot: emerald with light shimmer
+    return 'text-green-400 font-bold drop-shadow-[0_0_5px_#34d399] after:content-["🌟"]';
   }
 
-  // God-tier: purple + shine + sparkles
-  return 'text-purple-400 font-extrabold animate-pulse drop-shadow-[0_0_10px_#c084fc] after:content-["✨"]';
+  // God-tier: glowing purple text with sparkle
+  return 'text-fuchsia-400 font-extrabold drop-shadow-[0_0_6px_#e879f9] after:content-["✨"]';
 }
+
 
 
   return (
