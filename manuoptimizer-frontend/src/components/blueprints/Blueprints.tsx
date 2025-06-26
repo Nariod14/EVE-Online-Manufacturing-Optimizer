@@ -66,15 +66,17 @@ async function handleSave(updated: Blueprint) {
     });
 
     if (!res.ok) {
+      console.error("Failed to update blueprint" + res.statusText + res.body);
       throw new Error("Failed to update blueprint");
+      
     }
 
     toast.success("Blueprint updated");
 
     const freshBlueprints = await fetchBlueprints(setBlueprints, setLoading);
 
-    // set fresh editingBlueprint (optional if modal closes)
-    const freshBlueprint = freshBlueprints.find((bp: { id: number; }) => bp.id === updated.id);
+    const freshBlueprint = freshBlueprints.find((bp: Blueprint) => bp.id === updated.id);
+
     setEditingBlueprint(freshBlueprint ?? null);
 
     setEditModalOpen(false);
@@ -83,6 +85,7 @@ async function handleSave(updated: Blueprint) {
     console.error("Error updating blueprint:", error);
   }
 }
+
 
 useEffect(() => {
   console.log("Blueprints state changed:", blueprints);
