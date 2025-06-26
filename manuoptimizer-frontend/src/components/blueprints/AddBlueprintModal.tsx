@@ -26,6 +26,7 @@ interface AddBlueprintModalProps {
   onSubmit: (data: {
     blueprintPaste: string;
     sell_price: number;
+    amt_per_run: number;
     material_cost: number;
     tier: "T1" | "T2";
     invention_materials?: string;
@@ -125,6 +126,9 @@ export default function AddBlueprintModal({
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const styles = tierStyles[tier];
+  const [isCustom, setIsCustom] = useState(false);
+  const [amtPerRun, setAmtPerRun] = useState<number | null>(null);
+ const [customAmtPerRun, setCustomAmtPerRun] = useState<number | undefined>(undefined);
 
   const showInvention = tier === "T2" && mode === "game";
 
@@ -236,6 +240,7 @@ export default function AddBlueprintModal({
           blueprint_paste: blueprintData,
           invention_materials: inventionData,
           sell_price: parseFloat(sellPrice) || 0,
+          amt_per_run: amtPerRun || 1,
           material_cost: parseFloat(makeCost) || 0,
           tier,
           invention_chance: inventionChance ? parseFloat(inventionChance) : null,
@@ -315,6 +320,42 @@ export default function AddBlueprintModal({
                 className={`${styles.input} placeholder:${styles.label} min-h-[120px] resize-y `}
               />
 
+              <div>
+                <label htmlFor="blueprintParseAmtPerRun" className={`${styles.label} mb-1 block`}>
+                  Amount per Run
+                </label>
+
+                <select
+                  id="blueprintParseAmtPerRun"
+                  name="blueprintParseAmtPerRun"
+                  value={isCustom ? 'custom' : amtPerRun ?? 1}
+                  onChange={(e) => {
+                    if (e.target.value === 'custom') {
+                      setIsCustom(true);
+                    } else {
+                      setIsCustom(false);
+                      setAmtPerRun(Number(e.target.value));
+                    }
+                  }}
+                  className={`${styles.selectTrigger} ${styles.dropdown} h-10 pl-4 mt-2`}
+                >
+                  <option className={styles.dropdownItem} value={10}>10 Units</option>
+                  <option className={styles.dropdownItem} value={1}>1 Unit</option>
+                  <option className={styles.dropdownItem} value="custom">Custom…</option>
+                </select>
+
+                {isCustom && (
+                  <input
+                    type="number"
+                    min={1}
+                    value={customAmtPerRun}
+                    onChange={(e) => setCustomAmtPerRun(Number(e.target.value))}
+                    className="mt-2 w-32 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-700 text-blue-100 text-sm"
+                    placeholder="Custom amount"
+                  />
+                )}
+              </div>
+
               {showInvention && (
                 <>
                   <Textarea
@@ -384,7 +425,7 @@ export default function AddBlueprintModal({
                             <>
                               <span className={styles.li}>{name}</span>
                               <span className={styles.li}>
-                                {quantity} {unitPrice !== undefined ? `× ${unitPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK` : ""}
+                                {quantity} {unitPrice !== undefined ? `× ${unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} ISK` : ""}
                               </span>
                             </>
                           )}
@@ -394,7 +435,7 @@ export default function AddBlueprintModal({
                         <li className="flex justify-between">
                           <span className={styles.description}>Total:</span>
                           <span className={styles.label}>
-                            {items.reduce((acc, { quantity, unitPrice }) => acc + (quantity * (unitPrice ?? 0)), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK
+                            {items.reduce((acc, { quantity, unitPrice }) => acc + (quantity * (unitPrice ?? 0)), 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} ISK
                           </span>
                         </li>
                       )}
@@ -404,7 +445,7 @@ export default function AddBlueprintModal({
                 <div className="mt-4">
                   <strong className={`block mb-2 ${styles.title}`}>Est. Price:</strong>
                   <span className={styles.label}>
-                    {Object.values(parsedMaterials).reduce((acc, items) => acc + items.reduce((acc, { quantity, unitPrice }) => acc + (quantity * (unitPrice ?? 0)), 0), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK
+                    {Object.values(parsedMaterials).reduce((acc, items) => acc + items.reduce((acc, { quantity, unitPrice }) => acc + (quantity * (unitPrice ?? 0)), 0), 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} ISK
                   </span>
                 </div>
               </ScrollArea>

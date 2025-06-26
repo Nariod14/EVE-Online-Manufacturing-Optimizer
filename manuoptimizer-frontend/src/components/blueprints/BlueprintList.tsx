@@ -46,14 +46,16 @@ function MaterialsCell({ materials }: { materials: Material[] }) {
     return <div className="text-gray-400 italic">No materials</div>;
   }
 
-  const grouped = materials.reduce<Record<string, Record<string, number>>>((acc, mat) => {
-    if (!mat) return acc; // <-- This line prevents the crash!
-    const category = mat.category || "Other";
-    if (!acc[category]) acc[category] = {};
-    acc[category][mat.name] = mat.quantity;
-    return acc;
-  }, {});
-
+  const grouped = materials.reduce<Record<string, Record<string, number>>>(
+    (acc, mat) => {
+      if (!mat) return acc;
+      const category = mat.category || "Other";
+      if (!acc[category]) acc[category] = {};
+      acc[category][mat.name] = mat.quantity;
+      return acc;
+    },
+    {}
+  );
 
   return (
     <ul className="list-none pl-0 m-0 text-xs">
@@ -63,7 +65,13 @@ function MaterialsCell({ materials }: { materials: Material[] }) {
           <ul className="list-none pl-3">
             {Object.entries(items).map(([item, qty]) => (
               <li key={item}>
-                <span className="text-accent">{item}</span>: {qty}
+                <span className="text-accent">{item}</span>:{" "}
+                {typeof qty === "number"
+                  ? qty.toLocaleString(undefined, {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 2,
+                    })
+                  : qty}
               </li>
             ))}
           </ul>
@@ -72,6 +80,7 @@ function MaterialsCell({ materials }: { materials: Material[] }) {
     </ul>
   );
 }
+
 
 
 type BlueprintsListProps = {

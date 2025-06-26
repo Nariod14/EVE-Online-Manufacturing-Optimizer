@@ -50,30 +50,43 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None):
     else:
         normalized = bp.materials
 
+    amt_per_run = getattr(bp, "amt_per_run", 1) # fallback to 1
+
+    # How many runs of this blueprint are needed to make `quantity` final units
+    runs_needed = quantity / amt_per_run
+
     for section_name, section in normalized.items():
-        for mat, qty in section.items():
+        for mat, qty_per_run in section.items():
             sub_bp = next((b for b in blueprints if b.name == mat), None)
 
-            if section_name == "Invention Materials" and hasattr(bp, "invention_chance") and bp.invention_chance and hasattr(bp, "runs_per_copy") and bp.runs_per_copy:
-                attempts_needed = quantity / (bp.runs_per_copy * bp.invention_chance)
-                expanded[mat] += qty * attempts_needed
+            if (
+                section_name == "Invention Materials"
+                and hasattr(bp, "invention_chance")
+                and bp.invention_chance
+            ):
+                # invention mats scale by attempts, not runs
+                attempts_needed = runs_needed / bp.invention_chance
+                expanded[mat] += qty_per_run * attempts_needed
 
             elif sub_bp:
                 if getattr(sub_bp, "tier", "T1") == "T1":
                     if t1_dependencies is not None:
-                        t1_dependencies[mat] = t1_dependencies.get(mat, 0) + qty * quantity
-                    sub_mats = expand_materials(sub_bp, blueprints, qty * quantity, t1_dependencies)
+                        t1_dependencies[mat] = t1_dependencies.get(mat, 0) + qty_per_run * runs_needed
+                    sub_mats = expand_materials(sub_bp, blueprints, quantity=qty_per_run * runs_needed, t1_dependencies=t1_dependencies)
                     for sm, sq in sub_mats.items():
                         expanded[sm] += sq
                 else:
-                    sub_mats = expand_materials(sub_bp, blueprints, qty * quantity, t1_dependencies)
+                    # Non-T1 blueprint, expand and also count the item itself
+                    sub_mats = expand_materials(sub_bp, blueprints, quantity=qty_per_run * runs_needed, t1_dependencies=t1_dependencies)
                     for sm, sq in sub_mats.items():
                         expanded[sm] += sq
-                    expanded[mat] += qty * quantity
+                    expanded[mat] += qty_per_run * runs_needed
             else:
-                expanded[mat] += qty * quantity
+                # Base material
+                expanded[mat] += qty_per_run * runs_needed
 
     return expanded
+
 
 
 
@@ -109,6 +122,18 @@ def normalize_materials_structure(materials_raw):
     else:
         # fallback to empty
         return {}
+
+
+def flatten_materials(normalized):
+    """
+    Converts nested dict {cat: {mat: qty}} to flat dict {mat: qty}
+    """
+    flat = {}
+    for cat_dict in normalized.values():
+        for mat, qty in cat_dict.items():
+            flat[mat] = qty
+    return flat
+
 
 def get_material_quantity(blueprint, material_name):
     quantity = 0
@@ -189,13 +214,50 @@ def get_item_info(material_names):
     }
 
 def compute_expanded_materials(blueprint, quantity, blueprints):
-    """Returns dict of materials (including Items) required to produce quantity units of blueprint"""
+    """Returns dict of materials (including Items) required to produce `quantity` final units of blueprint output"""
     t1_deps = defaultdict(float)
     expanded = expand_materials(blueprint, blueprints, quantity=quantity, t1_dependencies=t1_deps)
     combined = defaultdict(float, expanded)
     for k, v in t1_deps.items():
         combined[k] += v
     return combined
+
+
+def safe_subtract(inventory, mat, amt):
+    before = inventory.get(mat, 0)
+    if amt > before:
+        logger.warning(f"Clamping subtract {amt} to {before} for {mat}")
+        amt = before
+    inventory[mat] = before - amt
+
+
+def validate_inventory(inventory, iteration):
+    for mat, qty in inventory.items():
+        if qty < 0:
+            logger.error(f"Negative inventory for {mat} at iteration {iteration}: {qty}")
+
+
+
+def expand_sub_blueprints_one_level(bp, blueprints, quantity=1):
+    """Expand one level of materials for a blueprint without full recursion into T1."""
+    expanded = defaultdict(float)
+
+    if isinstance(bp.materials, list):
+        normalized = normalize_materials_structure(bp.materials)
+    else:
+        normalized = bp.materials
+
+    for section_name, section in normalized.items():
+        for mat, qty in section.items():
+            sub_bp = next((b for b in blueprints if b.name == mat), None)
+            if sub_bp:
+                # Just add the immediate material (the sub_blueprint name and qty*quantity)
+                expanded[mat] += qty * quantity
+            else:
+                # Base material, add as-is
+                expanded[mat] += qty * quantity
+
+    return expanded
 
 def get_item_name(type_id):
     base_path = getattr(sys, '_MEIPASS', os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
