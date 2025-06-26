@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Blueprint, BlueprintBase, BlueprintT1, BlueprintT2 } from "@/types/blueprints";
 import { useEffect, useState } from "react";
 import { BlueprintTier } from "@/types/blueprints";
+import { Material } from "@/types/materials";
 
 type EditBlueprintModalProps = {
   open: boolean;
@@ -40,6 +41,12 @@ export function EditBlueprintModal({
   ? "bg-gradient-to-br from-orange-800 via-orange-700 to-yellow-700 text-orange-100"
   : "";
   const [stations, setStations] = useState<{ station_id: string; name: string }[]>([]);
+  const [category, setCategory] = useState<string>("");
+  const [runsPerCopy, setRunsPerCopy] = useState<number | null>(10); 
+  const [isCustom, setIsCustom] = useState(false);
+
+  const [customRunsPerCopy, setCustomRunsPerCopy] = useState<number>(0);
+
 
   useEffect(() => {
     async function fetchStations() {
@@ -120,6 +127,19 @@ function handleTierChange(value: "T1" | "T2") {
   });
 }
 
+function onSaveLocal(updated: Blueprint) {
+  for (const mat of updated.materials || []) {
+    if (!mat.category || mat.category.trim() === "") {
+      alert(`Please select or enter a category for material: ${mat.name || "Unnamed"}`);
+      return; // stops saving if any category invalid
+    }
+  }
+  // All good, call parent's onSave
+  onSave(updated);
+}
+
+
+
 
 
 
@@ -142,9 +162,55 @@ function handleTierChange(value: "T1" | "T2") {
     );
   }
 
+  function updateMaterialField(index: number, field: keyof Material, value: any) {
+  setForm((prev) => {
+    if (!prev) return null; // fallback safety for null
+
+    const updatedMaterials = [...(prev.materials || [])];
+    updatedMaterials[index] = {
+      ...updatedMaterials[index],
+      [field]: value,
+    };
+
+    return {
+      ...prev,
+      materials: updatedMaterials,
+    };
+  });
+}
+
+function addMaterial() {
+  setForm((prev) => {
+    if (!prev) return null;
+
+    return {
+      ...prev,
+      materials: [...(prev.materials || []), { id: Date.now(), name: "", quantity: 0 }],
+    };
+  });
+}
+
+
+function removeMaterial(index: number) {
+  setForm((prev) => {
+    if (!prev) return null;
+
+    const updated = [...(prev.materials || [])];
+    updated.splice(index, 1);
+
+    return {
+      ...prev,
+      materials: updated,
+    };
+  });
+}
+
+
+
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (form) onSave(form);
+    if (form) onSaveLocal(form);
   }
 
 
@@ -156,6 +222,13 @@ function handleTierChange(value: "T1" | "T2") {
       label: "text-[#a0c4ff] mb-1",
       input:
         "bg-slate-800 border border-blue-800 text-white focus:ring-blue-400 focus:border-blue-400",
+
+      dropdown:
+        "bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 border border-blue-800 text-blue-100 shadow-lg rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+
+      dropdownItem:
+        "px-4 py-2 rounded-md text-blue-100 hover:bg-blue-800 hover:text-blue-200 focus:bg-blue-900 focus:text-white cursor-pointer transition-colors",
+
       selectTrigger:
         "bg-slate-800 border border-blue-800 text-white focus:ring-blue-400 focus:border-blue-400",
       selectContent: "bg-slate-900 text-white",
@@ -174,6 +247,13 @@ function handleTierChange(value: "T1" | "T2") {
       label: "text-[#f9d58b] mb-1",
       input:
         "bg-[#5c3b0d] border border-amber-700 text-[#f0e4c1] focus:ring-amber-400 focus:border-amber-400",
+      
+      dropdown:
+        "bg-[#4a2e08] border border-amber-700 text-[#f0e4c1] shadow-lg rounded-xl focus:ring-2 px-3 focus:ring-amber-400 focus:border-amber-400",
+
+      dropdownItem:
+        "px-4 py-2 rounded-md text-amber-100 hover:bg-amber-900 hover:text-amber-200 focus:bg-amber-950 focus:text-white cursor-pointer transition-colors",
+
       selectTrigger:
         "bg-[#5c3b0d] border border-amber-700 text-[#f0e4c1] focus:ring-amber-400 focus:border-amber-400",
       selectContent: "bg-[#3e2f0f] text-[#f0e4c1]",
@@ -269,6 +349,8 @@ function handleTierChange(value: "T1" | "T2") {
             </select>
           </div>
 
+         
+
           <div>
             <Label htmlFor="editBlueprintTier" className={styles.label}>
               Tier
@@ -285,6 +367,43 @@ function handleTierChange(value: "T1" | "T2") {
                 <SelectItem value="T2">Tier 2</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <label htmlFor="blueprintParseRunsPerCopy" className={`${styles.label} mb-1 block`}>
+              Runs per Copy
+            </label>
+
+            <select
+              id="blueprintParseRunsPerCopy"
+              name="blueprintParseRunsPerCopy"
+              value={isCustom ? 'custom' : runsPerCopy ?? 1}
+              onChange={(e) => {
+                if (e.target.value === 'custom') {
+                  setIsCustom(true);
+                } else {
+                  setIsCustom(false);
+                  setRunsPerCopy(Number(e.target.value));
+                }
+              }}
+              className={`${styles.selectTrigger} ${styles.dropdown} h-10 pl-4 mt-2`}
+            >
+              <option className={styles.dropdownItem} value={10}>10 Runs</option>
+              <option className={styles.dropdownItem} value={1}>1 Run</option>
+              <option className={styles.dropdownItem} value="custom">Custom…</option>
+            </select>
+
+            {isCustom && (
+              <input
+                type="number"
+                min={1}
+                value={customRunsPerCopy}
+                onChange={(e) => setCustomRunsPerCopy(Number(e.target.value))}
+                className={`${styles.input} mt-2 w-32 px-3 ml-2 h-10 py-1.5 rounded-md `}
+                
+                placeholder="Custom runs"
+              />
+            )}
           </div>
 
           {form.tier === "T2" && (
@@ -308,32 +427,88 @@ function handleTierChange(value: "T1" | "T2") {
                   className={`${styles.input} w-full`}
                 />
               </div>
-
-              <div>
-                <Label
-                  htmlFor="editBlueprintRunsPerCopy"
-                  className={styles.label}
-                >
-                  Runs per Invented Copy
-                </Label>
-                <Select
-                  value={String(form.runs_per_copy || 10)}
-                  onValueChange={handleRunsPerCopyChange}
-                >
-                  <SelectTrigger
-                    id="editBlueprintRunsPerCopy"
-                    className={`${styles.selectTrigger} w-full`}
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className={styles.selectContent}>
-                    <SelectItem value="10">10 Runs</SelectItem>
-                    <SelectItem value="1">1 Run</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </>
           )}
+
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold mb-2">Materials</h3>
+            {(form.materials || []).map((material: Material, idx: number) => (
+              <div key={material.id ?? idx} className="flex gap-2 items-center mb-2">
+                <Input
+                  type="text"
+                  placeholder="Name"
+                  value={material.name}
+                  onChange={(e) => updateMaterialField(idx, "name", e.target.value)}
+                  className="w-1/3"
+                />
+                <Input
+                  type="number"
+                  placeholder="Qty"
+                  value={material.quantity}
+                  min={0}
+                  onChange={(e) => updateMaterialField(idx, "quantity", parseInt(e.target.value) || 0)}
+                  className="w-1/4"
+                />
+                {(() => {
+                  const isOther = material.category === "Other";
+                  const isCustom =
+                    material.category &&
+                    !["Minerals", "Items", "Components", "Invention Materials", "Reaction Materials", "Planetary Materials", "Other"].includes(material.category);
+
+                  return (
+                    <>
+                      <Select
+                        value={isCustom ? "Other" : material.category || ""}
+                        onValueChange={(val) => {
+                          if (val === "Other") {
+                            updateMaterialField(idx, "category", "Other");
+                          } else {
+                            updateMaterialField(idx, "category", val);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className={styles.selectTrigger}>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 text-blue-100">
+                          <SelectItem value="Minerals">Minerals</SelectItem>
+                          <SelectItem value="Items">Items</SelectItem>
+                          <SelectItem value="Components">Components</SelectItem>
+                          <SelectItem value="Invention Materials">Invention Materials</SelectItem>
+                          <SelectItem value="Reaction Materials">Reaction Materials</SelectItem>
+                          <SelectItem value="Planetary Materials">Planetary Materials</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      {(isOther || isCustom) && (
+                        <Input
+                          type="text"
+                          placeholder="Enter custom category"
+                          value={material.category || ""}
+                          onChange={(e) => updateMaterialField(idx, "category", e.target.value)}
+                          className="mt-2 bg-slate-900 border border-slate-700 text-blue-100"
+                        />
+                      )}
+                    </>
+                  );
+                })()}
+
+
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => removeMaterial(idx)}
+                  className="w-1/6"
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <Button type="button" onClick={addMaterial} variant="secondary" className="mt-2">
+              + Add Material
+            </Button>
+          </div>
 
           <DialogFooter>
             <Button type="submit" className={styles.buttonPrimary}>

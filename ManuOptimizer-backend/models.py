@@ -7,6 +7,7 @@ class Blueprint(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type_id = db.Column(db.Integer, nullable=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
+    amt_per_run = db.Column(db.Integer, nullable=False, server_default="1")
     materials = db.Column(db.JSON, nullable=False)
     def get_normalized_materials(self):
         from routes.utils import normalize_materials_structure
@@ -24,6 +25,7 @@ class Blueprint(db.Model):
     use_jita_sell = db.Column(db.Boolean, default=True, nullable=False)
     used_jita_fallback = db.Column(db.Boolean, default=False)
     station = db.relationship('Station', backref='blueprints', lazy='joined')
+    
     __mapper_args__ = {
         "polymorphic_identity": "T1",
         "polymorphic_on": tier
@@ -34,8 +36,8 @@ class BlueprintT2(Blueprint):
     id = db.Column(db.Integer, db.ForeignKey('blueprint.id'), primary_key=True)
     invention_chance = db.Column(db.Float, nullable=False)
     invention_cost = db.Column(db.Float, nullable=False, server_default="0")
-    full_material_cost = db.Column(db.Float, nullable=False, server_default="0")
     runs_per_copy = db.Column(db.Integer, nullable=False, server_default="10")
+    full_material_cost = db.Column(db.Float, nullable=False, server_default="0")
     __mapper_args__ = {
         "polymorphic_identity": "T2",
     }
