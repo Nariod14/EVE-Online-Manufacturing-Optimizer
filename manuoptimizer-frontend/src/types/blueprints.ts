@@ -9,6 +9,7 @@ export type BlueprintBase = {
   id: number;
   type_id?: number | null;
   name: string;
+  amt_per_run: number;
   materials: any; // JSON data
   sell_price: number;
   max?: number | null;
@@ -42,6 +43,7 @@ export const mockBlueprints = [
     id: 1,
     name: "Hobgoblin I",
     type_id: 1001,
+    amt_per_run: 1,
     materials: [
       mockMaterials[0], // Tritanium
       mockMaterials[1], // Pyerite
@@ -60,6 +62,7 @@ export const mockBlueprints = [
     id: 2,
     name: "Warp Core Stabilizer I",
     type_id: 1002,
+    amt_per_run: 1,
     materials: [
       mockMaterials[0], // Tritanium
       mockMaterials[1], // Pyerite
@@ -78,6 +81,7 @@ export const mockBlueprints = [
     id: 3,
     name: "Hobgoblin II",
     type_id: 2001,
+    amt_per_run: 1,
     materials: [
       mockMaterials[0], // Tritanium
       mockMaterials[1], // Pyerite
@@ -101,6 +105,7 @@ export const mockBlueprints = [
     id: 4,
     name: "Warp Core Stabilizer II",
     type_id: 2002,
+    amt_per_run: 1,
     materials: [
       mockMaterials[0], // Tritanium
       mockMaterials[1], // Pyerite
@@ -124,6 +129,7 @@ export const mockBlueprints = [
     id: 5,
     name: "R.A.M Energy Tech",
     type_id: 1003,
+    amt_per_run: 100,
     materials: [
       mockMaterials[0], // Tritanium
       mockMaterials[1], // Pyerite

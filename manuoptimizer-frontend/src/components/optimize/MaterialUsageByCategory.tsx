@@ -10,6 +10,7 @@ type MaterialUsage = {
 
 type Props = {
   usage: Record<string, MaterialUsage>;
+  savings?: Record<string, { amount: number; category?: string }>;
 };
 
 const knownMinerals = [
@@ -22,6 +23,12 @@ const CATEGORY_ORDER = [
   "Reaction Materials", "Salvaged Materials", "Planetary Materials",
   "Fuel", "Other"
 ];
+
+type InventorySaving = {
+  amount: number;
+  category?: string;
+};
+
 
 function getUsageColor(percent: number) {
   if (percent >= 200) return "text-red-900";
@@ -62,9 +69,10 @@ function getRemainingColor(percent: number): string {
 }
 
 
-export default function MaterialUsageByCategory({ usage }: Props) {
+export default function MaterialUsageByCategory({ usage, savings = {} }: Props) {
   const categorized: Record<string, Record<string, MaterialUsage>> = {};
   const [open, setOpen] = useState(false);
+  const [open2, setOpen2] = useState(false);
   for (const material in usage) {
     const info = usage[material];
     let category = info.category?.trim() ?? "Other";
@@ -78,6 +86,7 @@ export default function MaterialUsageByCategory({ usage }: Props) {
   return (
     <div className="space-y-4">
       <h3 className="text-2xl text-blue-300 font-semibold mb-2">Material Usage by Category</h3>
+      <h2 className="text-xl text-blue-300 font-semibold mb-2">Negative Numbers indicate inventory </h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {CATEGORY_ORDER.map((category) => {
           const materials = categorized[category];
@@ -153,6 +162,94 @@ export default function MaterialUsageByCategory({ usage }: Props) {
             </div>
           );
         })}
+      </div>
+      
+      {/* To Be Built + Inventory Savings Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+
+        {/* To Be Built */}
+        {Object.entries(usage).some(
+          ([_, info]) => info.category === "Items" && info.remaining < 0
+        ) && (
+          <div className="rounded-xl bg-gradient-to-br from-yellow-800/30 to-yellow-900/30 border border-yellow-600 shadow-inner">
+            <div
+              className="cursor-pointer flex justify-between items-center p-4"
+              onClick={() => setOpen2(!open2)}
+            >
+              <h4 className="text-lg text-yellow-300 font-semibold">To Be Built</h4>
+              <div className="text-yellow-300">{open2 ? <ChevronDown /> : <ChevronRight />}</div>
+            </div>
+
+            {open2 && (
+              <div className="px-4 pb-4">
+                <div className="flex justify-between text-xs text-yellow-200 font-semibold border-b border-yellow-600 pb-1">
+                  <div className="w-2/3">Material</div>
+                  <div className="w-1/3 text-right">Amount</div>
+                </div>
+                <div className="mt-2 space-y-1">
+                  {Object.entries(usage)
+                    .filter(([_, info]) => info.category === "Items" && info.remaining < 0)
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([name, info]) => (
+                      <div key={name} className="flex justify-between text-sm text-yellow-100">
+                        <div className="w-2/3 truncate">{name}</div>
+                        <div className="w-1/3 text-right text-yellow-400">
+                          {Math.abs(info.remaining).toLocaleString()}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Inventory Savings */}
+        {savings && Object.keys(savings).length > 0 && (
+          <div className="rounded-xl bg-gradient-to-br from-emerald-800/30 to-emerald-950/30 border border-emerald-700 shadow-inner">
+            <div
+              className="cursor-pointer flex justify-between items-center p-4"
+              onClick={() => setOpen2(!open2)}
+            >
+              <h4 className="text-lg text-emerald-300 font-semibold">Inventory Savings</h4>
+              <div className="text-emerald-300">{open2 ? <ChevronDown /> : <ChevronRight />}</div>
+            </div>
+
+            {open2 && (
+              <div className="px-4 pb-4">
+                {Object.entries(
+                  Object.entries(savings).reduce((acc, [name, { amount, category = "Other" }]) => {
+                    if (!acc[category]) acc[category] = {};
+                    acc[category][name] = amount;
+                    return acc;
+                  }, {} as Record<string, Record<string, number>>)
+                )
+                  .sort(([a], [b]) => a.localeCompare(b))
+                  .map(([category, materials]) => (
+                    <div key={category} className="mb-4">
+                      <h5 className="text-emerald-200 font-medium mb-1">{category}</h5>
+                      <div className="flex justify-between text-xs text-emerald-300 font-semibold border-b border-emerald-600 pb-1">
+                        <div className="w-2/3">Material</div>
+                        <div className="w-1/3 text-right">Saved</div>
+                      </div>
+                      <div className="mt-1 space-y-1">
+                        {Object.entries(materials)
+                          .sort(([a], [b]) => a.localeCompare(b))
+                          .map(([name, amount]) => (
+                            <div key={name} className="flex justify-between text-sm text-emerald-100">
+                              <div className="w-2/3 truncate">{name}</div>
+                              <div className="w-1/3 text-right text-emerald-400">
+                                {amount.toLocaleString()}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ const localOptimizeResponse = mockOptimizeResponse;
 interface BlueprintPayload {
   blueprint_paste: string;
   invention_materials: string;
+  amt_per_run: number;
   sell_price: number;
   material_cost: number;
   tier: string;
@@ -316,6 +317,7 @@ export const handlers = [
       blueprint_paste,
       invention_materials,
       sell_price,
+      amt_per_run,
       material_cost,
       tier,
       invention_chance,
@@ -343,13 +345,14 @@ export const handlers = [
         id: nextId++,
         name,
         type_id,
+        amt_per_run: amt_per_run ?? 1,
+        runs_per_copy: runs_per_copy ?? 10,
         materials: materialsForBlueprint,
         sell_price: sell_price ?? 0,
         material_cost: material_cost ?? 0,
         full_material_cost: 0,
         invention_cost: 0,
         invention_chance: invention_chance ?? 0,
-        runs_per_copy: runs_per_copy ?? 10,
         tier: 'T2',
         region_id: 0,
         use_jita_sell: false,
@@ -360,6 +363,7 @@ export const handlers = [
         id: nextId++,
         name,
         type_id,
+        amt_per_run: amt_per_run ?? 1,
         materials: materialsForBlueprint,
         sell_price: sell_price ?? 0,
         material_cost: material_cost ?? 0,

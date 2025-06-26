@@ -46,6 +46,7 @@ export default function Optimize() {
     total_profit: result.total_profit,
     true_profit_jita: result.true_profit_jita,
     true_profit_inventory: result.true_profit_inventory,
+    inventory_savings: result.inventory_savings,
   } : null;
   
 
@@ -77,7 +78,7 @@ export default function Optimize() {
             </div>
 
             {/* Full width sections */}
-            <MaterialUsageByCategory usage={result.material_usage} />
+            <MaterialUsageByCategory usage={result.material_usage} savings={result.inventory_savings} />
             <BottleneckList materialUsage={result.material_usage} />
           </div>
         )}
