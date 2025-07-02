@@ -20,6 +20,8 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { cn } from "@/lib/utils";
 
 interface AddBlueprintModalProps {
   open: boolean
@@ -52,7 +54,7 @@ const tierStyles = {
       "text-blue-100",
 
     dropdown:
-      "bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 border border-blue-800 text-blue-100 shadow-lg rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+      " border border-blue-800 text-blue-100 shadow-lg rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
     
     dropdownItem:
       "px-4 py-2 rounded-md text-blue-100 hover:bg-blue-800 hover:text-blue-200 focus:bg-blue-900 focus:text-white cursor-pointer transition-colors",
@@ -86,7 +88,7 @@ const tierStyles = {
       "text-amber-100",
     
     dropdown:
-      "bg-[#4a2e08] border border-amber-700 text-[#f0e4c1] shadow-lg rounded-xl focus:ring-2 px-3 focus:ring-amber-400 focus:border-amber-400",
+      "bg-[#4a2e08] via-amber-900 to-orange-950 border border-amber-700 text-[#f0e4c1] shadow-lg rounded-xl focus:ring-2 px-3 focus:ring-amber-400 focus:border-amber-400",
     
     dropdownItem:
       "px-4 py-2 rounded-md text-amber-100 hover:bg-amber-900 hover:text-amber-200 focus:bg-amber-950 focus:text-white cursor-pointer transition-colors",
@@ -119,7 +121,7 @@ export default function AddBlueprintModal({
   const [inventionData, setInventionData] = useState("");
   const [inventionChance, setInventionChance] = useState("");
   const runsPerCopyOptions = [1, 10];
-  const [runsPerCopy, setRunsPerCopy] = useState(runsPerCopyOptions[0]);
+  const [runsPerCopy, setRunsPerCopy] = useState(runsPerCopyOptions[1]);
   const [sellPrice, setSellPrice] = useState("");
   const [makeCost, setMakeCost] = useState("");
   const [loading, setLoading] = useState(false);
@@ -127,8 +129,8 @@ export default function AddBlueprintModal({
   const [success, setSuccess] = useState(false);
   const styles = tierStyles[tier];
   const [isCustom, setIsCustom] = useState(false);
-  const [amtPerRun, setAmtPerRun] = useState<number | null>(null);
- const [customAmtPerRun, setCustomAmtPerRun] = useState<number | undefined>(undefined);
+  const [amtPerRun, setAmtPerRun] = useState<number>(1);
+  const [customAmtPerRun, setCustomAmtPerRun] = useState<number | undefined>(undefined);
 
   const showInvention = tier === "T2" && mode === "game";
 
@@ -267,7 +269,13 @@ export default function AddBlueprintModal({
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={tierStyles[tier].modal + " w-full max-w-2xl scale-110 max-h-[90vh] overflow-y-auto"}>
+    <div className="w-full overflow-x-hidden">
+      <DialogContent
+        className={cn(
+          tierStyles[tier].modal,
+          "max-w-2xl w-full max-h-[90vh] overflow-y-auto px-4" // Add padding instead of scale
+        )}
+      >
         <DialogHeader className="mb-4">
           <DialogTitle className={tierStyles[tier].title + " text-lg font-semibold"}>
             Add Blueprint
@@ -317,44 +325,53 @@ export default function AddBlueprintModal({
                 placeholder="Paste blueprint data from game"
                 value={blueprintData}
                 onChange={(e) => setBlueprintData(e.target.value)}
-                className={`${styles.input} placeholder:${styles.label} min-h-[120px] resize-y `}
+                className={`${styles.input} placeholder:${styles.label} min-h-[120px] resize-y w-full break-words`}
+                style={{ wordBreak: "break-word" }}
               />
 
-              <div>
-                <label htmlFor="blueprintParseAmtPerRun" className={`${styles.label} mb-1 block`}>
-                  Amount per Run
-                </label>
+             <div>
+               <Label htmlFor="blueprintParseAmtPerRun" className={`${styles.label} mb-1 block`}>
+                 Amount per Run
+               </Label>
 
-                <select
-                  id="blueprintParseAmtPerRun"
-                  name="blueprintParseAmtPerRun"
-                  value={isCustom ? 'custom' : amtPerRun ?? 1}
-                  onChange={(e) => {
-                    if (e.target.value === 'custom') {
-                      setIsCustom(true);
-                    } else {
-                      setIsCustom(false);
-                      setAmtPerRun(Number(e.target.value));
-                    }
-                  }}
-                  className={`${styles.selectTrigger} ${styles.dropdown} h-10 pl-4 mt-2`}
-                >
-                  <option className={styles.dropdownItem} value={10}>10 Units</option>
-                  <option className={styles.dropdownItem} value={1}>1 Unit</option>
-                  <option className={styles.dropdownItem} value="custom">Custom…</option>
-                </select>
+               <div className="flex items-center gap-3">
+                 <Select
+                   value={isCustom ? "custom" : String(amtPerRun ?? 1)}
+                   onValueChange={(value) => {
+                     if (value === "custom") {
+                       setIsCustom(true);
+                     } else {
+                       setIsCustom(false);
+                       setAmtPerRun(Number(value));
+                     }
+                   }}
+                 >
+                   <SelectTrigger
+                     id="blueprintParseAmtPerRun"
+                     className={`${styles.selectTrigger} ${styles.dropdown} h-10 pl-4 mt-2 scale-110 mx-2 custom-select-trigger`}
+                   >
+                     <SelectValue placeholder="Choose amount..." />
+                   </SelectTrigger>
 
-                {isCustom && (
-                  <input
-                    type="number"
-                    min={1}
-                    value={customAmtPerRun}
-                    onChange={(e) => setCustomAmtPerRun(Number(e.target.value))}
-                    className="mt-2 w-32 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-700 text-blue-100 text-sm"
-                    placeholder="Custom amount"
-                  />
-                )}
-              </div>
+                   <SelectContent className={styles.selectContent}>
+                     <SelectItem value="100">100 Units</SelectItem>
+                     <SelectItem value="1">1 Unit</SelectItem>
+                     <SelectItem value="custom">Custom…</SelectItem>
+                   </SelectContent>
+                 </Select>
+
+                 {isCustom && (
+                   <input
+                     type="number"
+                     min={1}
+                     value={customAmtPerRun}
+                     onChange={(e) => setCustomAmtPerRun(Number(e.target.value))}
+                     className="w-32 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-700 text-blue-100 text-sm mt-2 h-10"
+                     placeholder="Custom amount"
+                   />
+                 )}
+               </div>
+             </div>
 
               {showInvention && (
                 <>
@@ -412,7 +429,8 @@ export default function AddBlueprintModal({
           {Object.keys(parsedMaterials).length > 0 && (
             <div className={`${styles.input} rounded-lg p-4 text-sm`}>
               <strong className={`block mb-2 ${styles.title}`}>Parsed Preview:</strong>
-              <ScrollArea className={`h-80 pr-2`}>
+              <ScrollArea className="h-80 pr-2 px-2 scroll-py-2.5 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+              <div className="w-full space-y-4 break-words">
                 {Object.entries(parsedMaterials).map(([category, items]) => (
                   <div key={category} className="mb-4">
                     <div className={`${styles.title} font-semibold mb-1`}>{category}</div>
@@ -448,6 +466,7 @@ export default function AddBlueprintModal({
                     {Object.values(parsedMaterials).reduce((acc, items) => acc + items.reduce((acc, { quantity, unitPrice }) => acc + (quantity * (unitPrice ?? 0)), 0), 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} ISK
                   </span>
                 </div>
+              </div>
               </ScrollArea>
             </div>
           )}
@@ -503,6 +522,7 @@ export default function AddBlueprintModal({
           </div>
         </form>
       </DialogContent>
+      </div>
     </Dialog>
   );
 }
