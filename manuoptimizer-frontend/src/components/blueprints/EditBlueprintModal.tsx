@@ -42,11 +42,12 @@ export function EditBlueprintModal({
   : "";
   const [stations, setStations] = useState<{ station_id: string; name: string }[]>([]);
   const [category, setCategory] = useState<string>("");
-  const [runsPerCopy, setRunsPerCopy] = useState<number | null>(10); 
   const [isCustom, setIsCustom] = useState(false);
+  const [amtPerRun, setAmtPerRun] = useState<number>(1);
+  const [customAmtPerRun, setCustomAmtPerRun] = useState<number | undefined>(undefined);
 
-  const [customRunsPerCopy, setCustomRunsPerCopy] = useState<number>(0);
-
+  // State for manual category text input when "Other" is selected
+  const [manualCategory, setManualCategory] = useState<string>("");
 
   useEffect(() => {
     async function fetchStations() {
@@ -119,6 +120,7 @@ function handleTierChange(value: "T1" | "T2") {
         return {
           ...baseProps,
           tier: "T1",
+
         } as BlueprintT1;
       }
       // For T1 → T1 (no change needed)
@@ -133,6 +135,7 @@ function onSaveLocal(updated: Blueprint) {
       alert(`Please select or enter a category for material: ${mat.name || "Unnamed"}`);
       return; // stops saving if any category invalid
     }
+    
   }
   // All good, call parent's onSave
   onSave(updated);
@@ -217,21 +220,25 @@ function removeMaterial(index: number) {
   const tierStyles = {
     T1: {
       modal:
-        "rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 border border-blue-800 shadow-2xl text-white",
+        "rounded-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 border border-blue-800 shadow-2xl text-white",
 
       label: "text-[#a0c4ff] mb-1",
       input:
         "bg-slate-800 border border-blue-800 text-white focus:ring-blue-400 focus:border-blue-400",
-
+        
       dropdown:
-        "bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 border border-blue-800 text-blue-100 shadow-lg rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+        " border border-blue-800 text-blue-100 shadow-lg rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
 
       dropdownItem:
         "px-4 py-2 rounded-md text-blue-100 hover:bg-blue-800 hover:text-blue-200 focus:bg-blue-900 focus:text-white cursor-pointer transition-colors",
-
+      
+      selectValue: "bg-slate-800 border border-blue-800 text-white focus:ring-blue-400 focus:border-blue-400",
+      
       selectTrigger:
         "bg-slate-800 border border-blue-800 text-white focus:ring-blue-400 focus:border-blue-400",
+
       selectContent: "bg-slate-900 text-white",
+
 
       buttonPrimary:
         "bg-blue-700 hover:bg-blue-500 focus:ring-blue-500 text-white",
@@ -242,20 +249,23 @@ function removeMaterial(index: number) {
 
     T2: {
       modal:
-        "rounded-2xl bg-gradient-to-br from-yellow-900 via-amber-900 to-orange-950 border border-amber-700 shadow-2xl text-[#f0e4c1]",
+        "rounded-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-yellow-900 via-amber-900 to-orange-950 border border-amber-700 shadow-2xl text-[#f0e4c1]",
 
       label: "text-[#f9d58b] mb-1",
       input:
         "bg-[#5c3b0d] border border-amber-700 text-[#f0e4c1] focus:ring-amber-400 focus:border-amber-400",
-      
+
       dropdown:
-        "bg-[#4a2e08] border border-amber-700 text-[#f0e4c1] shadow-lg rounded-xl focus:ring-2 px-3 focus:ring-amber-400 focus:border-amber-400",
+        "bg-[#4a2e08] via-amber-900 to-orange-950 border border-amber-700 text-[#f0e4c1] shadow-lg rounded-xl focus:ring-2 px-3 focus:ring-amber-400 focus:border-amber-400",
 
       dropdownItem:
         "px-4 py-2 rounded-md text-amber-100 hover:bg-amber-900 hover:text-amber-200 focus:bg-amber-950 focus:text-white cursor-pointer transition-colors",
 
       selectTrigger:
-        "bg-[#5c3b0d] border border-amber-700 text-[#f0e4c1] focus:ring-amber-400 focus:border-amber-400",
+        "bg-[#5c3b0d] border border-amber-700 text-amber-100 focus:ring-amber-400 focus:border-amber-400 [&>[data-placeholder]]:text-amber-400",
+      
+      selectValue: "bg-[#5c3b0d] border border-amber-700 text-amber-100 focus:ring-amber-400 focus:border-amber-400",
+      
       selectContent: "bg-[#3e2f0f] text-[#f0e4c1]",
 
       buttonPrimary:
@@ -348,8 +358,56 @@ function removeMaterial(index: number) {
               ))}
             </select>
           </div>
-
-         
+         <div>
+           <Label htmlFor="blueprintParseAmtPerRun" className={`${styles.label} mb-1 block`}>
+             Amount per Run
+           </Label>
+           <div className="flex items-center gap-3">
+             <Select
+               value={isCustom ? "custom" : String(amtPerRun ?? 1)}
+               onValueChange={(value) => {
+                 if (value === "custom") {
+                   setIsCustom(true);
+                 } else {
+                   const numeric = Number(value);
+                   setIsCustom(false);
+                   setAmtPerRun(numeric);
+                   setForm((prev) =>
+                     prev ? { ...prev, amt_per_run: numeric } : prev
+                   );
+                 }
+               }}
+             >
+               <SelectTrigger
+                 id="blueprintParseAmtPerRun"
+                 className={`${styles.selectTrigger} ${styles.dropdown} h-10 pl-4 mt-2 scale-110 mx-2 custom-select-trigger`}
+               >
+                 <SelectValue />
+                
+               </SelectTrigger>
+               <SelectContent className={styles.selectContent}>
+                 <SelectItem value="100">100 Units</SelectItem>
+                 <SelectItem value="1">1 Unit</SelectItem>
+                 <SelectItem value="custom">Custom…</SelectItem>
+               </SelectContent>
+             </Select>
+             {isCustom && (
+               <input
+               type="number"
+               min={1}
+               value={customAmtPerRun}
+               onChange={(e) => {
+                 const val = Number(e.target.value);
+                 setCustomAmtPerRun(val);
+                 setForm((prev) =>
+                   prev ? { ...prev, amt_per_run: val } : prev
+                 );
+               }}
+               className={`${styles.input} w-full rounded-md py-2 px-1.5`}
+               />
+             )}
+           </div>
+         </div>
 
           <div>
             <Label htmlFor="editBlueprintTier" className={styles.label}>
@@ -358,7 +416,7 @@ function removeMaterial(index: number) {
             <Select value={form.tier} onValueChange={handleTierChange}>
               <SelectTrigger
                 id="editBlueprintTier"
-                className={`${styles.selectTrigger} w-full`}
+                className={`${styles.selectTrigger} max-w-50 scale-110 mx-2`}
               >
                 <SelectValue />
               </SelectTrigger>
@@ -367,44 +425,11 @@ function removeMaterial(index: number) {
                 <SelectItem value="T2">Tier 2</SelectItem>
               </SelectContent>
             </Select>
+
+            
           </div>
 
-          <div>
-            <label htmlFor="blueprintParseRunsPerCopy" className={`${styles.label} mb-1 block`}>
-              Runs per Copy
-            </label>
-
-            <select
-              id="blueprintParseRunsPerCopy"
-              name="blueprintParseRunsPerCopy"
-              value={isCustom ? 'custom' : runsPerCopy ?? 1}
-              onChange={(e) => {
-                if (e.target.value === 'custom') {
-                  setIsCustom(true);
-                } else {
-                  setIsCustom(false);
-                  setRunsPerCopy(Number(e.target.value));
-                }
-              }}
-              className={`${styles.selectTrigger} ${styles.dropdown} h-10 pl-4 mt-2`}
-            >
-              <option className={styles.dropdownItem} value={10}>10 Runs</option>
-              <option className={styles.dropdownItem} value={1}>1 Run</option>
-              <option className={styles.dropdownItem} value="custom">Custom…</option>
-            </select>
-
-            {isCustom && (
-              <input
-                type="number"
-                min={1}
-                value={customRunsPerCopy}
-                onChange={(e) => setCustomRunsPerCopy(Number(e.target.value))}
-                className={`${styles.input} mt-2 w-32 px-3 ml-2 h-10 py-1.5 rounded-md `}
-                
-                placeholder="Custom runs"
-              />
-            )}
-          </div>
+          
 
           {form.tier === "T2" && (
             <>
@@ -424,8 +449,32 @@ function removeMaterial(index: number) {
                   step={0.1}
                   value={form.invention_chance ? form.invention_chance * 100 : ""}
                   onChange={handleInventionChanceChange}
-                  className={`${styles.input} w-full`}
+                  className={`${styles.input} max-w-25`}
                 />
+              </div>
+
+              <div>
+                <Label
+                  htmlFor="editBlueprintRunsPerCopy"
+                  className={styles.label}
+                >
+                  Runs per Invented Copy
+                </Label>
+                <Select
+                  value={String(form.runs_per_copy || 10)}
+                  onValueChange={handleRunsPerCopyChange}
+                >
+                  <SelectTrigger
+                    id="editBlueprintRunsPerCopy"
+                    className={`${styles.selectTrigger} max-w-50`}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className={styles.selectContent}>
+                    <SelectItem value="10">10 Runs</SelectItem>
+                    <SelectItem value="1">1 Run</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </>
           )}
@@ -468,16 +517,16 @@ function removeMaterial(index: number) {
                         }}
                       >
                         <SelectTrigger className={styles.selectTrigger}>
-                          <SelectValue placeholder="Select category" />
+                          <SelectValue placeholder="Select category" className={styles.selectValue} />
                         </SelectTrigger>
-                        <SelectContent className="bg-slate-800 text-blue-100">
-                          <SelectItem value="Minerals">Minerals</SelectItem>
+                        <SelectContent className={styles.selectContent}>
+                          <SelectItem value="Minerals" className={styles.dropdownItem}>Minerals</SelectItem>
                           <SelectItem value="Items">Items</SelectItem>
                           <SelectItem value="Components">Components</SelectItem>
                           <SelectItem value="Invention Materials">Invention Materials</SelectItem>
                           <SelectItem value="Reaction Materials">Reaction Materials</SelectItem>
                           <SelectItem value="Planetary Materials">Planetary Materials</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
+                          <SelectItem value="Other" className={styles.dropdownItem}>Other</SelectItem>
                         </SelectContent>
                       </Select>
 
@@ -487,7 +536,7 @@ function removeMaterial(index: number) {
                           placeholder="Enter custom category"
                           value={material.category || ""}
                           onChange={(e) => updateMaterialField(idx, "category", e.target.value)}
-                          className="mt-2 bg-slate-900 border border-slate-700 text-blue-100"
+                          className={styles.selectTrigger}
                         />
                       )}
                     </>
