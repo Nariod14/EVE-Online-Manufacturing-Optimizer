@@ -85,8 +85,10 @@ export default function MaterialUsageByCategory({ usage, savings = {} }: Props) 
 
   return (
     <div className="space-y-4">
-      <h3 className="text-2xl text-blue-300 font-semibold mb-2">Material Usage by Category</h3>
-      <h2 className="text-xl text-blue-300 font-semibold mb-2">Negative Numbers indicate inventory </h2>
+      <div className="mb-4">
+        <h3 className="text-2xl text-blue-300 font-semibold">Material Usage by Category</h3>
+        <p className="text-lg text-blue-300 font-normal mb-2">See "To be built" and "Inventory Savings" for more details on negative materials.</p>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {CATEGORY_ORDER.map((category) => {
           const materials = categorized[category];
@@ -176,7 +178,10 @@ export default function MaterialUsageByCategory({ usage, savings = {} }: Props) 
               className="cursor-pointer flex justify-between items-center p-4"
               onClick={() => setOpen2(!open2)}
             >
-              <h4 className="text-lg text-yellow-300 font-semibold">To Be Built</h4>
+              <div className="flex flex-col">
+                <h4 className="text-lg text-yellow-300 font-semibold">To Be Built</h4>
+                <h3 className=" text-yellow-300 font-semibold mt-2 text-sm">Shortfall from Items</h3>
+              </div>
               <div className="text-yellow-300">{open2 ? <ChevronDown /> : <ChevronRight />}</div>
             </div>
 
@@ -210,8 +215,11 @@ export default function MaterialUsageByCategory({ usage, savings = {} }: Props) 
             <div
               className="cursor-pointer flex justify-between items-center p-4"
               onClick={() => setOpen2(!open2)}
-            >
+            > 
+            <div className="flex flex-col">
               <h4 className="text-lg text-emerald-300 font-semibold">Inventory Savings</h4>
+              <h4 className="text-sm text-emerald-300 font-semibold">Materials saved from Items in Inventory</h4>
+            </div>
               <div className="text-emerald-300">{open2 ? <ChevronDown /> : <ChevronRight />}</div>
             </div>
 
