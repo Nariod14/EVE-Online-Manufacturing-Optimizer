@@ -129,6 +129,17 @@ html {
   color-scheme: dark;
 }
 
+.custom-select-trigger svg {
+  color: white !important;
+}
+
+
+
+
+.selectTrigger::placeholder {
+  color: white !important;
+}
+
 body {
   @apply bg-slate-950 text-blue-100;
   min-height: 100vh;

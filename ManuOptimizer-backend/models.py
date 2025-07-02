@@ -25,7 +25,10 @@ class Blueprint(db.Model):
     use_jita_sell = db.Column(db.Boolean, default=True, nullable=False)
     used_jita_fallback = db.Column(db.Boolean, default=False)
     station = db.relationship('Station', backref='blueprints', lazy='joined')
-    
+    @property
+    def per_unit_material_cost(self):
+        return self.material_cost / self.amt_per_run if self.amt_per_run else self.material_cost
+
     __mapper_args__ = {
         "polymorphic_identity": "T1",
         "polymorphic_on": tier

@@ -94,6 +94,7 @@ useEffect(() => {
   async function handleAddBlueprintSubmit(data: {
     blueprintPaste: string;
     sell_price: number;
+    amt_per_run: number;
     material_cost: number;
     tier: "T1" | "T2";
     invention_materials?: string;
