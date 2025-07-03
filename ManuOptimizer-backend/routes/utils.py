@@ -80,43 +80,34 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory
 
             elif sub_bp:
                 if getattr(sub_bp, "tier", "T1") == "T1":
-                    # Track T1 dependency usage
-                    if t1_dependencies is not None:
-                        t1_dependencies[mat] = t1_dependencies.get(mat, 0) + adjusted_mat_needed
-
                     # Use inventory first
                     if inventory and inventory.get(mat, 0) > 0:
                         used = min(inventory[mat], adjusted_mat_needed)
                         inventory[mat] -= used
                         remaining_qty = adjusted_mat_needed - used
+                        if inventory[mat] <= 0:
+                            del inventory[mat]
                     else:
                         remaining_qty = adjusted_mat_needed
 
-                    # Recursively expand what remains
-                    sub_mats = expand_materials(
-                        sub_bp,
-                        blueprints,
-                        quantity=remaining_qty,
-                        t1_dependencies=t1_dependencies,
-                        inventory=inventory
-                    )
-                    for sm, sq in sub_mats.items():
-                        expanded[sm] += sq
+                    # Add only remaining quantity to dependencies
+                    if t1_dependencies is not None and remaining_qty > 0:
+                        t1_dependencies[mat] = t1_dependencies.get(mat, 0) + remaining_qty
 
-                else:
-                    # T2/T3 blueprints — recursively expand entire amount
-                    sub_mats = expand_materials(
-                        sub_bp,
-                        blueprints,
-                        quantity=adjusted_mat_needed,
-                        t1_dependencies=t1_dependencies,
-                        inventory=inventory
-                    )
-                    for sm, sq in sub_mats.items():
-                        expanded[sm] += sq
+                    # Only recurse if remaining_qty > 0
+                    if remaining_qty > 0:
+                        sub_mats = expand_materials(
+                            sub_bp,
+                            blueprints,
+                            quantity=remaining_qty,
+                            t1_dependencies=t1_dependencies,
+                            inventory=inventory,
+                        )
+                        for sm, sq in sub_mats.items():
+                            expanded[sm] += sq
 
                     # Also track the intermediate item itself
-                    expanded[mat] += adjusted_mat_needed
+                    #expanded[mat] += adjusted_mat_needed
 
             else:
                 # Base material — just add the adjusted amount

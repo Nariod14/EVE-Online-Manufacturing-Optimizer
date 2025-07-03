@@ -541,7 +541,13 @@ def optimize():
         logger.info("Materials loaded: %s", inventory)
 
         bp_names = {b.name for b in blueprints}
-        profit_per_bp = {b.name: (b.sell_price / b.amt_per_run - b.material_cost) for b in blueprints}
+        profit_per_bp = {
+            b.name: (b.sell_price - (b.full_material_cost if b.tier == 'T2' else b.material_cost) / b.amt_per_run)
+            for b in blueprints
+        }
+        
+        logger.info("Profits per blueprint: %s", profit_per_bp)
+        
         result, final_usage = {}, defaultdict(float)
         final_produced = defaultdict(int)
 
@@ -563,7 +569,8 @@ def optimize():
             for b in blueprints:
                 quantity = getattr(b, "amt_per_run", 1)
                 expanded = expand_materials(b, blueprints, quantity=quantity, inventory=inventory)
-
+                if "Simple Asteroid Mining Crystal Type B I" in expanded:
+                    logger.debug(f"[Iter {iteration}][Step1] Blueprint {b.name} expanded usage for Simple Asteroid Mining Crystal Type B I: {expanded['Simple Asteroid Mining Crystal Type B I'] * x[b.name]}")
                 for mat, amt in expanded.items():
                     usage[mat] += amt * x[b.name]
 
@@ -607,6 +614,8 @@ def optimize():
 
                     # Add refunded base mats back to inventory for the used quantity
                     refunded = expand_materials(b, blueprints, quantity=used, inventory=inventory)
+                    if "Simple Asteroid Mining Crystal Type B I" in refunded:
+                        logger.debug(f"[Iter {iteration}][Refund] Refund from using inventory {used} x {b.name} includes Simple Asteroid Mining Crystal Type B I: {refunded['Simple Asteroid Mining Crystal Type B I']}")
 
                     for mat, amt in refunded.items():
                         inventory[mat] = inventory.get(mat, 0) + amt
@@ -693,6 +702,10 @@ def optimize():
 
             logger.info("Inventory after Step 3 optimization: %s", inventory)
             logger.info("Delta produced: %s", new_produced)
+            
+            if not new_produced:
+                logger.info("No new production in this iteration. Optimization complete.")
+                break
 
             # Compute Step 3-only usage
             usage_totals = defaultdict(float)
@@ -702,6 +715,8 @@ def optimize():
                 if count > 0:
                     for mat, amt in compute_expanded_materials(b, count, blueprints).items():
                         usage_totals[mat] += amt
+                        if mat == "Simple Asteroid Mining Crystal Type B I":
+                            logger.debug(f"[Iter {iteration}][Step3] Counting usage for Simple Asteroid Mining Crystal Type B I from {b.name}: {amt}  new produced count {count} difference = {amt - count}")
 
             # Now subtract used materials, respecting sub-component usage
             for mat, amt in usage_totals.items():
@@ -712,12 +727,18 @@ def optimize():
 
                 subtract_amt = amt - already_sub_used
                 safe_subtract(inventory, mat, subtract_amt)
+                if mat == "Simple Asteroid Mining Crystal Type B I":
+                    logger.debug(f"[Iter {iteration}][Inventory Subtract] Subtracting {subtract_amt} of Simple Asteroid Mining Crystal Type B I from inventory")
+
                 logger.debug(f"Subtracted {subtract_amt} of {mat} from inventory after sub-component adjustments")
 
             logger.info("Produced quantities: %s", final_produced)
             logger.info("Material usage totals: %s", usage_totals)
 
             final_usage = usage_totals
+            if "Simple Asteroid Mining Crystal Type B I" in usage_totals:
+                logger.debug(f"[Iter {iteration}][Final Usage] Total usage so far: {usage_totals['Simple Asteroid Mining Crystal Type B I']}")
+
             logger.info("Final inventory: %s", inventory)
             logger.info("Final produced: %s", final_produced)
             logger.info("Final used from inv total: %s", used_from_inv_total)
@@ -734,14 +755,21 @@ def optimize():
             return jsonify({"status": "No optimal solution found in iterative optimization"}), 400
         final_material_usage = {}
         for mat, qty in material_objs.items():
-            used = final_usage.get(mat, 0)
-            used_int = int(round(used))
-            starting_qty = getattr(qty, "quantity", 0)
-            final_material_usage[mat] = {
-            "used": used_int,
-            "remaining": starting_qty - used_int,  # Clamp to zero
-            "category": getattr(qty, "category", "Other")
-    }
+            try:
+                raw_used = final_usage.get(mat, 0)
+                inv_used = used_from_inv_total.get(mat, 0)
+                sub_used = sub_component_usage.get(mat, 0)
+                used = max(0, raw_used - inv_used - sub_used)
+                used_int = int(round(used))
+                starting_qty = getattr(qty, "quantity", 0)
+                final_material_usage[mat] = {
+                    "used": used_int,
+                    "remaining": starting_qty - used_int,
+                    "category": getattr(qty, "category", "Other")
+                }
+            except Exception as e:
+                logger.error(f"Error processing material {mat} (type {type(mat)}): {e}")
+                raise
 
 
         
@@ -754,7 +782,12 @@ def optimize():
         
         # Check if any materials were over-refunded
         for mat in base_materials:
-            mat_quantity = material_objs[mat].quantity if hasattr(material_objs[mat], "quantity") else material_objs[mat]
+            material = material_objs.get(mat)
+            if material is None:
+                logger.warning(f"Material {mat} not found in material_objs during overspent check.")
+                continue
+
+            mat_quantity = getattr(material, "quantity", 0)
             inv_quantity = inventory.get(mat, 0)
 
             used = mat_quantity - inv_quantity
@@ -766,12 +799,34 @@ def optimize():
 
 
 
+
         # Calculate dependencies
         deps = defaultdict(float)
+
         for b in blueprints:
             count = final_produced.get(b.name, 0)
-            if count:
-                expand_materials(b, blueprints, quantity=count, t1_dependencies=deps, inventory=inventory)
+
+            # Subtract the items used directly from inventory for this blueprint
+            used_from_inv = used_from_inv_total.get(b.name, 0)
+            net_count = count - used_from_inv
+
+            if net_count > 0:
+                expand_materials(b, blueprints, quantity=net_count, t1_dependencies=deps, inventory=inventory)
+
+        # Final pass to subtract any remaining inventory from dependencies
+        for name, inv_qty in inventory.items():
+            if name == "Simple Asteroid Mining Crystal Type B I":
+                logger.info(f"Inventory qty for {name} is {inv_qty}")
+            if name in deps:
+                used = min(inv_qty, deps[name])
+                deps[name] -= used
+                if deps[name] <= 0:
+                    del deps[name]
+
+        logger.info("Final produced: %s", final_produced)
+        logger.info("Used from inv total: %s", used_from_inv_total)
+        logger.info("Final dependencies: %s", deps)
+
 
                 
         
@@ -779,13 +834,18 @@ def optimize():
         # Calculate inventory savings
         inventory_savings = defaultdict(float)
 
+        # Include materials saved by blueprints used from inventory (as you already have)
         for bp in blueprints:
             used_from_inventory = used_from_inv_total.get(bp.name, 0)
             if used_from_inventory > 0:
                 mats_saved = expand_materials(bp, blueprints, quantity=used_from_inventory, inventory=inventory)
-
                 for mat, amt in mats_saved.items():
                     inventory_savings[mat] += amt
+
+        # Also include the blueprint items themselves pulled from inventory
+        for item_name, qty_used in used_from_inv_total.items():
+            inventory_savings[item_name] += qty_used
+
 
         total_sell = sum(bp.sell_price * final_produced.get(bp.name, 0) for bp in blueprints)
         true_jita = sum((bp.sell_price - bp.material_cost) * final_produced.get(bp.name, 0) for bp in blueprints)
@@ -797,7 +857,11 @@ def optimize():
             "true_profit_inventory": true_jita + inventory_usage_value,
             "what_to_produce": final_produced,
             "material_usage": final_material_usage,
-            "dependencies_needed": {k: int(v) for k, v in deps.items() if v > 0},
+            "dependencies_needed": {
+                k: int(v - inventory_savings.get(k, 0))
+                for k, v in deps.items()
+                if (v - inventory_savings.get(k, 0)) > 0
+            },
             "inventory_savings": {
                 mat: {
                     "amount": amt,
