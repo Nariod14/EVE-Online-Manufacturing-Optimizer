@@ -36,10 +36,11 @@
 
 ## Technologies Used
 
-- **Frontend**: HTML, CSS, JavaScript, jQuery
+- **Frontend**: HTML, CSS, Typescript, React, NextJS
 - **Backend**: Python (Flask), Waitress (Production Server), PuLP (Optimization), PyInstaller (Executable packaging)
 - **Database**: SQLite with SQLAlchemy ORM
-- **APIs**: EVE Swagger Interface (ESI), EVE SSO
+- **APIs**: EVE Swagger Interface (ESI), EVE SSO, EVE SDE
+
 
 ---
 
@@ -60,36 +61,41 @@ Use the **Add Blueprint** form to enter a blueprint’s name, sell price, and ma
 
 > **Important**: Ensure *only one run* is selected when copying materials, or your values will be inflated.
 
+
 Example copy-paste:  
 ![Blueprint Copy Example](https://github.com/user-attachments/assets/cdb64573-7a89-436f-a35e-47bc92cb6c98)
-![Paste Into Blueprint Form](https://github.com/user-attachments/assets/5bdb7581-e601-495c-bcf6-8cd5eba6153e)
+![Paste into Form](https://github.com/user-attachments/assets/bf092e80-395b-40c4-abe0-c772babc989f)
 
 
 ### 2. Managing Materials
 Track your material inventory and prices by copying from the in-game assets window and pasting directly into the form:
 
 ![Copy Materials](https://github.com/user-attachments/assets/7ddb2082-4382-4520-a550-f7ed4c613582)  
-![Paste into Form](https://github.com/user-attachments/assets/fc30d61a-7519-41fd-b10c-77563d66a1a2)
+![Paste into Materials Form](https://github.com/user-attachments/assets/686af534-bef7-4640-8916-abf39f9a6a71)
 
 ### 3. Optimizing Production
 Click the **Optimize Production** button at the bottom of the main page to calculate the most profitable use of your materials:
 
-![Optimize Button](https://github.com/user-attachments/assets/2adb8231-bfaf-453b-9bf3-5312b4253951)
+![Optimize Button](https://github.com/user-attachments/assets/59a946d0-b033-423b-a160-7fbe1c435c34)
 
 ### 4. Editing & Deleting
 All entries (blueprints, materials, and stations) can be updated or removed using the respective action buttons in the interface.
-![image](https://github.com/user-attachments/assets/44829b92-294e-40ad-8a00-e535054739d4)
-![image](https://github.com/user-attachments/assets/3fe2c0bd-9f3f-4c60-a8ac-4a3cc1614e5a)
+![Edit Blueprint](https://github.com/user-attachments/assets/0cd80d8f-d1ed-43b2-bdd1-f55ceecb740f)
+![Edit Materials](https://github.com/user-attachments/assets/857df0e1-d3c5-48a6-b4c9-1f92acb2ad86)
+![Edit Stations](https://github.com/user-attachments/assets/bfefa209-dfaa-4f4e-9701-d5b5dc15157d)
+
 
 ### 5. Logging In with SSO
 Use the **Login** button in the header to authenticate with your EVE Online account:
 
-![Login](https://github.com/user-attachments/assets/4d79facd-a1ca-408a-bff8-5681d284e750)
+![login](https://github.com/user-attachments/assets/9986401a-6dd2-426a-884a-59db21a2a73e)
 
 SSO access is required for managing custom stations and accessing market data from structures you have access to.
 
 ### 6. Updating Prices
-Use the **Update Prices** feature to fetch the latest market prices and update type IDs and categories from Jita. Prices are cached locally for 5 minutes to reduce API load.
+Use the **Update Prices** feature to fetch the latest market prices and update type IDs and categories from Jita. Prices are cached locally for 5 minutes to reduce API load. Remember that if you have any player owned stations selected for any blueprints, you need to be logged in for their prices to be updated, otherwise Jita will be used as a fallback.
+![Update Blueprints](https://github.com/user-attachments/assets/a6a66dc4-c283-4fb9-a8c1-7854a50da42f)
+
 
 ---
 
@@ -102,9 +108,7 @@ Use the **Update Prices** feature to fetch the latest market prices and update t
 - **PuLP**: Linear programming to optimize manufacturing plans  
 - **EVE Online ESI API**: Fetching live market data and user station info with OAuth2 authentication  
 - **requests & urllib3**: HTTP requests with retries for robust API communication  
-- **HTML, CSS, JavaScript (jQuery)**: Frontend UI rendering and AJAX for dynamic data updates  
-- **PyInstaller**: Packaging backend and frontend into a standalone executable  
-- **Custom Parsing Utilities**: Processing and normalizing game data inputs  
+- **HTML, CSS, JavaScript React, NextJS, Typescript**: Frontend UI rendering and AJAX for dynamic data updates  
 
 
 ## Contributing
@@ -136,3 +140,5 @@ See the [LICENSE](LICENSE) file for details.
 - **EVE Online** – for the sandbox that made this project necessary  
 - **Flask & jQuery** – for making rapid prototyping painless  
 - **Stack Overflow** – for always having someone with the exact same bug I had, somehow
+- **SEAT Discord** – for answering some of my dump SDE related questions.
+
