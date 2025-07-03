@@ -406,35 +406,68 @@ def update_prices():
 
         materials = Material.query.all()
         blueprints = BlueprintModel.query.all()
+        
+        
+        # Prepopulate missing type_ids from normalized material names
+        all_needed_names = set()
+        for bp in blueprints:
+            normalized = bp.get_normalized_materials()
+            for category in normalized.values():
+                all_needed_names.update(category.keys())
 
-        unique_type_ids = set()
-        material_jobs = []
+
+        # Fetch missing type_ids
+        unique_type_ids = {mat.type_id for mat in materials if mat.type_id}
+        # Get existing name->type_id from DB
+        existing_name_to_id = {mat.name: mat.type_id for mat in materials if mat.type_id}
+
+        # Identify missing ones
+        missing_names = [name for name in all_needed_names if name not in existing_name_to_id]
+        
+       
+
+        if missing_names:
+            lookup_result = get_item_info(missing_names)
+            for name in missing_names:
+                norm = normalize_name(name)
+                if norm in lookup_result:
+                    tid = lookup_result[norm]['type_id']
+                    existing_name_to_id[name] = tid
+                    unique_type_ids.add(tid)
+                    # Optionally, you can add these missing materials to DB here if you want
+                    # or just keep this mapping for price fetching
+                    logger.info(f"Resolved missing type_id for '{name}': {tid}")
+                else:
+                    logger.warning(f"Could not resolve type_id for '{name}'")
+
+        
+        
+        # Stage material fetch jobs
+        material_jobs = [(tid, None) for tid in unique_type_ids]
         blueprint_jobs = []
-
-        # Stage material fetch jobs (always Jita)
-        for mat in materials:
-            if mat.type_id:
-                unique_type_ids.add(mat.type_id)
-                material_jobs.append((mat.type_id, None))
-
         # Stage blueprint fetch jobs
         for bp in blueprints:
             if not bp.type_id:
                 info = get_item_info([bp.name])
-                logger.debug(f"Lookup result for '{bp.name}': {info}")
-                bp.type_id = info[normalize_name(bp.name)]['type_id']
-            else:
-                unique_type_ids.add(bp.type_id)
-                if not bp.use_jita_sell and bp.station_id:
-                    blueprint_jobs.append((bp.type_id, bp.station_id))
+                norm_name = normalize_name(bp.name)
+                if norm_name in info:
+                    bp.type_id = info[norm_name]['type_id']
+                    unique_type_ids.add(bp.type_id)
                 else:
-                    blueprint_jobs.append((bp.type_id, None))
+                    logger.warning(f"Could not resolve type_id for blueprint '{bp.name}'")
+                    continue  # Skip blueprint if no type_id
+
+            if not bp.use_jita_sell and bp.station_id:
+                blueprint_jobs.append((bp.type_id, bp.station_id))
+            else:
+                blueprint_jobs.append((bp.type_id, None))
 
         prices = {}
         fallback_flags = {}  # Track if fallback to Jita happened
 
         
         jobs = material_jobs + blueprint_jobs
+        
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             futures = {executor.submit(fetch_price, tid, sid, headers): tid for tid, sid in jobs}
@@ -474,16 +507,22 @@ def update_prices():
 
             total_cost = 0.0
             invention_cost = 0.0
+            
+            
 
-            name_to_type_id = {mat.name: mat.type_id for mat in materials}
+            name_to_type_id = existing_name_to_id
             type_id_to_price = {mat.type_id: prices.get(mat.type_id, (None,))[0] for mat in materials}
             
             for bp in blueprints:
                 total_cost = 0.0
                 invention_cost = 0.0
 
-                name_to_type_id = {mat.name: mat.type_id for mat in materials}
-                type_id_to_price = {mat.type_id: prices.get(mat.type_id, (None,))[0] for mat in materials}
+                name_to_type_id = existing_name_to_id
+                type_id_to_price = {
+                    tid: prices.get(tid, (None,))[0]
+                    for tid in name_to_type_id.values()
+                    if tid is not None
+                }
 
                 normalized = bp.get_normalized_materials()
 
@@ -722,8 +761,6 @@ def optimize():
 
                 subtract_amt = amt - already_sub_used
                 safe_subtract(inventory, mat, subtract_amt)
-                if mat == "Simple Asteroid Mining Crystal Type B I":
-                    logger.debug(f"[Iter {iteration}][Inventory Subtract] Subtracting {subtract_amt} of Simple Asteroid Mining Crystal Type B I from inventory")
 
                 logger.debug(f"Subtracted {subtract_amt} of {mat} from inventory after sub-component adjustments")
 
@@ -731,8 +768,6 @@ def optimize():
             logger.info("Material usage totals: %s", usage_totals)
 
             final_usage = usage_totals
-            if "Simple Asteroid Mining Crystal Type B I" in usage_totals:
-                logger.debug(f"[Iter {iteration}][Final Usage] Total usage so far: {usage_totals['Simple Asteroid Mining Crystal Type B I']}")
 
             logger.info("Final inventory: %s", inventory)
             logger.info("Final produced: %s", final_produced)

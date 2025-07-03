@@ -1,27 +1,37 @@
 # routes/auth.py
 import logging
 import secrets
+import sys
 import requests
 from flask import Blueprint, redirect, request, session, url_for
 from dotenv import load_dotenv
 import os
-load_dotenv()
+def get_env_path():
+    if getattr(sys, 'frozen', False):
+        env_path = os.path.join(os.path.dirname(sys.executable), '.env')
+        return env_path
+    else:
+        return os.path.join(os.path.dirname(__file__), '.env')
+
+load_dotenv(dotenv_path=get_env_path())
+
+
 auth_bp = Blueprint('auth', __name__)
 
 
 
-CLIENT_ID = os.getenv("EVE_CLIENT_ID")
-CLIENT_SECRET = os.getenv("EVE_CLIENT_SECRET")
-CALLBACK_URL = os.getenv("EVE_CALLBACK_URL")
+def get_oauth_config():
+    return {
+        "client_id": os.getenv("EVE_CLIENT_ID"),
+        "client_secret": os.getenv("EVE_CLIENT_SECRET"),
+        "callback_url": os.getenv("EVE_CALLBACK_URL"),
+    }
+
 SCOPES = "esi-markets.structure_markets.v1"
 
 AUTH_URL = "https://login.eveonline.com/v2/oauth/authorize"
 TOKEN_URL = "https://login.eveonline.com/v2/oauth/token"
 VERIFY_URL = "https://esi.evetech.net/verify"
-
-print("CLIENT_ID:", CLIENT_ID)
-print("CLIENT_SECRET:", CLIENT_SECRET)
-print("CALLBACK_URL:", CALLBACK_URL)
 
 
 logging.basicConfig(
@@ -39,11 +49,17 @@ def login():
     state = secrets.token_urlsafe(16)  # random string
     session['oauth_state'] = state
 
+    config = get_oauth_config()
+    client_id = config["client_id"]
+    callback_url = config["callback_url"]
+
+    logger.debug(f"Building auth URL with client_id={client_id}, callback_url={callback_url}")
+
     auth_url = (
         f"https://login.eveonline.com/v2/oauth/authorize/"
         f"?response_type=code"
-        f"&redirect_uri={CALLBACK_URL}"
-        f"&client_id={CLIENT_ID}"
+        f"&redirect_uri={callback_url}"
+        f"&client_id={client_id}"
         f"&scope={SCOPES}"
         f"&state={state}"
         f"&prompt=login"
@@ -53,11 +69,14 @@ def login():
 
 @auth_bp.route('/callback')
 def callback():
+    config = get_oauth_config()
+    client_id = config["client_id"]
+    client_secret = config["client_secret"]
     code = request.args.get("code")
 
     response = requests.post(
         TOKEN_URL,
-        auth=(CLIENT_ID, CLIENT_SECRET),
+        auth=(client_id, client_secret),
         data={"grant_type": "authorization_code", "code": code},
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
