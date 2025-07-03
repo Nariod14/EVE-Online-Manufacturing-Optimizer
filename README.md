@@ -41,6 +41,7 @@
 - **Database**: SQLite with SQLAlchemy ORM
 - **APIs**: EVE Swagger Interface (ESI), EVE SSO, EVE SDE
 
+
 ---
 
 ## Setup & Installation
@@ -59,6 +60,7 @@
 Use the **Add Blueprint** form to enter a blueprint’s name, sell price, and materials. You can paste materials directly from your in-game Industry tab:
 
 > **Important**: Ensure *only one run* is selected when copying materials, or your values will be inflated.
+
 
 Example copy-paste:  
 ![Blueprint Copy Example](https://github.com/user-attachments/assets/cdb64573-7a89-436f-a35e-47bc92cb6c98)
@@ -82,6 +84,7 @@ All entries (blueprints, materials, and stations) can be updated or removed usin
 ![Edit Materials](https://github.com/user-attachments/assets/857df0e1-d3c5-48a6-b4c9-1f92acb2ad86)
 ![Edit Stations](https://github.com/user-attachments/assets/bfefa209-dfaa-4f4e-9701-d5b5dc15157d)
 
+
 ### 5. Logging In with SSO
 Use the **Login** button in the header to authenticate with your EVE Online account:
 
@@ -92,6 +95,7 @@ SSO access is required for managing custom stations and accessing market data fr
 ### 6. Updating Prices
 Use the **Update Prices** feature to fetch the latest market prices and update type IDs and categories from Jita. Prices are cached locally for 5 minutes to reduce API load. Remember that if you have any player owned stations selected for any blueprints, you need to be logged in for their prices to be updated, otherwise Jita will be used as a fallback.
 ![Update Blueprints](https://github.com/user-attachments/assets/a6a66dc4-c283-4fb9-a8c1-7854a50da42f)
+
 
 ---
 
@@ -105,8 +109,6 @@ Use the **Update Prices** feature to fetch the latest market prices and update t
 - **EVE Online ESI API**: Fetching live market data and user station info with OAuth2 authentication  
 - **requests & urllib3**: HTTP requests with retries for robust API communication  
 - **HTML, CSS, JavaScript React, NextJS, Typescript**: Frontend UI rendering and AJAX for dynamic data updates  
-- **PyInstaller**: Packaging backend and frontend into a standalone executable  
-- **Custom Parsing Utilities**: Processing and normalizing game data inputs  
 
 
 ## Contributing
