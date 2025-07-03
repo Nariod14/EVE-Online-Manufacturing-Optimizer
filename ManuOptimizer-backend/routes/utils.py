@@ -12,7 +12,7 @@ import sys
 import sqlite3
 import unicodedata
 from time import time
-import math  # ← یہ لائن add کریں
+import math
 
 from models import BlueprintT2, db, Blueprint, Material
 
@@ -46,20 +46,20 @@ def normalize_name(name: str) -> str:
 def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory=None):
     expanded = defaultdict(float)
 
-    # ✅ Normalize materials if they are a list
+    #  Normalize materials if they are a list
     if isinstance(bp.materials, list):
         normalized = normalize_materials_structure(bp.materials)
     else:
         normalized = bp.materials
 
-    # ✅ Units produced per run (default = 1)
+    # Units produced per run (default = 1)
     amt_per_run = getattr(bp, "amt_per_run", 1)
 
-    # ✅ Calculate runs needed to fulfill the request
+    # Calculate runs needed to fulfill the request
     runs_needed = math.ceil(quantity / amt_per_run)
     units_produced = runs_needed * amt_per_run
 
-    # ✅ Ratio of what we actually need vs what we'll produce
+    # Ratio of what we actually need vs what we'll produce
     usage_ratio = quantity / units_produced if units_produced > 0 else 0
 
     for section_name, section in normalized.items():
@@ -69,7 +69,7 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory
             total_mat_needed = qty_per_run * runs_needed
             adjusted_mat_needed = total_mat_needed * usage_ratio
 
-            # ✅ Handle invention materials specially
+            # Handle invention materials specially
             if (
                 section_name == "Invention Materials"
                 and hasattr(bp, "invention_chance")
@@ -80,11 +80,11 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory
 
             elif sub_bp:
                 if getattr(sub_bp, "tier", "T1") == "T1":
-                    # ✅ Track T1 dependency usage
+                    # Track T1 dependency usage
                     if t1_dependencies is not None:
                         t1_dependencies[mat] = t1_dependencies.get(mat, 0) + adjusted_mat_needed
 
-                    # ✅ Use inventory first
+                    # Use inventory first
                     if inventory and inventory.get(mat, 0) > 0:
                         used = min(inventory[mat], adjusted_mat_needed)
                         inventory[mat] -= used
@@ -92,7 +92,7 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory
                     else:
                         remaining_qty = adjusted_mat_needed
 
-                    # ✅ Recursively expand what remains
+                    # Recursively expand what remains
                     sub_mats = expand_materials(
                         sub_bp,
                         blueprints,
@@ -104,7 +104,7 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory
                         expanded[sm] += sq
 
                 else:
-                    # ✅ T2/T3 blueprints — recursively expand entire amount
+                    # T2/T3 blueprints — recursively expand entire amount
                     sub_mats = expand_materials(
                         sub_bp,
                         blueprints,
@@ -115,11 +115,11 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory
                     for sm, sq in sub_mats.items():
                         expanded[sm] += sq
 
-                    # ✅ Also track the intermediate item itself
+                    # Also track the intermediate item itself
                     expanded[mat] += adjusted_mat_needed
 
             else:
-                # ✅ Base material — just add the adjusted amount
+                # Base material — just add the adjusted amount
                 expanded[mat] += adjusted_mat_needed
 
     return expanded
