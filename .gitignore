@@ -158,3 +158,5 @@ ManuOptimizer/instances/eve_optimizer.db
 /ManuOptimizer/migrations
 /ManuOptimizer/instances
 app.log
+ManuOptimizer-backend/instances/eve_optimizer.db
+ManuOptimizer-backend/instances/backuip/eve_optimizer.db
