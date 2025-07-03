@@ -12051,7 +12051,7 @@ manuoptimizer-frontend/node_modules/yoctocolors-cjs/index.js
 manuoptimizer-frontend/node_modules/yoctocolors-cjs/license
 manuoptimizer-frontend/node_modules/yoctocolors-cjs/package.json
 manuoptimizer-frontend/node_modules/yoctocolors-cjs/readme.md
-/ManuOptimizer-backend/.env
+ManuOptimizer-backend/.env
 manuoptimizer-frontend/node_modules/@next/swc-win32-x64-msvc/*.node
 =======
 /app.log
@@ -12086,3 +12086,4 @@ ManuOptimizer-backend/instances/eve_optimizer.db
 ManuOptimizer-backend/dist/instances/eve_optimizer.db
 ManuOptimizer-backend/instances/eve_optimizer.db
 /ManuOptimizer-backend/instances/backuip
+ManuOptimizer-backend/instances/backuip
