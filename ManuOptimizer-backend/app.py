@@ -11,7 +11,7 @@ from flask_migrate import Migrate
 from routes.materials import materials_bp
 from routes.blueprints import blueprints_bp
 from routes.stations import stations_bp
-from auth import auth_bp
+from auth import auth_bp, get_oauth_config
 from dotenv import load_dotenv
 
 
@@ -43,6 +43,7 @@ def get_env_path():
 load_dotenv(dotenv_path=get_env_path())
 
 def create_app():
+    load_dotenv(dotenv_path=get_env_path())
     if getattr(sys, 'frozen', False):
         # Compiled binary
         basedir = sys._MEIPASS
@@ -75,6 +76,9 @@ def create_app():
     logger.info(f"Flask secret key set: {flask_app.secret_key}")
     flask_app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
     session_version_key = secrets.token_hex(16)
+    
+    config = get_oauth_config()
+    logger.info(f"OAuth config: {config}")
 
     db.init_app(flask_app)
     Migrate(flask_app, db)
@@ -110,5 +114,10 @@ def create_app():
         if session.get('session_version') != session_version_key:
             session.clear()
             session['session_version'] = session_version_key
+            
+            
+    with flask_app.app_context():
+        db.create_all()
+        logger.info("Database tables created (if they didn't exist)")
             
     return flask_app
