@@ -12081,3 +12081,4 @@ ManuOptimizer-backend/migrations/versions/__pycache__/fe9440f27c05_add_type_id_t
 >>>>>>> 29fa435c46002ac275e51e2c2591b133ad0b87d5
 "manuoptimizer-frontend/node_modules" 
 "manuoptimizer-frontend/node_modules" 
+ManuOptimizer-backend/instances/eve_optimizer.db
