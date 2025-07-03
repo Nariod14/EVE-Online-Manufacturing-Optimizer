@@ -12079,3 +12079,4 @@ ManuOptimizer-backend/migrations/versions/__pycache__/dcdd956fc694_re_add_type_c
 ManuOptimizer-backend/migrations/versions/__pycache__/e93f8b66f0fc_add_type_id_column_to_materials.cpython-313.pyc
 ManuOptimizer-backend/migrations/versions/__pycache__/fe9440f27c05_add_type_id_to_blueprints_and_sell_.cpython-313.pyc
 >>>>>>> 29fa435c46002ac275e51e2c2591b133ad0b87d5
+"manuoptimizer-frontend/node_modules" 
