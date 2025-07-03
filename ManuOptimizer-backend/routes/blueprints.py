@@ -569,8 +569,6 @@ def optimize():
             for b in blueprints:
                 quantity = getattr(b, "amt_per_run", 1)
                 expanded = expand_materials(b, blueprints, quantity=quantity, inventory=inventory)
-                if "Simple Asteroid Mining Crystal Type B I" in expanded:
-                    logger.debug(f"[Iter {iteration}][Step1] Blueprint {b.name} expanded usage for Simple Asteroid Mining Crystal Type B I: {expanded['Simple Asteroid Mining Crystal Type B I'] * x[b.name]}")
                 for mat, amt in expanded.items():
                     usage[mat] += amt * x[b.name]
 
@@ -614,9 +612,7 @@ def optimize():
 
                     # Add refunded base mats back to inventory for the used quantity
                     refunded = expand_materials(b, blueprints, quantity=used, inventory=inventory)
-                    if "Simple Asteroid Mining Crystal Type B I" in refunded:
-                        logger.debug(f"[Iter {iteration}][Refund] Refund from using inventory {used} x {b.name} includes Simple Asteroid Mining Crystal Type B I: {refunded['Simple Asteroid Mining Crystal Type B I']}")
-
+    
                     for mat, amt in refunded.items():
                         inventory[mat] = inventory.get(mat, 0) + amt
 
@@ -715,8 +711,7 @@ def optimize():
                 if count > 0:
                     for mat, amt in compute_expanded_materials(b, count, blueprints).items():
                         usage_totals[mat] += amt
-                        if mat == "Simple Asteroid Mining Crystal Type B I":
-                            logger.debug(f"[Iter {iteration}][Step3] Counting usage for Simple Asteroid Mining Crystal Type B I from {b.name}: {amt}  new produced count {count} difference = {amt - count}")
+                    
 
             # Now subtract used materials, respecting sub-component usage
             for mat, amt in usage_totals.items():
