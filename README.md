@@ -138,7 +138,7 @@ See the [LICENSE](LICENSE) file for details.
 ## Acknowledgments
 
 - **EVE Online** – for the sandbox that made this project necessary  
-- **Flask & jQuery** – for making rapid prototyping painless  
+- **Flask & ShadCN React and NextJS** – for making rapid prototyping (relatively) painless
 - **Stack Overflow** – for always having someone with the exact same bug I had, somehow
 - **SEAT Discord** – for answering some of my dump SDE related questions.
 
