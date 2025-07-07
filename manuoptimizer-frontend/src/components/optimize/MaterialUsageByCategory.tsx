@@ -218,7 +218,7 @@ export default function MaterialUsageByCategory({ usage, savings = {} }: Props) 
             > 
             <div className="flex flex-col">
               <h4 className="text-lg text-emerald-300 font-semibold">Inventory Savings</h4>
-              <h4 className="text-sm text-emerald-300 font-semibold">Materials saved from Items in Inventory</h4>
+              <h4 className="text-sm text-emerald-300 font-semibold">Items (mats with blueprints) used directly from your inventory</h4>
             </div>
               <div className="text-emerald-300">{open2 ? <ChevronDown /> : <ChevronRight />}</div>
             </div>

@@ -46,7 +46,7 @@ def normalize_name(name: str) -> str:
 def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory=None):
     expanded = defaultdict(float)
 
-    #  Normalize materials if they are a list
+    # Normalize materials if they are a list
     if isinstance(bp.materials, list):
         normalized = normalize_materials_structure(bp.materials)
     else:
@@ -78,37 +78,126 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory
                 attempts_needed = runs_needed / bp.invention_chance
                 expanded[mat] += qty_per_run * attempts_needed * usage_ratio
 
+            elif sub_bp and getattr(sub_bp, "tier", "T1") == "T1":
+                # For T1 sub-blueprints, use inventory first
+                if inventory and inventory.get(mat, 0) > 0:
+                    used = min(inventory[mat], adjusted_mat_needed)
+                    inventory[mat] -= used
+                    remaining_qty = adjusted_mat_needed - used
+                    if inventory[mat] <= 0:
+                        del inventory[mat]
+                else:
+                    remaining_qty = adjusted_mat_needed
+
+                # Add only remaining quantity to dependencies
+                if t1_dependencies is not None and remaining_qty > 0:
+                    t1_dependencies[mat] = t1_dependencies.get(mat, 0) + remaining_qty
+
+                # Only recurse if remaining_qty > 0
+                if remaining_qty > 0:
+                    sub_mats = expand_materials(
+                        sub_bp,
+                        blueprints,
+                        quantity=remaining_qty,
+                        t1_dependencies=t1_dependencies,
+                        inventory=inventory,
+                    )
+                    for sm, sq in sub_mats.items():
+                        expanded[sm] += sq
+
             elif sub_bp:
-                if getattr(sub_bp, "tier", "T1") == "T1":
-                    # Use inventory first
-                    if inventory and inventory.get(mat, 0) > 0:
-                        used = min(inventory[mat], adjusted_mat_needed)
-                        inventory[mat] -= used
-                        remaining_qty = adjusted_mat_needed - used
-                        if inventory[mat] <= 0:
-                            del inventory[mat]
-                    else:
-                        remaining_qty = adjusted_mat_needed
+                # For T2 sub-blueprints, just expand normally
+                sub_mats = expand_materials(
+                    sub_bp,
+                    blueprints,
+                    quantity=adjusted_mat_needed,
+                    t1_dependencies=t1_dependencies,
+                    inventory=inventory,
+                )
+                for sm, sq in sub_mats.items():
+                    expanded[sm] += sq
 
-                    # Add only remaining quantity to dependencies
-                    if t1_dependencies is not None and remaining_qty > 0:
-                        t1_dependencies[mat] = t1_dependencies.get(mat, 0) + remaining_qty
+            else:
+                # Base material — just add the adjusted amount
+                expanded[mat] += adjusted_mat_needed
 
-                    # Only recurse if remaining_qty > 0
-                    if remaining_qty > 0:
-                        sub_mats = expand_materials(
-                            sub_bp,
-                            blueprints,
-                            quantity=remaining_qty,
-                            t1_dependencies=t1_dependencies,
-                            inventory=inventory,
-                        )
-                        for sm, sq in sub_mats.items():
-                            expanded[sm] += sq
+    return expanded
 
-                    # Also track the intermediate item itself
-                    #expanded[mat] += adjusted_mat_needed
 
+def accumulate_materials(blueprint: Blueprint, quantity: int, total_needed: dict, item_needs: dict, blueprints: list):
+    """Accumulate total materials and item-level needs."""
+
+    normalized_materials = normalize_materials_structure(blueprint.materials)
+
+    for category, materials in normalized_materials.items():
+        for mat_name, mat_qty in materials.items():
+            total_needed[mat_name] = total_needed.get(mat_name, 0) + mat_qty * quantity
+
+            # If this is a buildable Item (not a raw material), track as a build target
+            if blueprint.name in [b.name for b in blueprints]:
+                item_needs[mat_name] = item_needs.get(mat_name, 0) + mat_qty * quantity
+
+
+def can_fulfill(bp, inventory, blueprints):
+    all_materials = expand_materials_clean(bp, blueprints, quantity=1)
+    for mat in all_materials:
+        if inventory.get(mat, 0) > 0:
+            continue
+        if any(b.name == mat for b in blueprints):
+            continue
+        return False
+    return True
+
+
+def expand_materials_clean(bp, blueprints, quantity=1):
+    """
+    Expand blueprint materials to base materials only.
+    Don't handle inventory here - that's for the optimizer constraints.
+    """
+    expanded = defaultdict(float)
+
+    logger.debug(f"Expanding {bp.name} for quantity {quantity}")
+    # Normalize materials if they are a list
+    if isinstance(bp.materials, list):
+        normalized = normalize_materials_structure(bp.materials)
+    else:
+        normalized = bp.materials
+
+    # Units produced per run (default = 1)
+    amt_per_run = getattr(bp, "amt_per_run", 1)
+
+    # Calculate runs needed to fulfill the request
+    runs_needed = math.ceil(quantity / amt_per_run)
+    units_produced = runs_needed * amt_per_run
+
+    # Ratio of what we actually need vs what we'll produce
+    usage_ratio = quantity / units_produced if units_produced > 0 else 0
+
+    for section_name, section in normalized.items():
+        for mat, qty_per_run in section.items():
+            sub_bp = next((b for b in blueprints if b.name == mat), None)
+
+            total_mat_needed = qty_per_run * runs_needed
+            adjusted_mat_needed = total_mat_needed * usage_ratio
+
+            # Handle invention materials specially
+            if (
+                section_name == "Invention Materials"
+                and hasattr(bp, "invention_chance")
+                and bp.invention_chance
+            ):
+                attempts_needed = runs_needed / bp.invention_chance
+                adjusted_mat_needed = qty_per_run * attempts_needed * usage_ratio
+
+            if sub_bp:
+                # Recursively expand sub-blueprints
+                sub_mats = expand_materials_clean(
+                    sub_bp,
+                    blueprints,
+                    quantity=adjusted_mat_needed
+                )
+                for sm, sq in sub_mats.items():
+                    expanded[sm] += sq
             else:
                 # Base material — just add the adjusted amount
                 expanded[mat] += adjusted_mat_needed
