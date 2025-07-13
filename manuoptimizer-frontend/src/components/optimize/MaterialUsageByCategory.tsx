@@ -11,6 +11,8 @@ type MaterialUsage = {
 type Props = {
   usage: Record<string, MaterialUsage>;
   savings?: Record<string, { amount: number; category?: string }>;
+  expected_invention?: Record<string, number>;
+  invention_cost?: number;
 };
 
 const knownMinerals = [
@@ -69,7 +71,7 @@ function getRemainingColor(percent: number): string {
 }
 
 
-export default function MaterialUsageByCategory({ usage, savings = {} }: Props) {
+export default function MaterialUsageByCategory({ usage, savings = {}, expected_invention, invention_cost }: Props) {
   const categorized: Record<string, Record<string, MaterialUsage>> = {};
   const [open, setOpen] = useState(false);
   const [open2, setOpen2] = useState(false);
@@ -167,7 +169,7 @@ export default function MaterialUsageByCategory({ usage, savings = {} }: Props) 
       </div>
       
       {/* To Be Built + Inventory Savings Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6"> {/* Change to 3 columns for side-by-side layout */}
 
         {/* To Be Built */}
         {Object.entries(usage).some(
@@ -179,8 +181,8 @@ export default function MaterialUsageByCategory({ usage, savings = {} }: Props) 
               onClick={() => setOpen2(!open2)}
             >
               <div className="flex flex-col">
-                <h4 className="text-lg text-yellow-300 font-semibold">To Be Built</h4>
-                <h3 className=" text-yellow-300 font-semibold mt-2 text-sm">Shortfall from Items</h3>
+                <h4 className="text-lg text-yellow-300 font-semibold pb-2.5">To Be Built</h4>
+                <h3 className="text-yellow-300 font-semibold mt-2 text-sm">Shortfall from Items</h3>
               </div>
               <div className="text-yellow-300">{open2 ? <ChevronDown /> : <ChevronRight />}</div>
             </div>
@@ -209,17 +211,65 @@ export default function MaterialUsageByCategory({ usage, savings = {} }: Props) 
           </div>
         )}
 
+        {/* Expected Invention Materials Section */}
+        <div className="rounded-xl bg-gradient-to-br from-purple-800/30 to-purple-950/30 border border-purple-700 shadow-inner relative pb-10 ">
+          <div 
+            className="cursor-pointer flex justify-between items-center p-4"
+            onClick={() => setOpen2(!open2)} // Use a separate state for this section
+          >
+            <div className="flex flex-col">
+              <h4 className="text-lg text-purple-300 font-semibold">Expected Invention Use</h4>
+              <h4 className="text-sm text-purple-300 font-semibold">
+                Materials needed for planned T2 production
+              </h4>
+            </div>
+            <div className="text-purple-300">
+              {open2 ? <ChevronDown /> : <ChevronRight />}
+            </div>
+          </div>
+          {open2 && expected_invention && (
+            <div className="px-4 pb-4">
+              <div className="flex justify-between text-xs text-purple-200 font-semibold border-b border-purple-600 pb-1">
+                <div className="w-2/3">Material</div>
+                <div className="w-1/3 text-right">Amount Needed</div>
+              </div>
+              <div className="mt-2 space-y-1">
+                {Object.entries(expected_invention)
+                  .sort(([a], [b]) => a.localeCompare(b))
+                  .map(([name, amount]) => (
+                    <div key={name} className="flex justify-between text-sm text-purple-100">
+                      <div className="w-2/3 truncate">{name}</div>
+                      <div className="w-1/3 text-right text-purple-400">
+                        {amount.toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+          {invention_cost !== undefined && (
+            <div className="absolute bottom-0 p-4 bg-purple-800/20 border-t border-purple-700 text-sm text-purple-100 w-full mt-10">
+              <div className="flex justify-between">
+                <div className="w-2/3">Total (Expected) Invention Cost:</div>
+                <div className="w-1/3 text-right text-purple-400">
+                  {invention_cost.toLocaleString()}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Inventory Savings */}
         {savings && Object.keys(savings).length > 0 && (
           <div className="rounded-xl bg-gradient-to-br from-emerald-800/30 to-emerald-950/30 border border-emerald-700 shadow-inner">
             <div
               className="cursor-pointer flex justify-between items-center p-4"
-              onClick={() => setOpen2(!open2)}
+              onClick={() => setOpen2(!open2)} // Use a separate state for this section
             > 
-            <div className="flex flex-col">
-              <h4 className="text-lg text-emerald-300 font-semibold">Inventory Savings</h4>
-              <h4 className="text-sm text-emerald-300 font-semibold">Items (mats with blueprints) used directly from your inventory</h4>
-            </div>
+              <div className="flex flex-col">
+                <h4 className="text-lg text-emerald-300 font-semibold pb-2.5">Inventory Savings</h4>
+                <h4 className="text-sm text-emerald-300 font-semibold">Items (mats with blueprints) used directly from your inventory</h4>
+              </div>
               <div className="text-emerald-300">{open2 ? <ChevronDown /> : <ChevronRight />}</div>
             </div>
 

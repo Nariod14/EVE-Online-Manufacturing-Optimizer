@@ -204,7 +204,9 @@ def expand_materials_clean(bp, blueprints, quantity=1):
 
     return expanded
 
-
+def sanitize_name(name):
+    """Sanitizes a string to be a valid PuLP variable name."""
+    return re.sub(r'[^a-zA-Z0-9_]', '_', name)
 
 
 def normalize_materials_structure(materials_raw):

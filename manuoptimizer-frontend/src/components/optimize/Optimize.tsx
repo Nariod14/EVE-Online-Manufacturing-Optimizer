@@ -47,6 +47,8 @@ export default function Optimize() {
     true_profit_jita: result.true_profit_jita,
     true_profit_inventory: result.true_profit_inventory,
     inventory_savings: result.inventory_savings,
+    expected_invention_materials_used: result.expected_invention_materials_used,
+    invention_cost: result.invention_cost
   } : null;
   
 
@@ -73,12 +75,17 @@ export default function Optimize() {
 
             {/* Grid layout for tables */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DependenciesTable data={result.dependencies_needed} />
+              <DependenciesTable data={result.dependencies_needed} /> 
               <ProductionPlanTable data={result.what_to_produce} />
             </div>
 
             {/* Full width sections */}
-            <MaterialUsageByCategory usage={result.material_usage} savings={result.inventory_savings} />
+            <MaterialUsageByCategory 
+              usage={result.material_usage} 
+              savings={result.inventory_savings} 
+              expected_invention={result.expected_invention_materials_used} 
+              invention_cost={result.invention_cost} 
+            />
             <BottleneckList materialUsage={result.material_usage} />
           </div>
         )}

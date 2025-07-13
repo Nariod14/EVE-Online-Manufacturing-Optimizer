@@ -14,7 +14,7 @@ from urllib3.util.retry import Retry
 
 
 import pulp
-from .utils import accumulate_materials, compute_expanded_materials, expand_materials, expand_materials_clean, expand_sub_blueprints_one_level, fetch_price, get_lowest_jita_sell_price, get_lowest_jita_sell_prices_loop, get_material_category_lookup, get_item_info, get_material_quantity, normalize_materials_structure, normalize_name, parse_blueprint_text, parse_ingame_invention_text, refresh_access_token, safe_subtract, validate_inventory
+from .utils import accumulate_materials, compute_expanded_materials, expand_materials, expand_materials_clean, expand_sub_blueprints_one_level, fetch_price, get_lowest_jita_sell_price, get_lowest_jita_sell_prices_loop, get_material_category_lookup, get_item_info, get_material_quantity, normalize_materials_structure, normalize_name, parse_blueprint_text, parse_ingame_invention_text, refresh_access_token, safe_subtract, sanitize_name, validate_inventory
 from models import BlueprintT2, Blueprint as BlueprintModel, Station, db, Material
 from flask import Blueprint
 from pulp import LpProblem, LpVariable, lpSum, value, LpMaximize, LpStatus, PULP_CBC_CMD, LpAffineExpression
@@ -582,82 +582,89 @@ def optimize():
         logger.info("Materials loaded: %s", inventory)
         bp_names = {b.name for b in blueprints}
 
-        # Calculate profit per blueprint
+        # 1. Create mappings between original and sanitized names for consistent lookups
+        # We need this to display final results with the original "pretty" names
+        s_name_to_original = {
+            **{sanitize_name(b.name): b.name for b in blueprints},
+            **{sanitize_name(m.name): m.name for m in material_objs.values()}
+        }
+
+        # Create a version of the inventory with sanitized keys for the model
+        sanitized_inventory = {sanitize_name(name): qty for name, qty in inventory.items()}
+
+        # 2. Create decision variables using SANITIZED names
+        # The LpVariable name AND the dictionary key must be sanitized and identical.
+        x = {sanitize_name(b.name): LpVariable(sanitize_name(b.name), lowBound=0, cat='Integer') for b in blueprints}
+
+        prob = LpProblem("MaxProfit", LpMaximize)
+
+        # 3. Calculate profit and build the objective function using SANITIZED names
         profit_per_bp = {}
         for b in blueprints:
-            profit_per_bp[b.name] = (b.sell_price - (b.full_material_cost if b.tier == 'T2' else b.material_cost)) / b.amt_per_run
-        
-        logger.info("=== PROFIT ANALYSIS ===")
-        for b in blueprints:
-            if "Simple Asteroid Mining Crystal Type B II" in b.name:
-                profit = (b.sell_price - (b.full_material_cost if b.tier == 'T2' else b.material_cost)) / b.amt_per_run
-                logger.info(f"Blueprint: {b.name}")
-                logger.info(f"  Sell Price: {b.sell_price}")
-                logger.info(f"  Material Cost: {b.full_material_cost if b.tier == 'T2' else b.material_cost}")
-                logger.info(f"  Amt per run: {b.amt_per_run}")
-                logger.info(f"  Profit per unit: {profit}")
-                logger.info(f"  Max constraint: {b.max}")
-        
-        
-    
-    
+            s_name = sanitize_name(b.name)
+            profit_per_bp[s_name] = (b.sell_price - (b.full_material_cost if b.tier == 'T2' else b.material_cost)) / b.amt_per_run
 
-        # Create decision variables
-        x = {b.name: LpVariable(f"x_{b.name}", lowBound=0, cat='Integer') for b in blueprints}
-        prob = LpProblem("MaxProfit", LpMaximize)
-        prob += lpSum(profit_per_bp[b.name] * x[b.name] for b in blueprints)
+        prob += lpSum(profit_per_bp[s_name] * x[s_name] for s_name in x.keys())
 
-        # Calculate material consumption and production
+        # 4. Calculate material consumption and production using SANITIZED names
         consumption = defaultdict(LpAffineExpression)
         production = defaultdict(LpAffineExpression)
 
         for b in blueprints:
-            quantity = getattr(b, "amt_per_run", 1)
-            production[b.name] += quantity * x[b.name]
+            s_bp_name = sanitize_name(b.name)
+            quantity_per_run = getattr(b, "amt_per_run", 1)
 
-            # Use DIRECT materials only, not expanded!
-            # Normalize materials if they are a list
-            if isinstance(b.materials, list):
-                normalized = normalize_materials_structure(b.materials)
-            else:
-                normalized = b.materials
+            # Production: This blueprint produces itself
+            production[s_bp_name] += quantity_per_run * x[s_bp_name]
 
-            # Add direct material requirements
-            for section_name, section in normalized.items():
-                for mat, qty_per_run in section.items():
-                    # Handle invention materials specially
-                    if (
-                        section_name == "Invention Materials"
-                        and hasattr(b, "invention_chance")
-                        and b.invention_chance
-                    ):
-                        attempts_needed = 1 / b.invention_chance
-                        consumption[mat] += qty_per_run * attempts_needed * x[b.name]
-                    else:
-                        consumption[mat] += qty_per_run * x[b.name]
+            # Consumption: This blueprint consumes its materials
+            normalized_mats = normalize_materials_structure(b.materials) if isinstance(b.materials, list) else b.materials
 
-        # INVENTORY CONSTRAINTS - this should work correctly now
-        all_materials = set(consumption) | set(production) | set(inventory)
-        for item in all_materials:
-            total_supply = production.get(item, 0) + inventory.get(item, 0)
-            total_demand = consumption.get(item, 0)
-            prob += total_demand <= total_supply
+            for section_name, section in normalized_mats.items():
+                for mat_name, qty_per_run in section.items():
+                    s_mat_name = sanitize_name(mat_name)
+                    consumption[s_mat_name] += qty_per_run * x[s_bp_name]
 
+        # 5. The UNIFIED material balance constraint using SANITIZED names
+        # This is the logic that fixes your inventory issue.
+        all_sanitized_items = set(sanitized_inventory.keys()) | set(consumption.keys()) | set(production.keys())
 
-        # Max production constraints
+        for s_item_name in all_sanitized_items:
+            consumed_expr = consumption.get(s_item_name, 0)
+            produced_expr = production.get(s_item_name, 0)
+            inventory_qty = sanitized_inventory.get(s_item_name, 0)
+
+            # Constraint: Total Consumed - Total Produced <= Starting Inventory
+            prob += consumed_expr - produced_expr <= inventory_qty, f"MaterialBalance_{s_item_name}"
+
+        # 6. Max production constraints using SANITIZED names
         for b in blueprints:
             if b.max is not None:
-                prob += x[b.name] <= b.max
-
+                s_name = sanitize_name(b.name)
+                prob += x[s_name] <= b.max, f"MaxProd_{s_name}"
+                
+                
         logger.info("Solving optimization problem...")
         prob.solve(PULP_CBC_CMD(msg=False))
 
         if LpStatus[prob.status] != 'Optimal':
             logger.info("Optimization status: %s", LpStatus[prob.status])
-            return jsonify({"status": "No optimal solution found"}), 400
+            # Save the LP file for debugging non-optimal solutions
+            with open("lp_debug_output.lp", "w") as f:
+                f.write(str(prob))
+            return jsonify({"status": f"No optimal solution found: {LpStatus[prob.status]}"}), 400
 
-        # Optimization results
-        what_to_produce = {b.name: int(value(x[b.name]) or 0) for b in blueprints}
+        # Save the LP file for inspection of the successful run
+        with open("lp_output.lp", "w") as f:
+            f.write(str(prob))
+
+        # Optimization results - convert sanitized names back to original names for the response
+        what_to_produce = {
+            s_name_to_original[s_name]: int(value(var) or 0)
+            for s_name, var in x.items()
+            if (value(var) or 0) > 0  # Only include items we are actually producing
+        }
+
         logger.info("Optimal production: %s", what_to_produce)
         logger.info("Objective value: %s", value(prob.objective))
 
@@ -726,7 +733,6 @@ def optimize():
                 accumulate_materials(b, count, total_needed, item_needs, blueprints)
 
         # Satisfy needs from inventory first (for materials, not intermediates)
-
         inventory_cost_savings = 0.0
         inventory_items_used = {}
 
@@ -755,7 +761,37 @@ def optimize():
                 else:
                     # Don't count minerals or base materials toward profit savings
                     logger.info("INVENTORY: Using %d x %s (raw material), not counted in profit savings", used_from_inv, mat)
-
+        
+        # Calculate expected invention materials used and expected cost
+        expected_invention_materials_used = defaultdict(float)
+        invention_cost = 0.0  # Initialize expected cost variable
+        for b in blueprints:
+            s_bp_name = sanitize_name(b.name)
+            produced_qty = int(value(x[s_bp_name]) or 0)  # Get the solved quantity for this blueprint
+            if produced_qty > 0:
+                normalized_mats = normalize_materials_structure(b.materials) if isinstance(b.materials, list) else b.materials
+                for section_name, section in normalized_mats.items():
+                    if section_name == "Invention Materials":
+                        for mat_name, qty_per_run in section.items():
+                            s_mat_name = sanitize_name(mat_name)
+                            # Calculate attempts needed (handle potential division by zero if invention_chance is 0 or None)
+                            attempts_needed = 1.0  # Default to 1 if no invention chance (e.g., for T1 BPCs)
+                            if hasattr(b, "invention_chance") and b.invention_chance is not None and b.invention_chance > 0:
+                                attempts_needed = 1 / b.invention_chance
+                            # Update expected invention materials used
+                            expected_invention_materials_used[s_mat_name] += qty_per_run * attempts_needed * produced_qty
+                            # Calculate expected cost for datacores
+                            mat_obj = material_objs.get(mat_name)
+                            if mat_obj and hasattr(mat_obj, 'sell_price'):
+                                invention_cost += mat_obj.sell_price * (qty_per_run * attempts_needed * produced_qty)
+        # Convert sanitized names back to original             
+        report_invention_materials = {
+            s_name_to_original.get(s_mat_name, s_mat_name): round(qty)  # Use .get for safety, round for display
+            for s_mat_name, qty in expected_invention_materials_used.items()
+            if qty > 0  # Only show materials actually used
+        }
+        
+        logger.debug("Expected invention materials used: %s", report_invention_materials)
                 
 
         # Calculate final material usage (non-recursive)
@@ -808,7 +844,9 @@ def optimize():
             "what_to_produce": what_to_produce,
             "material_usage": final_material_usage,
             "dependencies_needed": {k: int(v) for k, v in deps.items() if v > 0},
-            "inventory_savings": inventory_items_used
+            "inventory_savings": inventory_items_used,
+            "expected_invention_materials_used": report_invention_materials,
+            "invention_cost": invention_cost
         }
 
         logger.info("Optimization complete. Final result: %s", result)

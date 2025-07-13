@@ -8,6 +8,8 @@ export type InventorySavings = Record<
 
 
 export type OptimizeResponse = {
+  expected_invention_materials_used: Record<string, number>;
+  invention_cost: number;
   inventory_savings: InventorySavings;
   total_profit: number;
   true_profit_jita: number;
@@ -27,6 +29,7 @@ export type OptimizeResponse = {
 export const mockOptimizeResponse: OptimizeResponse = {
   total_profit: 420000000,
   true_profit_jita: 278000000,
+  invention_cost: 50000000,
   true_profit_inventory: 314000000,
   dependencies_needed: {
     "R.A.M. Energy Tech": 10,
@@ -91,15 +94,22 @@ export const mockOptimizeResponse: OptimizeResponse = {
     // Reaction Materials
     "Fullerene Intercalated Sheets": { used: 140, remaining: 10, category: "Reaction Materials" },
   },
+  
   inventory_savings: {
-    "Tritanium": { amount: 10000, category: "Minerals" },
-    "Pyerite": { amount: 5000, category: "Minerals" },
     "Coherent Asteroid Mining Crystal Type A I": { amount: 100, category: "Items" },
-    "Coolant": { amount: 50, category: "Planetary Materials" },
     "Hydrogen Batteries": { amount: 300, category: "Fuel" },
-    "RAM Electronics": { amount: 5, category: "Components" },
-    "Nanomechanical Microprocessor": { amount: 12, category: "Reaction Materials" },
-    "Unknown Goo": { amount: 999, category: "Other" },
+    "R.A.M. Robotics": { amount: 25, category: "Components" },
+  },
+
+  expected_invention_materials_used: {
+    "Data Interface": 12,
+    "Datacore - Laser Physics": 2,
+    "Datacore - Cryo Physics": 2,
+    "Datacore - Thermal Physics": 2,
+    "Datacore - Quantum Physics": 2,
+    "Datacore - Gravity Physics": 2,
+    
   },
 };
+
 
