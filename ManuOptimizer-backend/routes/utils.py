@@ -125,17 +125,26 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory
 
 
 def accumulate_materials(blueprint: Blueprint, quantity: int, total_needed: dict, item_needs: dict, blueprints: list):
-    """Accumulate total materials and item-level needs."""
+    """Accumulate total materials and item-level needs, properly handling invention materials."""
 
     normalized_materials = normalize_materials_structure(blueprint.materials)
-
+    runs_per_copy = getattr(blueprint, 'runs_per_copy', 1)
     for category, materials in normalized_materials.items():
         for mat_name, mat_qty in materials.items():
-            total_needed[mat_name] = total_needed.get(mat_name, 0) + mat_qty * quantity
-
+            # Calculate base quantity needed
+            if category == "Invention Materials":
+                # For invention materials, we need to account for invention chance and runs_per_copy
+                attempts_needed = 1.0  # Default if no invention chance
+                if hasattr(blueprint, "invention_chance") and blueprint.invention_chance is not None and blueprint.invention_chance > 0:
+                    attempts_needed = 1 / blueprint.invention_chance
+                adjusted_qty = (mat_qty * quantity * attempts_needed) / runs_per_copy
+            else:
+                # For regular materials, use quantity as-is
+                adjusted_qty = mat_qty * quantity
+            total_needed[mat_name] = total_needed.get(mat_name, 0) + adjusted_qty
             # If this is a buildable Item (not a raw material), track as a build target
-            if blueprint.name in [b.name for b in blueprints]:
-                item_needs[mat_name] = item_needs.get(mat_name, 0) + mat_qty * quantity
+            if any(b.name == mat_name for b in blueprints):
+                item_needs[mat_name] = item_needs.get(mat_name, 0) + adjusted_qty
 
 
 def can_fulfill(bp, inventory, blueprints):

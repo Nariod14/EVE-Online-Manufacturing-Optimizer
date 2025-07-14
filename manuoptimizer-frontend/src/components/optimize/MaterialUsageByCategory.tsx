@@ -168,147 +168,169 @@ export default function MaterialUsageByCategory({ usage, savings = {}, expected_
         })}
       </div>
       
-      {/* To Be Built + Inventory Savings Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6"> {/* Change to 3 columns for side-by-side layout */}
+      {/* To Be Built + Expected Invention + Inventory Savings Section */}
+      {/* To Be Built + Expected Invention + Inventory Savings Section */}
+      <div className="mt-6">
+        {/* First determine which sections have data */}
+        {(() => {
+          const hasToBeBuilt = Object.entries(usage).some(
+            ([_, info]) => info.category === "Items" && info.remaining < 0
+          );
+          const hasExpectedInvention = expected_invention && Object.keys(expected_invention).length > 0;
+          const hasInventorySavings = savings && Object.keys(savings).length > 0;
+          const sectionsWithData = [hasToBeBuilt, hasExpectedInvention, hasInventorySavings].filter(Boolean).length;
 
-        {/* To Be Built */}
-        {Object.entries(usage).some(
-          ([_, info]) => info.category === "Items" && info.remaining < 0
-        ) && (
-          <div className="rounded-xl bg-gradient-to-br from-yellow-800/30 to-yellow-900/30 border border-yellow-600 shadow-inner">
-            <div
-              className="cursor-pointer flex justify-between items-center p-4"
-              onClick={() => setOpen2(!open2)}
-            >
-              <div className="flex flex-col">
-                <h4 className="text-lg text-yellow-300 font-semibold pb-2.5">To Be Built</h4>
-                <h3 className="text-yellow-300 font-semibold mt-2 text-sm">Shortfall from Items</h3>
-              </div>
-              <div className="text-yellow-300">{open2 ? <ChevronDown /> : <ChevronRight />}</div>
-            </div>
+          return (
+            <div className={`flex flex-col md:flex-row gap-4 ${sectionsWithData === 1 ? 'justify-center' : ''}`}>
+              {/* To Be Built Section */}
+              {hasToBeBuilt && (
+                <div className={`${sectionsWithData === 1 ? 'w-full md:w-2/3' : sectionsWithData === 2 ? 'w-full md:w-1/2' : 'w-full md:w-1/3'}`}>
+                  <div className="rounded-xl bg-gradient-to-br from-yellow-800/30 to-yellow-900/30 border border-yellow-600 shadow-inner h-full">
+                    {/* Your existing To Be Built content goes here */}
+                    <div
+                      className="cursor-pointer flex justify-between items-center p-4"
+                      onClick={() => setOpen2(!open2)}
+                    >
+                      <div className="flex flex-col w-full">
+                        <h4 className="text-lg text-yellow-300 font-semibold pb-2.5 text-center">To Be Built</h4>
+                        <h3 className="text-yellow-300 font-semibold mt-2 text-sm text-center">Shortfall from Items</h3>
+                      </div>
+                      <div className="text-yellow-300">{open2 ? <ChevronDown /> : <ChevronRight />}</div>
+                    </div>
 
-            {open2 && (
-              <div className="px-4 pb-4">
-                <div className="flex justify-between text-xs text-yellow-200 font-semibold border-b border-yellow-600 pb-1">
-                  <div className="w-2/3">Material</div>
-                  <div className="w-1/3 text-right">Amount</div>
-                </div>
-                <div className="mt-2 space-y-1">
-                  {Object.entries(usage)
-                    .filter(([_, info]) => info.category === "Items" && info.remaining < 0)
-                    .sort(([a], [b]) => a.localeCompare(b))
-                    .map(([name, info]) => (
-                      <div key={name} className="flex justify-between text-sm text-yellow-100">
-                        <div className="w-2/3 truncate">{name}</div>
-                        <div className="w-1/3 text-right text-yellow-400">
-                          {Math.abs(info.remaining).toLocaleString()}
+                    {open2 && (
+                      <div className="px-4 pb-4">
+                        <div className="flex justify-between text-xs text-yellow-200 font-semibold border-b border-yellow-600 pb-1">
+                          <div className="w-2/3">Material</div>
+                          <div className="w-1/3 text-right">Amount</div>
+                        </div>
+                        <div className="mt-2 space-y-1">
+                          {Object.entries(usage)
+                            .filter(([_, info]) => info.category === "Items" && info.remaining < 0)
+                            .sort(([a], [b]) => a.localeCompare(b))
+                            .map(([name, info]) => (
+                              <div key={name} className="flex justify-between text-sm text-yellow-100">
+                                <div className="w-2/3 truncate">{name}</div>
+                                <div className="w-1/3 text-right text-yellow-400">
+                                  {Math.abs(info.remaining).toLocaleString()}
+                                </div>
+                              </div>
+                            ))}
                         </div>
                       </div>
-                    ))}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
 
-        {/* Expected Invention Materials Section */}
-        <div className="rounded-xl bg-gradient-to-br from-purple-800/30 to-purple-950/30 border border-purple-700 shadow-inner relative pb-10 ">
-          <div 
-            className="cursor-pointer flex justify-between items-center p-4"
-            onClick={() => setOpen2(!open2)} // Use a separate state for this section
-          >
-            <div className="flex flex-col">
-              <h4 className="text-lg text-purple-300 font-semibold">Expected Invention Use</h4>
-              <h4 className="text-sm text-purple-300 font-semibold">
-                Materials needed for planned T2 production
-              </h4>
-            </div>
-            <div className="text-purple-300">
-              {open2 ? <ChevronDown /> : <ChevronRight />}
-            </div>
-          </div>
-          {open2 && expected_invention && (
-            <div className="px-4 pb-4">
-              <div className="flex justify-between text-xs text-purple-200 font-semibold border-b border-purple-600 pb-1">
-                <div className="w-2/3">Material</div>
-                <div className="w-1/3 text-right">Amount Needed</div>
-              </div>
-              <div className="mt-2 space-y-1">
-                {Object.entries(expected_invention)
-                  .sort(([a], [b]) => a.localeCompare(b))
-                  .map(([name, amount]) => (
-                    <div key={name} className="flex justify-between text-sm text-purple-100">
-                      <div className="w-2/3 truncate">{name}</div>
-                      <div className="w-1/3 text-right text-purple-400">
-                        {amount.toLocaleString()}
+              {/* Expected Invention Section */}
+              {hasExpectedInvention && (
+                <div className={`${sectionsWithData === 1 ? 'w-full md:w-2/3' : sectionsWithData === 2 ? 'w-full md:w-1/2' : 'w-full md:w-1/3'}`}>
+                  <div className="rounded-xl bg-gradient-to-br from-purple-800/30 to-purple-950/30 border border-purple-700 shadow-inner relative pb-10 h-full">
+                    <div 
+                      className="cursor-pointer flex justify-between items-center p-4"
+                      onClick={() => setOpen2(!open2)}
+                    >
+                      <div className="flex flex-col w-full">
+                        <h4 className="text-lg text-purple-300 font-semibold text-center">Expected Invention Use</h4>
+                        <h4 className="text-sm text-purple-300 font-semibold text-center pb-4">
+                          Invention materials needed for planned T2 production
+                        </h4>
+                      </div>
+                      <div className="text-purple-300">
+                        {open2 ? <ChevronDown /> : <ChevronRight />}
                       </div>
                     </div>
-                  ))}
-              </div>
-            </div>
-          )}
-          {invention_cost !== undefined && (
-            <div className="absolute bottom-0 p-4 bg-purple-800/20 border-t border-purple-700 text-sm text-purple-100 w-full mt-10">
-              <div className="flex justify-between">
-                <div className="w-2/3">Total (Expected) Invention Cost:</div>
-                <div className="w-1/3 text-right text-purple-400">
-                  {invention_cost.toLocaleString()}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Inventory Savings */}
-        {savings && Object.keys(savings).length > 0 && (
-          <div className="rounded-xl bg-gradient-to-br from-emerald-800/30 to-emerald-950/30 border border-emerald-700 shadow-inner">
-            <div
-              className="cursor-pointer flex justify-between items-center p-4"
-              onClick={() => setOpen2(!open2)} // Use a separate state for this section
-            > 
-              <div className="flex flex-col">
-                <h4 className="text-lg text-emerald-300 font-semibold pb-2.5">Inventory Savings</h4>
-                <h4 className="text-sm text-emerald-300 font-semibold">Items (mats with blueprints) used directly from your inventory</h4>
-              </div>
-              <div className="text-emerald-300">{open2 ? <ChevronDown /> : <ChevronRight />}</div>
-            </div>
-
-            {open2 && (
-              <div className="px-4 pb-4">
-                {Object.entries(
-                  Object.entries(savings).reduce((acc, [name, { amount, category = "Other" }]) => {
-                    if (!acc[category]) acc[category] = {};
-                    acc[category][name] = amount;
-                    return acc;
-                  }, {} as Record<string, Record<string, number>>)
-                )
-                  .sort(([a], [b]) => a.localeCompare(b))
-                  .map(([category, materials]) => (
-                    <div key={category} className="mb-4">
-                      <h5 className="text-emerald-200 font-medium mb-1">{category}</h5>
-                      <div className="flex justify-between text-xs text-emerald-300 font-semibold border-b border-emerald-600 pb-1">
-                        <div className="w-2/3">Material</div>
-                        <div className="w-1/3 text-right">Saved</div>
+                    {open2 && expected_invention && (
+                      <div className="px-4 pb-4">
+                        <div className="flex justify-between text-xs text-purple-200 font-semibold border-b border-purple-600 pb-1">
+                          <div className="w-2/3">Material</div>
+                          <div className="w-1/3 text-right">Needed</div>
+                        </div>
+                        <div className="mt-2 space-y-1">
+                          {Object.entries(expected_invention)
+                            .sort(([a], [b]) => a.localeCompare(b))
+                            .map(([name, amount]) => (
+                              <div key={name} className="flex justify-between text-sm text-purple-100">
+                                <div className="w-2/3 truncate">{name}</div>
+                                <div className="w-1/3 text-right text-purple-400">
+                                  {amount.toLocaleString()}
+                                </div>
+                              </div>
+                            ))}
+                        </div>
                       </div>
-                      <div className="mt-1 space-y-1">
-                        {Object.entries(materials)
+                    )}
+                    {invention_cost !== undefined && (
+                      <div className="absolute bottom-0 p-4 bg-purple-800/20 border-t border-purple-700 text-sm text-purple-100 w-full mt-10 pb-1">
+                        <div className="flex justify-between">
+                          <div className="w-2/3">Total (Expected) Invention Cost:</div>
+                          <div className="w-1/3 text-right text-purple-400">
+                            {invention_cost.toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Inventory Savings Section */}
+              {hasInventorySavings && (
+                <div className={`${sectionsWithData === 1 ? 'w-full md:w-2/3' : sectionsWithData === 2 ? 'w-full md:w-1/2' : 'w-full md:w-1/3'}`}>
+                  <div className="rounded-xl bg-gradient-to-br from-emerald-800/30 to-emerald-950/30 border border-emerald-700 shadow-inner h-full">
+                    <div
+                      className="cursor-pointer flex justify-between items-center p-4"
+                      onClick={() => setOpen2(!open2)}
+                    > 
+                      <div className="flex flex-col w-full">
+                        <h4 className={`text-lg text-emerald-300 font-semibold pb-2.5 text-center`}>Inventory Savings</h4>
+                        <h4 className="text-sm text-emerald-300 font-semibold text-center">Items (mats with blueprints) used directly from your inventory</h4>
+                      </div>
+                      <div className="text-emerald-300">{open2 ? <ChevronDown /> : <ChevronRight />}</div>
+                    </div>
+
+                    {open2 && (
+                      <div className="px-4 pb-4">
+                        {Object.entries(
+                          Object.entries(savings).reduce((acc, [name, { amount, category = "Other" }]) => {
+                            if (!acc[category]) acc[category] = {};
+                            acc[category][name] = amount;
+                            return acc;
+                          }, {} as Record<string, Record<string, number>>)
+                        )
                           .sort(([a], [b]) => a.localeCompare(b))
-                          .map(([name, amount]) => (
-                            <div key={name} className="flex justify-between text-sm text-emerald-100">
-                              <div className="w-2/3 truncate">{name}</div>
-                              <div className="w-1/3 text-right text-emerald-400">
-                                {amount.toLocaleString()}
+                          .map(([category, materials]) => (
+                            <div key={category} className="mb-4">
+                              <h5 className="text-emerald-200 font-medium mb-1">{category}</h5>
+                              <div className="flex justify-between text-xs text-emerald-300 font-semibold border-b border-emerald-600 pb-1">
+                                <div className="w-2/3">Material</div>
+                                <div className="w-1/3 text-right">Saved</div>
+                              </div>
+                              <div className="mt-1 space-y-1">
+                                {Object.entries(materials)
+                                  .sort(([a], [b]) => a.localeCompare(b))
+                                  .map(([name, amount]) => (
+                                    <div key={name} className="flex justify-between text-sm text-emerald-100">
+                                      <div className="w-2/3 truncate">{name}</div>
+                                      <div className="w-1/3 text-right text-emerald-400">
+                                        {amount.toLocaleString()}
+                                      </div>
+                                    </div>
+                                  ))}
                               </div>
                             </div>
                           ))}
                       </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
-        )}
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
+
     </div>
   );
 

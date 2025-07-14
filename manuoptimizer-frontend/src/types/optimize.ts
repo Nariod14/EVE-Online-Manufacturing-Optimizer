@@ -16,6 +16,8 @@ export type OptimizeResponse = {
   true_profit_inventory: number;
   dependencies_needed: Record<string, number>;
   what_to_produce: Record<string, number>;
+  original_production_plan: Record<string, number>; // New field for original production plan
+  adjusted_production_plan: Record<string, number>; // New field for adjusted production plan
   material_usage: Record<
     string,
     {
@@ -25,6 +27,7 @@ export type OptimizeResponse = {
     }
   >;
 };
+
 
 export const mockOptimizeResponse: OptimizeResponse = {
   total_profit: 420000000,
@@ -38,6 +41,16 @@ export const mockOptimizeResponse: OptimizeResponse = {
   },
   what_to_produce: {
     "Warp Core Stabilizer II": 14,
+    "Hobgoblin II": 20,
+    "Knobbgoblin I": 999,
+  },
+  original_production_plan: { // New field for original production plan
+    "Warp Core Stabilizer II": 14,
+    "Hobgoblin II": 20,
+    "Knobbgoblin I": 999,
+  },
+  adjusted_production_plan: { // New field for adjusted production plan
+    "Warp Core Stabilizer II": 0, // Example adjusted value after inventory consumption
     "Hobgoblin II": 20,
     "Knobbgoblin I": 999,
   },
@@ -96,9 +109,9 @@ export const mockOptimizeResponse: OptimizeResponse = {
   },
   
   inventory_savings: {
-    "Coherent Asteroid Mining Crystal Type A I": { amount: 100, category: "Items" },
-    "Hydrogen Batteries": { amount: 300, category: "Fuel" },
-    "R.A.M. Robotics": { amount: 25, category: "Components" },
+    // "Coherent Asteroid Mining Crystal Type A I": { amount: 100, category: "Items" },
+    // "Hydrogen Batteries": { amount: 300, category: "Fuel" },
+    // "R.A.M. Robotics": { amount: 25, category: "Components" },
   },
 
   expected_invention_materials_used: {
@@ -108,8 +121,5 @@ export const mockOptimizeResponse: OptimizeResponse = {
     "Datacore - Thermal Physics": 2,
     "Datacore - Quantum Physics": 2,
     "Datacore - Gravity Physics": 2,
-    
   },
 };
-
-

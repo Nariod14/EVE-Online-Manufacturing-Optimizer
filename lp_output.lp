@@ -2,87 +2,8 @@ MaxProfit:
 MAXIMIZE
 174188.02999999933*Bastion_Module_I + -135212.0*Coherent_Asteroid_Mining_Crystal_Type_A_I + -49294.21000000002*Coherent_Asteroid_Mining_Crystal_Type_A_II + 277696.0*Coherent_Asteroid_Mining_Crystal_Type_B_I + 130836.56999999995*Coherent_Asteroid_Mining_Crystal_Type_B_II + -154956.0*Complex_Asteroid_Mining_Crystal_Type_A_I + -35108.97999999998*Complex_Asteroid_Mining_Crystal_Type_A_II + 240348.0*Complex_Asteroid_Mining_Crystal_Type_B_I + 254815.04000000004*Complex_Asteroid_Mining_Crystal_Type_B_II + 2280473.33*Covert_Cynosural_Field_Generator_I + 41334.32999999996*Deep_Core_Mining_Laser_I + 2327196.08*Defender_Launcher_I + 172825.88*Drone_Link_Augmentor_I + 376957.8999999999*Drone_Link_Augmentor_II + 1375869.8200000003*Gas_Cloud_Harvester_I + 1364538.0300000003*Gas_Cloud_Harvester_II + 2108296.6799999997*Industrial_Cynosural_Field_Generator + 925281.9100000001*Interdiction_Sphere_Launcher_I + 8097134.6499999985*Large_Asteroid_Ore_Compressor_I + 4154896.0199999996*Medium_Asteroid_Ore_Compressor_I + 229748.0*Mercoxit_Asteroid_Mining_Crystal_Type_A_I + -565889.98*Mercoxit_Asteroid_Mining_Crystal_Type_A_II + 729124.0*Mercoxit_Asteroid_Mining_Crystal_Type_B_I + 225244.49000000022*Modulated_Deep_Core_Miner_II + -991.0094*R_A_M___Electronics + -994.8004000000001*R_A_M___Energy_Tech + -16670.209999999992*Simple_Asteroid_Mining_Crystal_Type_A_II + 39504.0*Simple_Asteroid_Mining_Crystal_Type_B_I + 326148.57*Simple_Asteroid_Mining_Crystal_Type_B_II + 766740.3300000001*Small_Tractor_Beam_I + -11576.0*Variegated_Asteroid_Mining_Crystal_Type_A_I + 57005.01000000001*Variegated_Asteroid_Mining_Crystal_Type_A_II + 258744.0*Variegated_Asteroid_Mining_Crystal_Type_B_I + 375998.03*Variegated_Asteroid_Mining_Crystal_Type_B_II + 0.0
 SUBJECT TO
-MaterialBalance_Electronic_Parts: 3 Deep_Core_Mining_Laser_I
- + 30 Gas_Cloud_Harvester_II <= 15239
-
-MaterialBalance_Interdiction_Sphere_Launcher_I:
- - Interdiction_Sphere_Launcher_I <= 0
-
-MaterialBalance_Complex_Asteroid_Mining_Crystal_Type_B_I:
- - Complex_Asteroid_Mining_Crystal_Type_B_I
- + Complex_Asteroid_Mining_Crystal_Type_B_II <= 0
-
-MaterialBalance_Coherent_Asteroid_Mining_Crystal_Type_B_I:
- - Coherent_Asteroid_Mining_Crystal_Type_B_I
- + Coherent_Asteroid_Mining_Crystal_Type_B_II <= 20
-
-MaterialBalance_Hypersynaptic_Fibers:
- 14 Coherent_Asteroid_Mining_Crystal_Type_A_II
- + 18 Coherent_Asteroid_Mining_Crystal_Type_B_II
- + 30 Complex_Asteroid_Mining_Crystal_Type_A_II
- + 38 Complex_Asteroid_Mining_Crystal_Type_B_II
- + 40 Mercoxit_Asteroid_Mining_Crystal_Type_A_II
- + 8 Simple_Asteroid_Mining_Crystal_Type_A_II
- + 10 Simple_Asteroid_Mining_Crystal_Type_B_II
- + 23 Variegated_Asteroid_Mining_Crystal_Type_A_II
- + 29 Variegated_Asteroid_Mining_Crystal_Type_B_II <= 7344
-
-MaterialBalance_Variegated_Asteroid_Mining_Crystal_Type_A_I:
- - Variegated_Asteroid_Mining_Crystal_Type_A_I
- + Variegated_Asteroid_Mining_Crystal_Type_A_II <= 0
-
-MaterialBalance_Laser_Focusing_Crystals: 3 Modulated_Deep_Core_Miner_II
- <= 8378
-
 MaterialBalance_Covert_Cynosural_Field_Generator_I:
  - Covert_Cynosural_Field_Generator_I <= 0
-
-MaterialBalance_Datacore___Graviton_Physics: 2 Drone_Link_Augmentor_II <= 500
-
-MaterialBalance_Medium_Asteroid_Ore_Compressor_I:
- - Medium_Asteroid_Ore_Compressor_I <= 0
-
-MaterialBalance_R_A_M___Energy_Tech: Gas_Cloud_Harvester_II
- + Modulated_Deep_Core_Miner_II - 100 R_A_M___Energy_Tech <= 23929
-
-MaterialBalance_Isogen: 4743 Bastion_Module_I
- + 2016 Covert_Cynosural_Field_Generator_I + 1423 Deep_Core_Mining_Laser_I
- + 3552 Defender_Launcher_I + 2 Drone_Link_Augmentor_I
- + 1281 Gas_Cloud_Harvester_I + 1042 Industrial_Cynosural_Field_Generator
- + 1097 Interdiction_Sphere_Launcher_I + 17262 Large_Asteroid_Ore_Compressor_I
- + 8726 Medium_Asteroid_Ore_Compressor_I + 82 R_A_M___Electronics
- + 82 R_A_M___Energy_Tech + 2372 Small_Tractor_Beam_I <= 204
-
-MaterialBalance_Datacore___Mechanical_Engineering: 2 Gas_Cloud_Harvester_II
- + 2 Modulated_Deep_Core_Miner_II <= 500
-
-MaterialBalance_Industrial_Cynosural_Field_Generator:
- - Industrial_Cynosural_Field_Generator <= 0
-
-MaterialBalance_Mercoxit_Asteroid_Mining_Crystal_Type_A_II:
- - Mercoxit_Asteroid_Mining_Crystal_Type_A_II <= 0
-
-MaterialBalance_Coherent_Asteroid_Mining_Crystal_Type_A_II:
- - Coherent_Asteroid_Mining_Crystal_Type_A_II <= 0
-
-MaterialBalance_Drone_Link_Augmentor_I: - Drone_Link_Augmentor_I
- + Drone_Link_Augmentor_II <= 17
-
-MaterialBalance_Coherent_Asteroid_Mining_Crystal_Type_B_II:
- - Coherent_Asteroid_Mining_Crystal_Type_B_II <= 0
-
-MaterialBalance_Variegated_Asteroid_Mining_Crystal_Type_B_I:
- - Variegated_Asteroid_Mining_Crystal_Type_B_I
- + Variegated_Asteroid_Mining_Crystal_Type_B_II <= 0
-
-MaterialBalance_Complex_Asteroid_Mining_Crystal_Type_A_II:
- - Complex_Asteroid_Mining_Crystal_Type_A_II <= 0
-
-MaterialBalance_Mercoxit_Asteroid_Mining_Crystal_Type_B_I:
- - Mercoxit_Asteroid_Mining_Crystal_Type_B_I <= 0
-
-MaterialBalance_Photon_Microprocessor: 23 Gas_Cloud_Harvester_II
- + 5 Modulated_Deep_Core_Miner_II <= 2914
 
 MaterialBalance_R_A_M___Electronics:
  Coherent_Asteroid_Mining_Crystal_Type_A_II
@@ -95,29 +16,14 @@ MaterialBalance_R_A_M___Electronics:
  + Variegated_Asteroid_Mining_Crystal_Type_A_II
  + Variegated_Asteroid_Mining_Crystal_Type_B_II <= 51173
 
-MaterialBalance_Pyerite: 71132 Bastion_Module_I
- + 7153 Covert_Cynosural_Field_Generator_I + 3370 Deep_Core_Mining_Laser_I
- + 26929 Defender_Launcher_I + 1897 Drone_Link_Augmentor_I
- + 17072 Gas_Cloud_Harvester_I + 12248 Industrial_Cynosural_Field_Generator
- + 9764 Interdiction_Sphere_Launcher_I
- + 129460 Large_Asteroid_Ore_Compressor_I
- + 65441 Medium_Asteroid_Ore_Compressor_I + 444 R_A_M___Electronics
- + 444 R_A_M___Energy_Tech + 10433 Small_Tractor_Beam_I <= 10419102
+MaterialBalance_Simple_Asteroid_Mining_Crystal_Type_A_I:
+ Simple_Asteroid_Mining_Crystal_Type_A_II <= 0
 
-MaterialBalance_Datacore___High_Energy_Physics:
- 2 Coherent_Asteroid_Mining_Crystal_Type_A_II
- + 4 Coherent_Asteroid_Mining_Crystal_Type_B_II
- + 4 Complex_Asteroid_Mining_Crystal_Type_A_II
- + 8 Complex_Asteroid_Mining_Crystal_Type_B_II
- + 5 Mercoxit_Asteroid_Mining_Crystal_Type_A_II
- + 2 Simple_Asteroid_Mining_Crystal_Type_A_II
- + 4 Simple_Asteroid_Mining_Crystal_Type_B_II
- + 3 Variegated_Asteroid_Mining_Crystal_Type_A_II
- + 6 Variegated_Asteroid_Mining_Crystal_Type_B_II <= 5000
+MaterialBalance_Coherent_Asteroid_Mining_Crystal_Type_B_II:
+ - Coherent_Asteroid_Mining_Crystal_Type_B_II <= 0
 
-MaterialBalance_Coherent_Asteroid_Mining_Crystal_Type_A_I:
- - Coherent_Asteroid_Mining_Crystal_Type_A_I
- + Coherent_Asteroid_Mining_Crystal_Type_A_II <= 0
+MaterialBalance_Laser_Focusing_Crystals: 3 Modulated_Deep_Core_Miner_II
+ <= 8378
 
 MaterialBalance_Mexallon: 28453 Bastion_Module_I
  + 1854 Covert_Cynosural_Field_Generator_I + 1921 Deep_Core_Mining_Laser_I
@@ -127,61 +33,14 @@ MaterialBalance_Mexallon: 28453 Bastion_Module_I
  + 17451 Medium_Asteroid_Ore_Compressor_I + 222 R_A_M___Electronics
  + 222 R_A_M___Energy_Tech + 8536 Small_Tractor_Beam_I <= 6850983
 
-MaterialBalance_Simple_Asteroid_Mining_Crystal_Type_B_II:
- - Simple_Asteroid_Mining_Crystal_Type_B_II <= 0
+MaterialBalance_Variegated_Asteroid_Mining_Crystal_Type_B_I:
+ - Variegated_Asteroid_Mining_Crystal_Type_B_I
+ + Variegated_Asteroid_Mining_Crystal_Type_B_II <= 0
 
-MaterialBalance_Modulated_Deep_Core_Miner_II: - Modulated_Deep_Core_Miner_II
- <= 0
-
-MaterialBalance_Transmitter: 12 Drone_Link_Augmentor_II <= 1507
-
-MaterialBalance_Datacore___Laser_Physics:
- 2 Coherent_Asteroid_Mining_Crystal_Type_A_II
- + 4 Coherent_Asteroid_Mining_Crystal_Type_B_II
- + 4 Complex_Asteroid_Mining_Crystal_Type_A_II
- + 8 Complex_Asteroid_Mining_Crystal_Type_B_II + 2 Gas_Cloud_Harvester_II
- + 5 Mercoxit_Asteroid_Mining_Crystal_Type_A_II
- + 2 Modulated_Deep_Core_Miner_II + 2 Simple_Asteroid_Mining_Crystal_Type_A_II
- + 4 Simple_Asteroid_Mining_Crystal_Type_B_II
- + 3 Variegated_Asteroid_Mining_Crystal_Type_A_II
- + 6 Variegated_Asteroid_Mining_Crystal_Type_B_II <= 1500
-
-MaterialBalance_Datacore___Electronic_Engineering: 2 Drone_Link_Augmentor_II
- <= 500
-
-MaterialBalance_Megacyte: 190 Bastion_Module_I
- + 1011 Covert_Cynosural_Field_Generator_I + 369 Defender_Launcher_I
- + 19 Drone_Link_Augmentor_I + 427 Gas_Cloud_Harvester_I
- + 820 Industrial_Cynosural_Field_Generator
- + 228 Interdiction_Sphere_Launcher_I + 864 Large_Asteroid_Ore_Compressor_I
- + 437 Medium_Asteroid_Ore_Compressor_I + 76 Small_Tractor_Beam_I <= 10578
-
-MaterialBalance_Mechanical_Parts: 2 Deep_Core_Mining_Laser_I
- + 30 Gas_Cloud_Harvester_II <= 3070
-
-MaterialBalance_Variegated_Asteroid_Mining_Crystal_Type_A_II:
- - Variegated_Asteroid_Mining_Crystal_Type_A_II <= 0
-
-MaterialBalance_Zydrine: 379 Bastion_Module_I
- + 1868 Covert_Cynosural_Field_Generator_I + 462 Defender_Launcher_I
- + 96 Drone_Link_Augmentor_I + 257 Gas_Cloud_Harvester_I
- + 409 Industrial_Cynosural_Field_Generator
- + 378 Interdiction_Sphere_Launcher_I + 864 Large_Asteroid_Ore_Compressor_I
- + 437 Medium_Asteroid_Ore_Compressor_I + 140 Small_Tractor_Beam_I <= 18317
-
-MaterialBalance_Morphite: 5 Drone_Link_Augmentor_II
- + 15 Gas_Cloud_Harvester_II + 23 Modulated_Deep_Core_Miner_II <= 4918
+MaterialBalance_Defender_Launcher_I: - Defender_Launcher_I <= 0
 
 MaterialBalance_Variegated_Asteroid_Mining_Crystal_Type_B_II:
  - Variegated_Asteroid_Mining_Crystal_Type_B_II <= 0
-
-MaterialBalance_Complex_Asteroid_Mining_Crystal_Type_B_II:
- - Complex_Asteroid_Mining_Crystal_Type_B_II <= 0
-
-MaterialBalance_Gas_Cloud_Harvester_I: - Gas_Cloud_Harvester_I
- + Gas_Cloud_Harvester_II <= 0
-
-MaterialBalance_Bastion_Module_I: - Bastion_Module_I <= 0
 
 MaterialBalance_Nocxium: 949 Bastion_Module_I
  + 214 Coherent_Asteroid_Mining_Crystal_Type_A_I
@@ -199,7 +58,61 @@ MaterialBalance_Nocxium: 949 Bastion_Module_I
  + 333 Small_Tractor_Beam_I + 342 Variegated_Asteroid_Mining_Crystal_Type_A_I
  + 427 Variegated_Asteroid_Mining_Crystal_Type_B_I <= 1002
 
-MaterialBalance_Drone_Link_Augmentor_II: - Drone_Link_Augmentor_II <= 0
+MaterialBalance_Variegated_Asteroid_Mining_Crystal_Type_A_II:
+ - Variegated_Asteroid_Mining_Crystal_Type_A_II <= 0
+
+MaterialBalance_Medium_Asteroid_Ore_Compressor_I:
+ - Medium_Asteroid_Ore_Compressor_I <= 0
+
+MaterialBalance_Megacyte: 190 Bastion_Module_I
+ + 1011 Covert_Cynosural_Field_Generator_I + 369 Defender_Launcher_I
+ + 19 Drone_Link_Augmentor_I + 427 Gas_Cloud_Harvester_I
+ + 820 Industrial_Cynosural_Field_Generator
+ + 228 Interdiction_Sphere_Launcher_I + 864 Large_Asteroid_Ore_Compressor_I
+ + 437 Medium_Asteroid_Ore_Compressor_I + 76 Small_Tractor_Beam_I <= 10578
+
+MaterialBalance_Datacore___Mechanical_Engineering: 2 Gas_Cloud_Harvester_II
+ + 2 Modulated_Deep_Core_Miner_II <= 500
+
+MaterialBalance_Complex_Asteroid_Mining_Crystal_Type_A_I:
+ - Complex_Asteroid_Mining_Crystal_Type_A_I
+ + Complex_Asteroid_Mining_Crystal_Type_A_II <= 0
+
+MaterialBalance_Particle_Accelerator_Unit: 12 Drone_Link_Augmentor_II <= 2
+
+MaterialBalance_Variegated_Asteroid_Mining_Crystal_Type_A_I:
+ - Variegated_Asteroid_Mining_Crystal_Type_A_I
+ + Variegated_Asteroid_Mining_Crystal_Type_A_II <= 0
+
+MaterialBalance_Datacore___Laser_Physics:
+ 2 Coherent_Asteroid_Mining_Crystal_Type_A_II
+ + 4 Coherent_Asteroid_Mining_Crystal_Type_B_II
+ + 4 Complex_Asteroid_Mining_Crystal_Type_A_II
+ + 8 Complex_Asteroid_Mining_Crystal_Type_B_II + 2 Gas_Cloud_Harvester_II
+ + 5 Mercoxit_Asteroid_Mining_Crystal_Type_A_II
+ + 2 Modulated_Deep_Core_Miner_II + 2 Simple_Asteroid_Mining_Crystal_Type_A_II
+ + 4 Simple_Asteroid_Mining_Crystal_Type_B_II
+ + 3 Variegated_Asteroid_Mining_Crystal_Type_A_II
+ + 6 Variegated_Asteroid_Mining_Crystal_Type_B_II <= 1500
+
+MaterialBalance_Coherent_Asteroid_Mining_Crystal_Type_B_I:
+ - Coherent_Asteroid_Mining_Crystal_Type_B_I
+ + Coherent_Asteroid_Mining_Crystal_Type_B_II <= 20
+
+MaterialBalance_Mercoxit_Asteroid_Mining_Crystal_Type_A_I:
+ - Mercoxit_Asteroid_Mining_Crystal_Type_A_I
+ + Mercoxit_Asteroid_Mining_Crystal_Type_A_II <= 0
+
+MaterialBalance_Bastion_Module_I: - Bastion_Module_I <= 0
+
+MaterialBalance_Modulated_Deep_Core_Miner_II: - Modulated_Deep_Core_Miner_II
+ <= 0
+
+MaterialBalance_R_A_M___Energy_Tech: Gas_Cloud_Harvester_II
+ + Modulated_Deep_Core_Miner_II - 100 R_A_M___Energy_Tech <= 23929
+
+MaterialBalance_Drone_Link_Augmentor_I: - Drone_Link_Augmentor_I
+ + Drone_Link_Augmentor_II <= 17
 
 MaterialBalance_Tritanium: 331948 Bastion_Module_I
  + 11896 Covert_Cynosural_Field_Generator_I + 6442 Deep_Core_Mining_Laser_I
@@ -210,37 +123,124 @@ MaterialBalance_Tritanium: 331948 Bastion_Module_I
  + 65441 Medium_Asteroid_Ore_Compressor_I + 556 R_A_M___Electronics
  + 556 R_A_M___Energy_Tech + 23711 Small_Tractor_Beam_I <= 16540605
 
-MaterialBalance_Simple_Asteroid_Mining_Crystal_Type_A_I:
- Simple_Asteroid_Mining_Crystal_Type_A_II <= 0
+MaterialBalance_Simple_Asteroid_Mining_Crystal_Type_B_II:
+ - Simple_Asteroid_Mining_Crystal_Type_B_II <= 0
+
+MaterialBalance_Photon_Microprocessor: 23 Gas_Cloud_Harvester_II
+ + 5 Modulated_Deep_Core_Miner_II <= 2914
+
+MaterialBalance_Gas_Cloud_Harvester_I: - Gas_Cloud_Harvester_I
+ + Gas_Cloud_Harvester_II <= 0
 
 MaterialBalance_Simple_Asteroid_Mining_Crystal_Type_B_I:
  - Simple_Asteroid_Mining_Crystal_Type_B_I
  + Simple_Asteroid_Mining_Crystal_Type_B_II <= 391
 
-MaterialBalance_Large_Asteroid_Ore_Compressor_I:
- - Large_Asteroid_Ore_Compressor_I <= 0
+MaterialBalance_Mechanical_Parts: 2 Deep_Core_Mining_Laser_I
+ + 30 Gas_Cloud_Harvester_II <= 3070
 
-MaterialBalance_Mercoxit_Asteroid_Mining_Crystal_Type_A_I:
- - Mercoxit_Asteroid_Mining_Crystal_Type_A_I
- + Mercoxit_Asteroid_Mining_Crystal_Type_A_II <= 0
+MaterialBalance_Coherent_Asteroid_Mining_Crystal_Type_A_I:
+ - Coherent_Asteroid_Mining_Crystal_Type_A_I
+ + Coherent_Asteroid_Mining_Crystal_Type_A_II <= 0
 
-MaterialBalance_Defender_Launcher_I: - Defender_Launcher_I <= 0
+MaterialBalance_Simple_Asteroid_Mining_Crystal_Type_A_II:
+ - Simple_Asteroid_Mining_Crystal_Type_A_II <= 0
 
-MaterialBalance_Gas_Cloud_Harvester_II: - Gas_Cloud_Harvester_II <= 0
+MaterialBalance_Datacore___High_Energy_Physics:
+ 2 Coherent_Asteroid_Mining_Crystal_Type_A_II
+ + 4 Coherent_Asteroid_Mining_Crystal_Type_B_II
+ + 4 Complex_Asteroid_Mining_Crystal_Type_A_II
+ + 8 Complex_Asteroid_Mining_Crystal_Type_B_II
+ + 5 Mercoxit_Asteroid_Mining_Crystal_Type_A_II
+ + 2 Simple_Asteroid_Mining_Crystal_Type_A_II
+ + 4 Simple_Asteroid_Mining_Crystal_Type_B_II
+ + 3 Variegated_Asteroid_Mining_Crystal_Type_A_II
+ + 6 Variegated_Asteroid_Mining_Crystal_Type_B_II <= 5000
+
+MaterialBalance_Mercoxit_Asteroid_Mining_Crystal_Type_B_I:
+ - Mercoxit_Asteroid_Mining_Crystal_Type_B_I <= 0
+
+MaterialBalance_Complex_Asteroid_Mining_Crystal_Type_A_II:
+ - Complex_Asteroid_Mining_Crystal_Type_A_II <= 0
+
+MaterialBalance_Transmitter: 12 Drone_Link_Augmentor_II <= 1507
 
 MaterialBalance_Deep_Core_Mining_Laser_I: - Deep_Core_Mining_Laser_I
  + Modulated_Deep_Core_Miner_II <= 0
 
+MaterialBalance_Gas_Cloud_Harvester_II: - Gas_Cloud_Harvester_II <= 0
+
+MaterialBalance_Datacore___Graviton_Physics: 2 Drone_Link_Augmentor_II <= 500
+
+MaterialBalance_Datacore___Electronic_Engineering: 2 Drone_Link_Augmentor_II
+ <= 500
+
+MaterialBalance_Complex_Asteroid_Mining_Crystal_Type_B_I:
+ - Complex_Asteroid_Mining_Crystal_Type_B_I
+ + Complex_Asteroid_Mining_Crystal_Type_B_II <= 0
+
+MaterialBalance_Morphite: 5 Drone_Link_Augmentor_II
+ + 15 Gas_Cloud_Harvester_II + 23 Modulated_Deep_Core_Miner_II <= 4918
+
+MaterialBalance_Coherent_Asteroid_Mining_Crystal_Type_A_II:
+ - Coherent_Asteroid_Mining_Crystal_Type_A_II <= 0
+
+MaterialBalance_Electronic_Parts: 3 Deep_Core_Mining_Laser_I
+ + 30 Gas_Cloud_Harvester_II <= 15239
+
+MaterialBalance_Large_Asteroid_Ore_Compressor_I:
+ - Large_Asteroid_Ore_Compressor_I <= 0
+
+MaterialBalance_Hypersynaptic_Fibers:
+ 14 Coherent_Asteroid_Mining_Crystal_Type_A_II
+ + 18 Coherent_Asteroid_Mining_Crystal_Type_B_II
+ + 30 Complex_Asteroid_Mining_Crystal_Type_A_II
+ + 38 Complex_Asteroid_Mining_Crystal_Type_B_II
+ + 40 Mercoxit_Asteroid_Mining_Crystal_Type_A_II
+ + 8 Simple_Asteroid_Mining_Crystal_Type_A_II
+ + 10 Simple_Asteroid_Mining_Crystal_Type_B_II
+ + 23 Variegated_Asteroid_Mining_Crystal_Type_A_II
+ + 29 Variegated_Asteroid_Mining_Crystal_Type_B_II <= 7344
+
+MaterialBalance_Industrial_Cynosural_Field_Generator:
+ - Industrial_Cynosural_Field_Generator <= 0
+
+MaterialBalance_Drone_Link_Augmentor_II: - Drone_Link_Augmentor_II <= 0
+
+MaterialBalance_Complex_Asteroid_Mining_Crystal_Type_B_II:
+ - Complex_Asteroid_Mining_Crystal_Type_B_II <= 0
+
+MaterialBalance_Mercoxit_Asteroid_Mining_Crystal_Type_A_II:
+ - Mercoxit_Asteroid_Mining_Crystal_Type_A_II <= 0
+
+MaterialBalance_Isogen: 4743 Bastion_Module_I
+ + 2016 Covert_Cynosural_Field_Generator_I + 1423 Deep_Core_Mining_Laser_I
+ + 3552 Defender_Launcher_I + 2 Drone_Link_Augmentor_I
+ + 1281 Gas_Cloud_Harvester_I + 1042 Industrial_Cynosural_Field_Generator
+ + 1097 Interdiction_Sphere_Launcher_I + 17262 Large_Asteroid_Ore_Compressor_I
+ + 8726 Medium_Asteroid_Ore_Compressor_I + 82 R_A_M___Electronics
+ + 82 R_A_M___Energy_Tech + 2372 Small_Tractor_Beam_I <= 204
+
 MaterialBalance_Small_Tractor_Beam_I: - Small_Tractor_Beam_I <= 0
 
-MaterialBalance_Particle_Accelerator_Unit: 12 Drone_Link_Augmentor_II <= 2
+MaterialBalance_Zydrine: 379 Bastion_Module_I
+ + 1868 Covert_Cynosural_Field_Generator_I + 462 Defender_Launcher_I
+ + 96 Drone_Link_Augmentor_I + 257 Gas_Cloud_Harvester_I
+ + 409 Industrial_Cynosural_Field_Generator
+ + 378 Interdiction_Sphere_Launcher_I + 864 Large_Asteroid_Ore_Compressor_I
+ + 437 Medium_Asteroid_Ore_Compressor_I + 140 Small_Tractor_Beam_I <= 18317
 
-MaterialBalance_Complex_Asteroid_Mining_Crystal_Type_A_I:
- - Complex_Asteroid_Mining_Crystal_Type_A_I
- + Complex_Asteroid_Mining_Crystal_Type_A_II <= 0
+MaterialBalance_Pyerite: 71132 Bastion_Module_I
+ + 7153 Covert_Cynosural_Field_Generator_I + 3370 Deep_Core_Mining_Laser_I
+ + 26929 Defender_Launcher_I + 1897 Drone_Link_Augmentor_I
+ + 17072 Gas_Cloud_Harvester_I + 12248 Industrial_Cynosural_Field_Generator
+ + 9764 Interdiction_Sphere_Launcher_I
+ + 129460 Large_Asteroid_Ore_Compressor_I
+ + 65441 Medium_Asteroid_Ore_Compressor_I + 444 R_A_M___Electronics
+ + 444 R_A_M___Energy_Tech + 10433 Small_Tractor_Beam_I <= 10419102
 
-MaterialBalance_Simple_Asteroid_Mining_Crystal_Type_A_II:
- - Simple_Asteroid_Mining_Crystal_Type_A_II <= 0
+MaterialBalance_Interdiction_Sphere_Launcher_I:
+ - Interdiction_Sphere_Launcher_I <= 0
 
 MaxProd_Medium_Asteroid_Ore_Compressor_I: Medium_Asteroid_Ore_Compressor_I
  <= 0

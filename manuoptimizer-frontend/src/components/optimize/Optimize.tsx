@@ -11,6 +11,7 @@ import MaterialUsageByCategory from "./MaterialUsageByCategory";
 import BottleneckList from "./BottleneckList";
 import { OptimizeResponse } from "@/types/optimize";
 import { waitForMswReady } from "@/lib/mswReady";
+import AdjustedProductionPlanTable from "./AdjustedProductionPlanTable";
 
 
 
@@ -48,7 +49,10 @@ export default function Optimize() {
     true_profit_inventory: result.true_profit_inventory,
     inventory_savings: result.inventory_savings,
     expected_invention_materials_used: result.expected_invention_materials_used,
-    invention_cost: result.invention_cost
+    invention_cost: result.invention_cost,
+    original_final_produced: result.original_production_plan,
+    adjusted_final_produced: result.adjusted_production_plan,
+
   } : null;
   
 
@@ -59,38 +63,76 @@ export default function Optimize() {
           Optimize Production
         </CardTitle>
       </CardHeader>
+
       <CardContent className="flex flex-col items-center space-y-6">
-      <Button
-        onClick={handleOptimize}
-        disabled={loading}
-        className="bg-blue-900 hover:bg-blue-700 text-white font-bold text-lg py-4 px-6 rounded-lg shadow-lg shadow-blue-500/50 transition duration-300 ease-in-out hover:scale-110 hover:shadow-xl"
-      >
-        {loading ? "Optimizing..." : "OPTIMIZE PRODUCTION"}
-      </Button>
+        <Button
+          onClick={handleOptimize}
+          disabled={loading}
+          className="bg-blue-900 hover:bg-blue-700 text-white font-bold text-lg py-4 px-6 rounded-lg shadow-lg shadow-blue-500/50 transition duration-300 ease-in-out hover:scale-110 hover:shadow-xl"
+        >
+          {loading ? "Optimizing..." : "OPTIMIZE PRODUCTION"}
+        </Button>
 
         {result && (
           <div className="w-full space-y-6">
             {/* Totals */}
             {optimizationData && <OptimizationTotals data={optimizationData} />}
 
-            {/* Grid layout for tables */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DependenciesTable data={result.dependencies_needed} /> 
-              <ProductionPlanTable data={result.what_to_produce} />
-            </div>
+            {/* Tables container */}
+            {(Object.keys(result.dependencies_needed || {}).length > 0 ||
+              Object.keys(result.what_to_produce || {}).length > 0 ||
+              Object.keys(result.adjusted_production_plan || {}).length > 0) && (
+              <div className="w-full">
+                {/* Calculate how many tables we have */}
+                {(() => {
+                  const tableCount = [
+                    result.dependencies_needed,
+                    result.what_to_produce,
+                    result.adjusted_production_plan,
+                  ].filter(data => data && Object.keys(data).length > 0).length;
+
+                  return (
+                    <div className={`grid grid-cols-1 ${tableCount === 2 ? 'md:grid-cols-2' : tableCount === 3 ? 'md:grid-cols-3' : 'md:grid-cols-1'} gap-3 items-stretch`}>
+                      {Object.keys(result.dependencies_needed || {}).length > 0 && (
+                        <div className={`h-full ${tableCount === 1 ? 'md:col-span-1 mx-auto w-full md:w-2/5' : 'w-full'}`}>
+                          <DependenciesTable data={result.dependencies_needed} className="h-full" />
+                        </div>
+                      )}
+
+                      {Object.keys(result.what_to_produce || {}).length > 0 && (
+                        <div className={`h-full ${tableCount === 1 ? 'md:col-span-1 mx-auto w-full md:w-2/5' : 'w-full'}`}>
+                          <ProductionPlanTable data={result.what_to_produce} className="h-full" />
+                        </div>
+                      )}
+
+                      {Object.keys(result.adjusted_production_plan || {}).length > 0 && (
+                        <div className={`h-full ${tableCount === 1 ? 'md:col-span-1 mx-auto w-full md:w-2/5' : 'w-full'}`}>
+                          <AdjustedProductionPlanTable data={result.adjusted_production_plan} className="h-full" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
 
             {/* Full width sections */}
-            <MaterialUsageByCategory 
-              usage={result.material_usage} 
-              savings={result.inventory_savings} 
-              expected_invention={result.expected_invention_materials_used} 
-              invention_cost={result.invention_cost} 
+            <MaterialUsageByCategory
+              usage={result.material_usage}
+              savings={result.inventory_savings}
+              expected_invention={result.expected_invention_materials_used}
+              invention_cost={result.invention_cost}
             />
+
             <BottleneckList materialUsage={result.material_usage} />
           </div>
         )}
 
+
       </CardContent>
     </Card>
   );
+
+
+
 }
