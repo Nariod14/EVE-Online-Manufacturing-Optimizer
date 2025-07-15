@@ -186,6 +186,7 @@
   ('api-ms-win-crt-string-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-string-l1-1-0.dll',
+<<<<<<< HEAD
    'BINARY'),
   ('api-ms-win-crt-heap-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
@@ -194,11 +195,14 @@
   ('api-ms-win-crt-locale-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-locale-l1-1-0.dll',
+=======
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'BINARY'),
   ('api-ms-win-crt-convert-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-convert-l1-1-0.dll',
    'BINARY'),
+<<<<<<< HEAD
   ('api-ms-win-crt-filesystem-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-filesystem-l1-1-0.dll',
@@ -213,10 +217,43 @@
    'BINARY'),
   ('VCRUNTIME140.dll',
    'C:\\Program Files\\Python313\\VCRUNTIME140.dll',
+=======
+  ('api-ms-win-crt-heap-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-heap-l1-1-0.dll',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
+   'BINARY'),
+  ('api-ms-win-crt-runtime-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+<<<<<<< HEAD
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-runtime-l1-1-0.dll',
+=======
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-conio-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-math-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-math-l1-1-0.dll',
    'BINARY'),
   ('api-ms-win-crt-runtime-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-runtime-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-filesystem-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-filesystem-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-environment-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-environment-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-locale-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-locale-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-stdio-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-stdio-l1-1-0.dll',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'BINARY'),
   ('api-ms-win-crt-time-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
@@ -234,6 +271,12 @@
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-crt-process-l1-1-0.dll',
    'BINARY'),
+<<<<<<< HEAD
+=======
+  ('VCRUNTIME140.dll',
+   'C:\\Program Files\\Python313\\VCRUNTIME140.dll',
+   'BINARY'),
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
   ('libcrypto-3.dll',
    'C:\\Program Files\\Python313\\DLLs\\libcrypto-3.dll',
    'BINARY'),
@@ -258,14 +301,21 @@
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\ucrtbase.dll',
    'BINARY'),
+<<<<<<< HEAD
   ('api-ms-win-core-synch-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-synch-l1-1-0.dll',
+=======
+  ('api-ms-win-core-fibers-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-fibers-l1-1-0.dll',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'BINARY'),
   ('api-ms-win-core-util-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-util-l1-1-0.dll',
    'BINARY'),
+<<<<<<< HEAD
   ('api-ms-win-core-debug-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-debug-l1-1-0.dll',
@@ -277,11 +327,17 @@
   ('api-ms-win-core-file-l1-2-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-file-l1-2-0.dll',
+=======
+  ('api-ms-win-core-processthreads-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-processthreads-l1-1-0.dll',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'BINARY'),
   ('api-ms-win-core-libraryloader-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-libraryloader-l1-1-0.dll',
    'BINARY'),
+<<<<<<< HEAD
   ('api-ms-win-core-console-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-console-l1-1-0.dll',
@@ -293,15 +349,37 @@
   ('api-ms-win-core-fibers-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-fibers-l1-1-0.dll',
+=======
+  ('api-ms-win-core-heap-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-heap-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-handle-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-handle-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-errorhandling-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-errorhandling-l1-1-0.dll',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'BINARY'),
   ('api-ms-win-core-localization-l1-2-0.dll',
    'C:\\Program Files\\Eclipse '
+<<<<<<< HEAD
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-localization-l1-2-0.dll',
+=======
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-sysinfo-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-namedpipe-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-namedpipe-l1-1-0.dll',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'BINARY'),
   ('api-ms-win-core-processenvironment-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-processenvironment-l1-1-0.dll',
    'BINARY'),
+<<<<<<< HEAD
   ('api-ms-win-core-processthreads-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-processthreads-l1-1-0.dll',
@@ -321,11 +399,17 @@
   ('api-ms-win-core-timezone-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-timezone-l1-1-0.dll',
+=======
+  ('api-ms-win-core-localization-l1-2-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-localization-l1-2-0.dll',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'BINARY'),
   ('api-ms-win-core-profile-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-profile-l1-1-0.dll',
    'BINARY'),
+<<<<<<< HEAD
   ('api-ms-win-core-handle-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-handle-l1-1-0.dll',
@@ -334,14 +418,24 @@
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-string-l1-1-0.dll',
    'BINARY'),
+=======
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
   ('api-ms-win-core-datetime-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-datetime-l1-1-0.dll',
    'BINARY'),
+<<<<<<< HEAD
+=======
+  ('api-ms-win-core-debug-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-debug-l1-1-0.dll',
+   'BINARY'),
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
   ('api-ms-win-core-interlocked-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-interlocked-l1-1-0.dll',
    'BINARY'),
+<<<<<<< HEAD
   ('api-ms-win-core-sysinfo-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-sysinfo-l1-1-0.dll',
@@ -353,14 +447,57 @@
   ('api-ms-win-core-heap-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-heap-l1-1-0.dll',
+=======
+  ('api-ms-win-core-synch-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-synch-l1-1-0.dll',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'BINARY'),
   ('api-ms-win-core-synch-l1-2-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-synch-l1-2-0.dll',
    'BINARY'),
+<<<<<<< HEAD
   ('api-ms-win-core-errorhandling-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-errorhandling-l1-1-0.dll',
+=======
+  ('api-ms-win-core-console-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-console-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-rtlsupport-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-rtlsupport-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-memory-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-memory-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-file-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-file-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-file-l2-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-file-l2-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-string-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-string-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-file-l1-2-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-file-l1-2-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-timezone-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-timezone-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-processthreads-l1-1-1.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jdk-21.0.4.7-hotspot\\bin\\api-ms-win-core-processthreads-l1-1-1.dll',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'BINARY'),
   ('.env',
    'C:\\Users\\nario\\Documents\\Coding '
@@ -534,6 +671,7 @@
    'C:\\Users\\nario\\Documents\\Coding '
    'Stuff\\Eve-Code\\ManuOptimizer\\ManuOptimizer-backend\\build\\ManuOptimize\\base_library.zip',
    'DATA'),
+<<<<<<< HEAD
   ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\INSTALLER',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\INSTALLER',
    'DATA'),
@@ -555,6 +693,29 @@
   ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\REQUESTED',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\REQUESTED',
    'DATA'),
+=======
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\LICENSE',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\LICENSE',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\REQUESTED',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\REQUESTED',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\METADATA',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\METADATA',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\top_level.txt',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\top_level.txt',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\RECORD',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\RECORD',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\INSTALLER',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\INSTALLER',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\WHEEL',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\WHEEL',
+   'DATA'),
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
   ('setuptools\\_vendor\\jaraco\\text\\Lorem ipsum.txt',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\jaraco\\text\\Lorem '
    'ipsum.txt',
@@ -562,6 +723,7 @@
   ('certifi\\cacert.pem',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\certifi\\cacert.pem',
    'DATA'),
+<<<<<<< HEAD
   ('certifi\\py.typed',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\certifi\\py.typed',
    'DATA'),
@@ -582,10 +744,33 @@
    'DATA'),
   ('flask-3.0.3.dist-info\\RECORD',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask-3.0.3.dist-info\\RECORD',
+=======
+  ('flask-3.0.3.dist-info\\REQUESTED',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask-3.0.3.dist-info\\REQUESTED',
+   'DATA'),
+  ('flask-3.0.3.dist-info\\WHEEL',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask-3.0.3.dist-info\\WHEEL',
+   'DATA'),
+  ('setuptools\\_vendor\\wheel-0.43.0.dist-info\\RECORD',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\wheel-0.43.0.dist-info\\RECORD',
+   'DATA'),
+  ('MarkupSafe-3.0.2.dist-info\\INSTALLER',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\MarkupSafe-3.0.2.dist-info\\INSTALLER',
+   'DATA'),
+  ('setuptools\\_vendor\\wheel-0.43.0.dist-info\\INSTALLER',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\wheel-0.43.0.dist-info\\INSTALLER',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\WHEEL',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\itsdangerous-2.2.0.dist-info\\WHEEL',
+   'DATA'),
+  ('setuptools\\_vendor\\wheel-0.43.0.dist-info\\LICENSE.txt',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\wheel-0.43.0.dist-info\\LICENSE.txt',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'DATA'),
   ('werkzeug-3.1.3.dist-info\\INSTALLER',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\werkzeug-3.1.3.dist-info\\INSTALLER',
    'DATA'),
+<<<<<<< HEAD
   ('itsdangerous-2.2.0.dist-info\\RECORD',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\itsdangerous-2.2.0.dist-info\\RECORD',
    'DATA'),
@@ -621,10 +806,30 @@
    'DATA'),
   ('MarkupSafe-3.0.2.dist-info\\METADATA',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\MarkupSafe-3.0.2.dist-info\\METADATA',
+=======
+  ('flask_sqlalchemy-3.1.1.dist-info\\REQUESTED',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask_sqlalchemy-3.1.1.dist-info\\REQUESTED',
+   'DATA'),
+  ('MarkupSafe-3.0.2.dist-info\\WHEEL',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\MarkupSafe-3.0.2.dist-info\\WHEEL',
+   'DATA'),
+  ('flask_sqlalchemy-3.1.1.dist-info\\INSTALLER',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask_sqlalchemy-3.1.1.dist-info\\INSTALLER',
+   'DATA'),
+  ('werkzeug-3.1.3.dist-info\\WHEEL',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\werkzeug-3.1.3.dist-info\\WHEEL',
+   'DATA'),
+  ('MarkupSafe-3.0.2.dist-info\\METADATA',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\MarkupSafe-3.0.2.dist-info\\METADATA',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\LICENSE.txt',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\itsdangerous-2.2.0.dist-info\\LICENSE.txt',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'DATA'),
   ('setuptools\\_vendor\\wheel-0.43.0.dist-info\\entry_points.txt',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\wheel-0.43.0.dist-info\\entry_points.txt',
    'DATA'),
+<<<<<<< HEAD
   ('flask_sqlalchemy-3.1.1.dist-info\\INSTALLER',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask_sqlalchemy-3.1.1.dist-info\\INSTALLER',
    'DATA'),
@@ -636,10 +841,15 @@
    'DATA'),
   ('itsdangerous-2.2.0.dist-info\\WHEEL',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\itsdangerous-2.2.0.dist-info\\WHEEL',
+=======
+  ('flask-3.0.3.dist-info\\INSTALLER',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask-3.0.3.dist-info\\INSTALLER',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'DATA'),
   ('setuptools\\_vendor\\wheel-0.43.0.dist-info\\REQUESTED',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\wheel-0.43.0.dist-info\\REQUESTED',
    'DATA'),
+<<<<<<< HEAD
   ('flask_sqlalchemy-3.1.1.dist-info\\METADATA',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask_sqlalchemy-3.1.1.dist-info\\METADATA',
    'DATA'),
@@ -648,10 +858,15 @@
    'DATA'),
   ('itsdangerous-2.2.0.dist-info\\METADATA',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\itsdangerous-2.2.0.dist-info\\METADATA',
+=======
+  ('setuptools\\_vendor\\wheel-0.43.0.dist-info\\WHEEL',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\wheel-0.43.0.dist-info\\WHEEL',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'DATA'),
   ('itsdangerous-2.2.0.dist-info\\INSTALLER',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\itsdangerous-2.2.0.dist-info\\INSTALLER',
    'DATA'),
+<<<<<<< HEAD
   ('flask-3.0.3.dist-info\\REQUESTED',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask-3.0.3.dist-info\\REQUESTED',
    'DATA'),
@@ -660,23 +875,77 @@
    'DATA'),
   ('flask_sqlalchemy-3.1.1.dist-info\\WHEEL',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask_sqlalchemy-3.1.1.dist-info\\WHEEL',
+=======
+  ('flask_sqlalchemy-3.1.1.dist-info\\METADATA',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask_sqlalchemy-3.1.1.dist-info\\METADATA',
+   'DATA'),
+  ('flask_sqlalchemy-3.1.1.dist-info\\RECORD',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask_sqlalchemy-3.1.1.dist-info\\RECORD',
+   'DATA'),
+  ('flask-3.0.3.dist-info\\LICENSE.txt',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask-3.0.3.dist-info\\LICENSE.txt',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\METADATA',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\itsdangerous-2.2.0.dist-info\\METADATA',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'DATA'),
   ('werkzeug-3.1.3.dist-info\\METADATA',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\werkzeug-3.1.3.dist-info\\METADATA',
    'DATA'),
+<<<<<<< HEAD
   ('werkzeug-3.1.3.dist-info\\WHEEL',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\werkzeug-3.1.3.dist-info\\WHEEL',
+=======
+  ('werkzeug-3.1.3.dist-info\\LICENSE.txt',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\werkzeug-3.1.3.dist-info\\LICENSE.txt',
+   'DATA'),
+  ('MarkupSafe-3.0.2.dist-info\\RECORD',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\MarkupSafe-3.0.2.dist-info\\RECORD',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'DATA'),
   ('MarkupSafe-3.0.2.dist-info\\top_level.txt',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\MarkupSafe-3.0.2.dist-info\\top_level.txt',
    'DATA'),
+<<<<<<< HEAD
   ('setuptools\\_vendor\\wheel-0.43.0.dist-info\\LICENSE.txt',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\wheel-0.43.0.dist-info\\LICENSE.txt',
+=======
+  ('MarkupSafe-3.0.2.dist-info\\LICENSE.txt',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\MarkupSafe-3.0.2.dist-info\\LICENSE.txt',
+   'DATA'),
+  ('flask_sqlalchemy-3.1.1.dist-info\\WHEEL',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask_sqlalchemy-3.1.1.dist-info\\WHEEL',
+   'DATA'),
+  ('werkzeug-3.1.3.dist-info\\RECORD',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\werkzeug-3.1.3.dist-info\\RECORD',
+   'DATA'),
+  ('flask-3.0.3.dist-info\\METADATA',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask-3.0.3.dist-info\\METADATA',
+   'DATA'),
+  ('flask_sqlalchemy-3.1.1.dist-info\\LICENSE.rst',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask_sqlalchemy-3.1.1.dist-info\\LICENSE.rst',
+   'DATA'),
+  ('setuptools\\_vendor\\wheel-0.43.0.dist-info\\METADATA',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\setuptools\\_vendor\\wheel-0.43.0.dist-info\\METADATA',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\RECORD',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\itsdangerous-2.2.0.dist-info\\RECORD',
+   'DATA'),
+  ('flask-3.0.3.dist-info\\RECORD',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask-3.0.3.dist-info\\RECORD',
+   'DATA'),
+  ('flask-3.0.3.dist-info\\entry_points.txt',
+   'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\flask-3.0.3.dist-info\\entry_points.txt',
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
    'DATA')],
  [],
  False,
  False,
+<<<<<<< HEAD
  1751593329,
+=======
+ 1751536535,
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
  [('run.exe',
    'C:\\Users\\nario\\AppData\\Roaming\\Python\\Python313\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\run.exe',
    'EXECUTABLE')],
