@@ -12088,11 +12088,5 @@ ManuOptimizer-backend/dist/instances/eve_optimizer.db
 ManuOptimizer-backend/instances/eve_optimizer.db
 /ManuOptimizer-backend/instances/backuip
 ManuOptimizer-backend/instances/backuip
-manuoptimizer-frontend/out/404.html
-manuoptimizer-frontend/out/callback.html
-manuoptimizer-frontend/out/callback.txt
-manuoptimizer-frontend/out/index.html
-manuoptimizer-frontend/out/index.txt
-manuoptimizer-frontend/out/login.html
-manuoptimizer-frontend/out/login.txt
-manuoptimizer-frontend/out/_next/static/css/70765251c49b35f2.css
+manuoptimizer-frontend/out/
+lp_output.lp
