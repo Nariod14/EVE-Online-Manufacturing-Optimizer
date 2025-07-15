@@ -46,7 +46,11 @@ def normalize_name(name: str) -> str:
 def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory=None):
     expanded = defaultdict(float)
 
+<<<<<<< HEAD
     # Normalize materials if they are a list
+=======
+    #  Normalize materials if they are a list
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
     if isinstance(bp.materials, list):
         normalized = normalize_materials_structure(bp.materials)
     else:
@@ -78,6 +82,7 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory
                 attempts_needed = runs_needed / bp.invention_chance
                 expanded[mat] += qty_per_run * attempts_needed * usage_ratio
 
+<<<<<<< HEAD
             elif sub_bp and getattr(sub_bp, "tier", "T1") == "T1":
                 # For T1 sub-blueprints, use inventory first
                 if inventory and inventory.get(mat, 0) > 0:
@@ -116,6 +121,38 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory
                 )
                 for sm, sq in sub_mats.items():
                     expanded[sm] += sq
+=======
+            elif sub_bp:
+                if getattr(sub_bp, "tier", "T1") == "T1":
+                    # Use inventory first
+                    if inventory and inventory.get(mat, 0) > 0:
+                        used = min(inventory[mat], adjusted_mat_needed)
+                        inventory[mat] -= used
+                        remaining_qty = adjusted_mat_needed - used
+                        if inventory[mat] <= 0:
+                            del inventory[mat]
+                    else:
+                        remaining_qty = adjusted_mat_needed
+
+                    # Add only remaining quantity to dependencies
+                    if t1_dependencies is not None and remaining_qty > 0:
+                        t1_dependencies[mat] = t1_dependencies.get(mat, 0) + remaining_qty
+
+                    # Only recurse if remaining_qty > 0
+                    if remaining_qty > 0:
+                        sub_mats = expand_materials(
+                            sub_bp,
+                            blueprints,
+                            quantity=remaining_qty,
+                            t1_dependencies=t1_dependencies,
+                            inventory=inventory,
+                        )
+                        for sm, sq in sub_mats.items():
+                            expanded[sm] += sq
+
+                    # Also track the intermediate item itself
+                    #expanded[mat] += adjusted_mat_needed
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
 
             else:
                 # Base material — just add the adjusted amount
@@ -124,6 +161,7 @@ def expand_materials(bp, blueprints, quantity=1, t1_dependencies=None, inventory
     return expanded
 
 
+<<<<<<< HEAD
 def accumulate_materials(blueprint: Blueprint, quantity: int, total_needed: dict, item_needs: dict, blueprints: list):
     """Accumulate total materials and item-level needs, properly handling invention materials."""
 
@@ -216,6 +254,8 @@ def expand_materials_clean(bp, blueprints, quantity=1):
 def sanitize_name(name):
     """Sanitizes a string to be a valid PuLP variable name."""
     return re.sub(r'[^a-zA-Z0-9_]', '_', name)
+=======
+>>>>>>> 05b38381a2b296c703e15abd8f6e6e278c6f1508
 
 
 def normalize_materials_structure(materials_raw):
