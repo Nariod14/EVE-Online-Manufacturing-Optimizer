@@ -272,7 +272,7 @@ def get_blueprints():
                 for name, quantity in quantities.items():
                     materials.append({
                         "name": name,
-                        "quantity": quantity,
+                        "quantity": quantity / b.amt_per_run,
                         "category": category
                     })
             bp_dict = {
@@ -281,7 +281,7 @@ def get_blueprints():
                 "materials": materials,
                 "sell_price": b.sell_price,
                 "amt_per_run": b.amt_per_run,
-                "material_cost": b.material_cost,
+                "material_cost": b.material_cost / b.amt_per_run,
                 "tier": b.tier,
                 "station_id": b.station_id,
                 "station_name": b.station.name if b.station else None,
@@ -796,7 +796,7 @@ def optimize():
         
         # Calculate expected invention materials used and expected cost
         expected_invention_materials_used = defaultdict(float)
-        invention_cost = 0.0  # Initialize expected cost variable
+        invention_cost = 0.0 
         for b in blueprints:
             s_bp_name = sanitize_name(b.name)
             produced_qty = int(value(x[s_bp_name]) or 0)  # Get the solved quantity for this blueprint
@@ -831,7 +831,7 @@ def optimize():
         final_usage = defaultdict(float)
 
         # Accumulate materials for the total production goal
-        for name, count in produced.items():
+        for name, count in adjusted_final_produced.items():
             if count > 0:
                 bp = next((bp for bp in blueprints if bp.name == name), None)
                 if bp:
