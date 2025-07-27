@@ -17,3 +17,6 @@ ManuOptimizer-backend/instances/backuip/eve_optimizer1.db
 /ManuOptimizer-backend/routes/__pycache__
 lp_output.lp
 __temp_pipreqsnb_folder/_pipreqsnb_temp_file.py
+ManuOptimizer-backend/build/
+ManuOptimizer-backend/build/*
+ManuOptimizer-backend/dist/run.exe

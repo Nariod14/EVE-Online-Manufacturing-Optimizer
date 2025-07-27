@@ -53,12 +53,12 @@ def create_app():
         basedir = os.path.abspath(os.path.dirname(__file__))
         instance_path = os.path.join(basedir, 'instances')
 
-    out_path = os.path.join(basedir, 'out')  # Moved here to always define
+    out_path = os.path.join(basedir, 'out')
 
     os.makedirs(instance_path, exist_ok=True)
     db_path = os.path.join(instance_path, 'eve_optimizer.db')
 
-    # 👇 Serve frontend from `out/` as static folder
+    # Serve frontend from `out/` as static folder
     flask_app = Flask(
         __name__,
         static_folder=out_path,
