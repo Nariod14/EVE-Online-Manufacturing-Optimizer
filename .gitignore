@@ -20,3 +20,6 @@ __temp_pipreqsnb_folder/_pipreqsnb_temp_file.py
 ManuOptimizer-backend/build/
 ManuOptimizer-backend/build/*
 ManuOptimizer-backend/dist/run.exe
+ManuOptimizer-backend/dist/
+/ManuOptimizer-backend/__pycache__/
+ManuOptimizer-backend/__pycache__/
