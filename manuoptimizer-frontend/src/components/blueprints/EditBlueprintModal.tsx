@@ -341,7 +341,7 @@ function removeMaterial(index: number) {
 
           <div>
             <Label htmlFor="editBlueprintStation" className={styles.label}>
-              Manufacturing Station
+              Sell at Station
             </Label>
             <select
               id="editBlueprintStation"

@@ -42,7 +42,7 @@ export const mockOptimizeResponse: OptimizeResponse = {
   what_to_produce: {
     "Warp Core Stabilizer II": 14,
     "Hobgoblin II": 20,
-    "Knobbgoblin I": 999,
+    "Warp Core Stabilizer I": 999,
   },
   original_production_plan: { // New field for original production plan
     "Warp Core Stabilizer II": 14,
@@ -50,9 +50,10 @@ export const mockOptimizeResponse: OptimizeResponse = {
     "Knobbgoblin I": 999,
   },
   adjusted_production_plan: { // New field for adjusted production plan
-    "Warp Core Stabilizer II": 0, // Example adjusted value after inventory consumption
+    "Warp Core Stabilizer II": 1, // Example adjusted value after inventory consumption
     "Hobgoblin II": 20,
-    "Knobbgoblin I": 999,
+    // "Warp Core Stabilizer I": 999,
+    // // "test1": 69,
   },
   material_usage: {
     // 0% (unused)

@@ -44,6 +44,7 @@ def add_blueprint():
         material_cost = data.get('material_cost', 0)
         blueprint_tier = data.get('tier', 'T1')
         invention_chance = data.get('invention_chance', None)
+        amt_per_run = data.get('amt_per_run', 1)
         runs_per_copy_raw = data.get('runs_per_copy')
         runs_per_copy = int(runs_per_copy_raw) if runs_per_copy_raw is not None else None
 
@@ -56,6 +57,13 @@ def add_blueprint():
 
         category_lookup = get_material_category_lookup()
         normalized_materials, name = parse_blueprint_text(raw_blueprint_paste, category_lookup)
+        
+        if amt_per_run > 1:
+            for category, materials in normalized_materials.items():
+                for material, quantity in materials.items():
+                    normalized_materials[category][material] = quantity / amt_per_run
+                
+        
         logger.info(f"Parsed blueprint name: {name}")
         
         blueprint_info = get_item_info([name])
@@ -68,7 +76,7 @@ def add_blueprint():
         
         # Get cost and sell price
         if sell_price == 0 or sell_price is None:
-            sell_price = get_lowest_jita_sell_price(typeID, headers=headers)[0] * runs_per_copy
+            sell_price = get_lowest_jita_sell_price(typeID, headers=headers)[0]
         
         if not material_cost:
             # Step 1: Flatten material names
@@ -133,6 +141,7 @@ def add_blueprint():
                 existing.invention_chance = invention_chance
                 existing.invention_cost = invention_cost
                 existing.tier = blueprint_tier
+                existing.amt_per_run = amt_per_run
                 existing.runs_per_copy = runs_per_copy
                 
                 db.session.commit()
@@ -147,6 +156,7 @@ def add_blueprint():
                 invention_chance=invention_chance,
                 invention_cost= invention_cost,
                 tier= blueprint_tier,
+                amt_per_run=amt_per_run,
                 runs_per_copy=runs_per_copy
                 
             )
@@ -284,7 +294,7 @@ def get_blueprints():
                 "material_cost": b.material_cost / b.amt_per_run,
                 "tier": b.tier,
                 "station_id": b.station_id,
-                "station_name": b.station.name if b.station else None,
+                "station_name": b.station.name if b.station else "Jita 4-4 Caldari Navy Assembly Plant",
                 "use_jita_sell": b.use_jita_sell,
                 "used_jita_fallback": getattr(b, 'used_jita_fallback', False)
             }
@@ -743,8 +753,9 @@ def optimize():
                     # If already processed, just add to final_produced
                     final_produced[b.name] += count
 
-        logger.info("Final produced items: %s", final_produced)  # Log final produced quantities
+        logger.info("Initial Final produced items: %s", final_produced)  # Log final produced quantities
 
+       
 
 
         # Satisfy needs from inventory first (for materials, not intermediates)
@@ -762,11 +773,16 @@ def optimize():
                 mat_obj = material_objs.get(item_name)
 
                 if mat_obj:
-                    inv_qty = remaining_inventory.get(item_name, 0)
-                    if inv_qty > 0:
-                        used_from_inv = min(inv_qty, qty_needed)
+                    if mat_obj.sell_price is not None:  # Check if sell_price is not None
+                        cost_per_unit = mat_obj.sell_price
+                        inv_qty = remaining_inventory.get(item_name, 0)
+                        if inv_qty > 0:
+                            used_from_inv = min(inv_qty, qty_needed)
+                            saved = used_from_inv * cost_per_unit
+                            inventory_cost_savings += saved
+                            logger.info("INVENTORY: Using %d x %s (intermediate), cost savings: %.2f", 
+                                    used_from_inv, item_name, saved)
 
-                        if used_from_inv > 0:
                             remaining_inventory[item_name] -= used_from_inv
                             category = getattr(mat_obj, "category", "Other")
 
@@ -777,23 +793,97 @@ def optimize():
                                 "remaining_requirement": qty_needed - used_from_inv  # Track what's left to produce
                             }
 
-                            if hasattr(mat_obj, 'sell_price'):
-                                inventory_cost_savings += used_from_inv * mat_obj.sell_price
-
                             # Reduce the production requirement
                             adjusted_final_produced[item_name] -= used_from_inv
+                        else:
+                            logger.info("INVENTORY: No inventory available for %s", item_name)
+                    else:
+                        logger.warning("Sell price is None for material: %s", item_name)
+                else:
+                    logger.warning("No material found for item: %s", item_name)
 
         logger.info("Original production requirements: %s", original_final_produced)
-        logger.info("Consumed from inventory: %s", inventory_items_used)
+        logger.info("Consumed from inventory directly to production: %s", inventory_items_used)
         logger.info("Actual production needed after inventory: %s", 
                    {k: v for k, v in adjusted_final_produced.items() if v > 0})
 
 
-
-
-
-
         
+        # Remaining dependencies after accounting for inventory
+        deps = defaultdict(float)
+        for b in blueprints:
+            net_production = final_produced.get(b.name, 0)
+            if net_production > 0:
+                expand_materials(b, blueprints, quantity=net_production, t1_dependencies=deps, inventory=remaining_inventory)
+        for name, inv_qty in untouched_inventory.items():
+            if name in deps:
+                used = min(inv_qty, deps[name])
+                deps[name] -= used
+                if deps[name] <= 0:
+                    del deps[name]
+
+        # Remove dependencies that are already in the final production
+        for item_name, qty_needed in list(adjusted_final_produced.items()):
+            if item_name in deps:
+                del adjusted_final_produced[item_name]
+
+        extra_produced_t2 = defaultdict(int)
+
+        # Build T1->T2 lookup (could cache this elsewhere)
+        t1_to_t2_bp = {}
+        for bp in blueprints:
+            if bp.tier == "T2":
+                t1_name = bp.name[:-2] + "I" if bp.name.endswith("II") else None
+                if t1_name:
+                    t1_to_t2_bp[t1_name] = bp
+
+        for t1_name, t1_count in list(adjusted_final_produced.items()):  # list() in case we modify produced
+            t2_bp = t1_to_t2_bp.get(t1_name)
+            if not t2_bp or t1_count == 0:
+                continue
+            
+            
+            s_name = sanitize_name(t2_bp.name)
+            if profit_per_bp[s_name] <= 0:
+                continue  # Skip unprofitable T2 blueprints
+            
+            
+            t2_mats = normalize_materials_structure(t2_bp.materials)
+            min_craftable = t1_count
+
+            for section_name, section in t2_mats.items():
+                if section_name == "Invention Materials":
+                    continue
+                for mat, amt_per_run in section.items():
+                    # If the T2 blueprint consumes its T1 version, limit by produced and/or inventory
+                    available = adjusted_final_produced.get(mat, 0) + remaining_inventory.get(mat, 0)
+                    possible = available // amt_per_run if amt_per_run else float('inf')
+                    min_craftable = min(min_craftable, possible)
+
+            if min_craftable > 0:
+                extra_produced_t2[t2_bp.name] += min_craftable
+                for section_name, section in t2_mats.items():
+                    if section_name == "Invention Materials":
+                        continue
+                    for mat, amt_per_run in section.items():
+                        total_needed = min_craftable * amt_per_run
+                        use_from_produced = min(adjusted_final_produced.get(mat, 0), total_needed)
+                        if use_from_produced:
+                            final_produced[mat] -= use_from_produced
+                        use_from_inventory = total_needed - use_from_produced
+                        if use_from_inventory > 0:
+                            remaining_inventory[mat] -= use_from_inventory
+                # Update adjusted, deps, and what to produce to make sure they look right after optimize
+                adjusted_final_produced[t1_name] -= min_craftable
+                deps[t1_name] = deps.get(t1_name, 0) + min_craftable
+                what_to_produce[t2_bp.name] = what_to_produce.get(t2_bp.name, 0) + min_craftable
+
+        # Add this to your output
+        for t2_name, qty in extra_produced_t2.items():
+            adjusted_final_produced[t2_name] = adjusted_final_produced.get(t2_name, 0) + qty  # or wherever you report output
+
+        logger.info("Extra T2s made from leftovers: %s", dict(extra_produced_t2))\
+
         # Calculate expected invention materials used and expected cost
         expected_invention_materials_used = defaultdict(float)
         invention_cost = 0.0 
@@ -802,7 +892,7 @@ def optimize():
             produced_qty = int(value(x[s_bp_name]) or 0)  # Get the solved quantity for this blueprint
             if produced_qty > 0:
                 normalized_mats = normalize_materials_structure(b.materials) if isinstance(b.materials, list) else b.materials
-                runs_per_copy = getattr(b, "runs_per_copy", 1)
+                runs_per_copy = getattr(b, "runs_per_copy", 1) or 1
                 for section_name, section in normalized_mats.items():
                     if section_name == "Invention Materials":
                         for mat_name, qty_per_run in section.items():
@@ -815,7 +905,13 @@ def optimize():
                             expected_invention_materials_used[s_mat_name] += (qty_per_run * attempts_needed * produced_qty) / runs_per_copy
                             # Calculate expected cost for datacores
                             mat_obj = material_objs.get(mat_name)
-                            if mat_obj and hasattr(mat_obj, 'sell_price'):
+                            if mat_obj and hasattr(mat_obj, 'sell_price') and mat_obj.sell_price is not None:
+                                invention_cost += mat_obj.sell_price * (qty_per_run * attempts_needed * produced_qty) / runs_per_copy
+                            elif mat_obj.sell_price is None:
+                                headers = {
+                                    'User-Agent': 'ManuOptimizer 1.0 nariod14@gmail.com'
+                                }
+                                mat_obj.sell_price = get_lowest_jita_sell_price(mat_obj.type_id, headers=headers)[0]
                                 invention_cost += mat_obj.sell_price * (qty_per_run * attempts_needed * produced_qty) / runs_per_copy
         # Convert sanitized names back to original             
         report_invention_materials = {
@@ -831,14 +927,14 @@ def optimize():
         final_usage = defaultdict(float)
 
         # Accumulate materials for the total production goal
-        for name, count in adjusted_final_produced.items():
+        for name, count in original_final_produced.items():
             if count > 0:
                 bp = next((bp for bp in blueprints if bp.name == name), None)
                 if bp:
                     accumulate_materials(bp, count, final_usage, {}, blueprints)
 
         final_material_usage = {}
-        all_materials = set(final_usage) | set(total_needed) | set(used_from_inv_total)
+        all_materials = set(final_usage) | set(used_from_inv_total)
         for mat in all_materials:
             obj = material_objs.get(mat)
             starting_qty = getattr(obj, "quantity", inventory.get(mat, 0))
@@ -852,19 +948,7 @@ def optimize():
             }
 
 
-        # Remaining dependencies after accounting for inventory
-        deps = defaultdict(float)
-        for b in blueprints:
-            net_production = final_produced.get(b.name, 0)
-            if net_production > 0:
-                expand_materials(b, blueprints, quantity=net_production, t1_dependencies=deps, inventory=remaining_inventory)
-        for name, inv_qty in untouched_inventory.items():
-            if name in deps:
-                used = min(inv_qty, deps[name])
-                deps[name] -= used
-                if deps[name] <= 0:
-                    del deps[name]
-
+        
         # Calculate profits
         total_sell = sum(bp.sell_price * what_to_produce.get(bp.name, 0) for bp in blueprints)
         # Calculate true profit considering material costs
@@ -906,5 +990,6 @@ def optimize():
 
     except Exception as e:
         logger.error("Error: %s", str(e))
+        logger.error(traceback.format_exc())
         return jsonify({"error": "An error occurred during optimization"}), 500
 

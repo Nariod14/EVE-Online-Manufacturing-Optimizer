@@ -607,45 +607,38 @@ import time
 cache = {}
 
 def get_lowest_jita_sell_price(type_id, headers, retries=2):
-    url = f"https://esi.evetech.net/latest/markets/{JITA_REGION_ID}/orders/?order_type=sell&type_id={type_id}"
-
     cached = cache.get(type_id)
-    local_headers = headers.copy()
-
-    use_cache = False
-
     if cached:
         age = time.time() - cached.get("timestamp", 0)
         if age < PRICE_CACHE_TTL:
-            local_headers["If-None-Match"] = cached["etag"]
-            use_cache = True
-        else:
-            logger.info(f"Cache expired for {type_id} (age={age:.1f}s)")
+            # Return cached price immediately, no HTTP request
+            return cached["lowest_price"], "cached"
+
+    # Proceed with HTTP request to update price if no fresh cache
+    local_headers = headers.copy()
+    if cached:
+        local_headers["If-None-Match"] = cached["etag"]
+
+    url = f"https://esi.evetech.net/latest/markets/{JITA_REGION_ID}/orders/?order_type=sell&type_id={type_id}"
 
     for attempt in range(retries + 1):
         try:
             response = requests.get(url, headers=local_headers, timeout=10)
 
-            if response.status_code == 304 and cached and use_cache:
-                logger.info(f"Used cached data for type_id {type_id}")
+            if response.status_code == 304 and cached:
                 return cached["lowest_price"], "cached"
 
-
             response.raise_for_status()
-
-            etag = response.headers.get("ETag")
             orders = response.json()
             jita_orders = [o for o in orders if o.get("location_id") == JITA_STATION_ID]
             if not jita_orders:
-                logger.warning(f"No Jita 4-4 orders for {type_id}, falling back to region")
                 jita_orders = orders
-
             if not jita_orders:
                 return None, "not_found"
 
             lowest_price = min(order["price"] for order in jita_orders)
+            etag = response.headers.get("ETag")
 
-            # Cache result
             if etag:
                 cache[type_id] = {
                     "etag": etag,
@@ -659,6 +652,7 @@ def get_lowest_jita_sell_price(type_id, headers, retries=2):
             time.sleep(1)
 
     return None, "error"
+
 
 def get_lowest_jita_sell_prices_loop(type_ids: list[int], headers, retries=2) -> dict[int, float | None]:
     """

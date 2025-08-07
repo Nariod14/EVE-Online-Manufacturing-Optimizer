@@ -11,7 +11,7 @@ export default function DependenciesTable({ data, className }: DependenciesTable
   return (
       <div className={`rounded-2xl bg-gradient-to-br from-yellow-950 via-slate-850 to-slate-950 p-4 shadow-xl border border-yellow-800 flex flex-col ${className}`}>
           <h3 className="text-xl text-yellow-300 font-semibold">Required Component Production</h3>
-          <h4 className="text-sm text-yellow-100 font-semibold mb-2">Items (materials with blueprints) needed for the production plan</h4>
+          <h4 className="text-sm text-yellow-100 font-semibold mb-2">Items (materials with blueprints) needed for the production plan. BUILD THESE ITEMS FIRST!</h4>
           <div className="flex-1 overflow-auto">
               <table className="w-full text-sm text-left text-yellow-100 rounded-lg overflow-hidden border border-yellow-800 h-full">
                   <thead className="bg-yellow-800 text-yellow-100">

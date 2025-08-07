@@ -83,15 +83,11 @@ export default function Stations() {
       };
 
       const handleDeleteStation = async (id: number) => {
-        if (!window.confirm("Are you sure you want to delete this station?")) return;
-      
         try {
           const res = await fetch(`/api/stations/${id}`, { method: "DELETE" });
           if (res.ok) {
-            // Option 1: Remove from local state
             setStations((prev) => prev.filter((station) => station.id !== id));
-            // Optionally show a toast or alert
-            // toast.success("Station deleted!");
+            toast.success("Station deleted!");
           } else {
             const err = await res.json();
             alert("Error: " + (err.error || "Unknown error"));
@@ -165,7 +161,10 @@ export default function Stations() {
              />
            )}
 
-           <AddStationModal open={addModalOpen} onOpenChange={setAddModalOpen} />
+           <AddStationModal 
+            open={addModalOpen} 
+            onOpenChange={setAddModalOpen}
+            onStationAdded={fetchStations}/>
          </>
        );
      }

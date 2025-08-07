@@ -1,5 +1,6 @@
 import type { Station } from "@/types/stations";
 import { Button } from "@/components/ui/button";
+import { ConfirmDeleteButton } from "../utils/utils";
 
 
 type StationListProps = {
@@ -59,14 +60,11 @@ export default function StationList({
                 </Button>
               )}
               {onDelete && (
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  className="hover:bg-red-700 transition"
-                  onClick={() => onDelete(station.id)}
+                <ConfirmDeleteButton
+                  onDelete={() => onDelete(station.id)}
                 >
                   Delete
-                </Button>
+                </ConfirmDeleteButton>
               )}
             </td>
           </tr>

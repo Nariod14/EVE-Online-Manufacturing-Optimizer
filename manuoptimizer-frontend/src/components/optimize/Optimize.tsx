@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import toast from "react-hot-toast";
@@ -12,48 +12,81 @@ import BottleneckList from "./BottleneckList";
 import { OptimizeResponse } from "@/types/optimize";
 import { waitForMswReady } from "@/lib/mswReady";
 import AdjustedProductionPlanTable from "./AdjustedProductionPlanTable";
+import WhereToSell from "./WhereToSell";
+import { fetchBlueprints } from "../blueprints/Blueprints";
+import { Blueprint } from "@/types/blueprints";
+import { fetchStations, Station } from "@/types/stations";
 
 
 
 
 export default function Optimize() {
-  const [result, setResult] = useState<OptimizeResponse | null>(null);
-  const [loading, setLoading] = useState(false);
+const [result, setResult] = useState<OptimizeResponse | null>(null);
+const [loading, setLoading] = useState(false);
+const [blueprints, setBlueprints] = useState<Blueprint[]>([]);
+const [stations, setStations] = useState<Station[]>([]);
 
-  const handleOptimize = async () => {
-    setLoading(true);
+// Combined load on mount
+useEffect(() => {
+  const loadInitialData = async () => {
+    const stationData = await fetchStations();
+    setStations(stationData);
 
-    if (process.env.NODE_ENV === "development") {
-      await waitForMswReady();
-    }
+    await fetchBlueprints(setBlueprints, setLoading);
 
-
-    try {
-      const res = await fetch("/api/blueprints/optimize");
-      if (!res.ok) throw new Error("Failed to optimize");
-
-      const data = await res.json();
-      setResult(data);
-      toast.success("Optimization complete!");
-    } catch (err) {
-      console.error("Optimization failed:", err);
-      toast.error("Failed to optimize: " + err);
-    } finally {
-      setLoading(false);
-    }
+    // Map station names after both datasets are available
+    const stationMap = new Map(stationData.map(s => [s.station_id, s.name]));
+    setBlueprints(prev =>
+      prev.map(bp => ({
+        ...bp,
+        station_name: bp.station_id ? stationMap.get(bp.station_id) ?? 'Jita 4-4 Caldari Navy Assembly Plant' : 'Jita 4-4 Caldari Navy Assembly Plant',
+      }))
+    );
   };
 
-  const optimizationData = result !== null ? {
-    total_profit: result.total_profit,
-    true_profit_jita: result.true_profit_jita,
-    true_profit_inventory: result.true_profit_inventory,
-    inventory_savings: result.inventory_savings,
-    expected_invention_materials_used: result.expected_invention_materials_used,
-    invention_cost: result.invention_cost,
-    original_final_produced: result.original_production_plan,
-    adjusted_final_produced: result.adjusted_production_plan,
+  loadInitialData();
+}, []);
 
-  } : null;
+const handleOptimize = async () => {
+  setLoading(true);
+
+  try {
+    const res = await fetch("/api/blueprints/optimize");
+    if (!res.ok) throw new Error("Failed to optimize");
+
+    const data = await res.json();
+    setResult(data);
+
+    // Refresh blueprints after optimization
+    await fetchBlueprints(setBlueprints, setLoading);
+
+    const stationMap = new Map(stations.map(s => [s.station_id, s.name]));
+    setBlueprints(prev =>
+      prev.map(bp => ({
+        ...bp,
+        station_name: bp.station_id ? stationMap.get(bp.station_id) ?? 'Jita 4-4 Caldari Navy Assembly Plant' : 'Jita 4-4 Caldari Navy Assembly Plant',
+      }))
+    );
+
+    toast.success("Optimization complete!");
+  } catch (err) {
+    console.error("Optimization failed:", err);
+    toast.error("Failed to optimize");
+  } finally {
+    setLoading(false);
+  }
+};
+
+const optimizationData = result !== null ? {
+  total_profit: result.total_profit,
+  true_profit_jita: result.true_profit_jita,
+  true_profit_inventory: result.true_profit_inventory,
+  inventory_savings: result.inventory_savings,
+  expected_invention_materials_used: result.expected_invention_materials_used,
+  invention_cost: result.invention_cost,
+  original_final_produced: result.original_production_plan,
+  adjusted_final_produced: result.adjusted_production_plan,
+} : null;
   
 
   return (
@@ -67,7 +100,7 @@ export default function Optimize() {
       <CardContent className="flex flex-col items-center space-y-6">
         <Button
           onClick={handleOptimize}
-          disabled={loading}
+          disabled={loading || blueprints.length === 0}
           className="bg-blue-900 hover:bg-blue-700 text-white font-bold text-lg py-4 px-6 rounded-lg shadow-lg shadow-blue-500/50 transition duration-300 ease-in-out hover:scale-110 hover:shadow-xl"
         >
           {loading ? "Optimizing..." : "OPTIMIZE PRODUCTION"}
@@ -115,6 +148,19 @@ export default function Optimize() {
                 })()}
               </div>
             )}
+
+            {/* Where to sell */}
+            {result.adjusted_production_plan && (
+              blueprints.length > 0 ? (
+                <WhereToSell 
+                  productionPlan={result.adjusted_production_plan}
+                  allBlueprints={blueprints}
+                />
+              ) : (
+                <p className="text-blue-300">Loading blueprints...</p>
+              )
+            )}
+
 
             {/* Full width sections */}
             <MaterialUsageByCategory

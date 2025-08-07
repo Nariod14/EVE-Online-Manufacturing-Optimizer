@@ -20,8 +20,7 @@ export type BlueprintBase = {
   use_jita_sell: boolean;
   used_jita_fallback: boolean;
   station?: Station;
-  // This is for display only, not in DB, but backend can add it for you
-  station_name?: string;
+  station_name: string;
 };
 
 export type BlueprintT2 = BlueprintBase & {
@@ -55,6 +54,7 @@ export const mockBlueprints = [
     tier: "T1" as const,
     station_id: 60011866, // Jita
     region_id: 10000002,
+    station_name: "Jita 4-4",
     use_jita_sell: true,
     used_jita_fallback: true,
   },
@@ -73,6 +73,7 @@ export const mockBlueprints = [
     material_cost: 400000,
     tier: "T1" as const,
     station_id: 60003760, // Amarr
+    station_name: "Amarr 4-4",
     region_id: 10000002,
     use_jita_sell: true,
     used_jita_fallback: true,
@@ -93,6 +94,7 @@ export const mockBlueprints = [
     material_cost: 4100000,
     tier: "T2" as const,
     station_id: 60011866, // Jita
+    station_name: "Jita 4-4",
     region_id: 10000002,
     use_jita_sell: true,
     used_jita_fallback: true,
@@ -117,6 +119,7 @@ export const mockBlueprints = [
     material_cost: 10000000,
     tier: "T2" as const,
     station_id: 60005686, // Dodixie
+    station_name: "Dodixie 4-4",
     region_id: 10000002,
     use_jita_sell: true,
     used_jita_fallback: true,
@@ -139,6 +142,26 @@ export const mockBlueprints = [
     material_cost: 50000,
     tier: "T1" as const,
     station_id: 60004588, // Rens
+    station_name: "Rens 4-4",
+    region_id: 10000002,
+    use_jita_sell: true,
+    used_jita_fallback: true,
+  },
+  {
+    id: 6,
+    name: "test1",
+    type_id: 1003,
+    amt_per_run: 100,
+    materials: [
+      mockMaterials[0], // Tritanium
+      mockMaterials[1], // Pyerite
+    ],
+    sell_price: 100000,
+    max: null,
+    material_cost: 50000,
+    tier: "T1" as const,
+    station_id: 60004588, // Rens
+    station_name: "yomama",
     region_id: 10000002,
     use_jita_sell: true,
     used_jita_fallback: true,

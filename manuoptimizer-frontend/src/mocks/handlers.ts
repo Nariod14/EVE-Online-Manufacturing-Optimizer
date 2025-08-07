@@ -357,6 +357,8 @@ export const handlers = [
         region_id: 0,
         use_jita_sell: false,
         used_jita_fallback: false,
+        station_name: 'Jita 4-4',
+        station_id: 60011866
       } satisfies BlueprintT2;
     } else {
       newBlueprint = {
@@ -371,6 +373,8 @@ export const handlers = [
         region_id: 0,
         use_jita_sell: false,
         used_jita_fallback: false,
+        station_name: 'Jita 4-4',
+        station_id: 60011866
       } satisfies BlueprintT1;
     }
 

@@ -1,3 +1,4 @@
+import { waitForMswReady } from "@/lib/mswReady";
 
 
 export const mockStations = [
@@ -29,3 +30,22 @@ export type Station = {
     name: string;
     station_id: number;// Optional
   };
+
+
+  export const fetchStations = async (): Promise<Station[]> => {
+    if (process.env.NODE_ENV === 'development') {
+      await waitForMswReady(); // only in dev
+    }
+
+    console.log("MSW ready. Requesting /api/stations");
+
+    try {
+      const res = await fetch("/api/stations");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      return data;
+    } catch (err: any) {
+      console.error("Failed to fetch stations:", err);
+      return []; // Return an empty array on error
+    }
+  }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
+import { Blueprint } from "@/types/blueprints";
 
 interface ConfirmDeleteButtonProps {
   onDelete: () => Promise<void> | void;
@@ -49,3 +50,19 @@ export function ConfirmDeleteButton({ onDelete, children }: { onDelete: () => vo
     </Button>
   );
 }
+
+
+export const groupBlueprintsByStation = (blueprints: Blueprint[]) => {
+  const grouped: Record<number, Blueprint[]> = {};
+
+  blueprints.forEach((bp) => {
+    if (bp.station_id) {
+      if (!grouped[bp.station_id]) {
+        grouped[bp.station_id] = [];
+      }
+      grouped[bp.station_id].push(bp);
+    }
+  });
+
+  return grouped;
+};
