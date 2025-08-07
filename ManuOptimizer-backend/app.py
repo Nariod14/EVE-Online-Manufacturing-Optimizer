@@ -73,12 +73,10 @@ def create_app():
     flask_app.config['SESSION_COOKIE_SECURE'] = False
     flask_app.permanent_session_lifetime = timedelta( minutes=20)
     flask_app.secret_key = os.getenv("FLASK_SECRET_KEY")
-    logger.info(f"Flask secret key set: {flask_app.secret_key}")
     flask_app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
     session_version_key = secrets.token_hex(16)
     
     config = get_oauth_config()
-    logger.info(f"OAuth config: {config}")
 
     db.init_app(flask_app)
     Migrate(flask_app, db)
