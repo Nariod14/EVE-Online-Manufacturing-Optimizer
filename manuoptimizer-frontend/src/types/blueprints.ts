@@ -3,7 +3,7 @@ import { Material, mockMaterials } from "./materials";
 import { mockStations } from "./stations";
 import { mock } from "node:test";
 
-export type BlueprintTier = "T1" | "T2";
+export type BlueprintTier = "T1" | "T2" | "Reaction";
 
 export type BlueprintBase = {
   id: number;
@@ -35,7 +35,11 @@ export type BlueprintT1 = BlueprintBase & {
   tier: "T1";
 };
 
-export type Blueprint = BlueprintT1 | BlueprintT2;
+export type Reaction = BlueprintBase & {
+  tier: "Reaction";
+}
+
+export type Blueprint = BlueprintT1 | BlueprintT2 | Reaction;
 
 export const mockBlueprints = [
   {
@@ -160,6 +164,25 @@ export const mockBlueprints = [
     max: null,
     material_cost: 50000,
     tier: "T1" as const,
+    station_id: 60004588, // Rens
+    station_name: "yomama",
+    region_id: 10000002,
+    use_jita_sell: true,
+    used_jita_fallback: true,
+  },
+  {
+    id: 7,
+    name: "Reaction",
+    type_id: 1003,
+    amt_per_run: 100,
+    materials: [
+      mockMaterials[0], // Tritanium
+      mockMaterials[1], // Pyerite
+    ],
+    sell_price: 100000,
+    max: null,
+    material_cost: 50000,
+    tier: "Reaction" as const,
     station_id: 60004588, // Rens
     station_name: "yomama",
     region_id: 10000002,

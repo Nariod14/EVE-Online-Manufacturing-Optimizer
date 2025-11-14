@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import BlueprintsList from "@/components/blueprints/BlueprintList";
 import { EditBlueprintModal } from "@/components/blueprints/EditBlueprintModal";
-import type { Blueprint } from "@/types/blueprints";
+import type { Blueprint, BlueprintTier } from "@/types/blueprints";
 import { Card, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import AddBlueprintModal from "./AddBlueprintModal";
 import { Button } from "../ui/button";
@@ -44,14 +44,14 @@ export default function BlueprintsPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingBlueprint, setEditingBlueprint] = useState<Blueprint | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [editTier, setEditTier] = useState<"T1" | "T2" | null>(null);
+  const [editTier, setEditTier] = useState<BlueprintTier>("T1");
   const [loading, setLoading] = useState(false);
   const [blueprints, setBlueprints] = useState<Blueprint[]>([]);
   const [statusEl, setStatusEl] = useState<HTMLDivElement | null>(null);
   const [statusMsg, setStatusMsg] = useState<string>("");
 
 
-  function handleEdit(bp: Blueprint, tier: "T1" | "T2") {
+  function handleEdit(bp: Blueprint, tier: BlueprintTier) {
     setEditingBlueprint(bp);
     setEditTier(tier);
     setEditModalOpen(true);
@@ -96,7 +96,7 @@ useEffect(() => {
     sell_price: number;
     amt_per_run: number;
     material_cost: number;
-    tier: "T1" | "T2";
+    tier: BlueprintTier;
     invention_materials?: string;
     invention_chance?: number;
     runs_per_copy?: number;

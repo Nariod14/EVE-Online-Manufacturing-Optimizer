@@ -48,56 +48,50 @@ def add_blueprint():
         runs_per_copy_raw = data.get('runs_per_copy')
         runs_per_copy = int(runs_per_copy_raw) if runs_per_copy_raw is not None else None
 
-        
-        
-        headers = {
-            'User-Agent': 'ManuOptimizer 1.0 nariod14@gmail.com'
-        }
-
+        headers = {'User-Agent': 'ManuOptimizer 1.0 nariod14@gmail.com'}
 
         category_lookup = get_material_category_lookup()
-        normalized_materials, name = parse_blueprint_text(raw_blueprint_paste, category_lookup)
-        
+        normalized_materials, name, is_reaction = parse_blueprint_text(raw_blueprint_paste, category_lookup)
+
+        # Override tier if it’s a reaction
+        if is_reaction:
+            blueprint_tier = "Reaction"
+
+        # Normalize quantities by amt_per_run
         if amt_per_run > 1:
             for category, materials in normalized_materials.items():
                 for material, quantity in materials.items():
                     normalized_materials[category][material] = quantity / amt_per_run
-                
-        
-        logger.info(f"Parsed blueprint name: {name}")
-        
+
+        logger.info(f"Parsed blueprint name: {name} (Reaction: {is_reaction})")
+
+        # === Type ID lookup ===
         blueprint_info = get_item_info([name])
         typeID = blueprint_info.get(normalize_name(name), {}).get("type_id", 0)
-        
+
         if not typeID:
             logger.warning(f"Blueprint name not found in SDE: {name}, unable to resolve typeID.")
-            return jsonify({"error": f"Blueprint name not found in SDE: {name}, unable to resolve typeID. This shouldnt happen, please report this on github issues."}), 400
+            return jsonify({"error": f"Blueprint name not found in SDE: {name}"}), 400
 
-        
-        # Get cost and sell price
+        # === Sell price ===
         if sell_price == 0 or sell_price is None:
             sell_price = get_lowest_jita_sell_price(typeID, headers=headers)[0]
-        
+
+        # === Material cost calculation ===
         if not material_cost:
-            # Step 1: Flatten material names
             material_names = [
                 item_name
                 for category in normalized_materials.values()
                 for item_name in category.keys()
             ]
-
-            # Step 1: Get type IDs from names
             material_info = get_item_info(material_names)
             type_id_map = {
                 normalize_name(name): info["type_id"]
                 for name, info in material_info.items()
             }
-
-            # Step 2: Fetch prices using your working loop method
             type_ids = list(set(type_id_map.values()))
             price_map = get_lowest_jita_sell_prices_loop(type_ids, headers=headers)
 
-            # Step 3: Total up cost
             material_cost = 0
             for category, materials in normalized_materials.items():
                 for mat_name, quantity in materials.items():
@@ -106,87 +100,85 @@ def add_blueprint():
                     unit_price = price_map.get(tid, 0.0)
                     material_cost += quantity * unit_price
 
-
-
-        # T2 invention cost calculation
+        # === T2 logic (unchanged) ===
         invention_materials_dict = {}
         invention_cost = 0
+        full_material_cost = material_cost
+
         if blueprint_tier == "T2" and raw_invention_paste.strip():
             invention_materials_dict, invention_cost = parse_ingame_invention_text(raw_invention_paste)
             if invention_materials_dict:
-                if "Invention Materials" not in normalized_materials:
-                    normalized_materials["Invention Materials"] = {}
-                normalized_materials["Invention Materials"].update(invention_materials_dict)
-              
+                normalized_materials.setdefault("Invention Materials", {}).update(invention_materials_dict)
+
             if invention_chance and invention_chance > 1:
                 invention_chance /= 100
-            # Refined invention cost calculation
+
             if invention_chance and invention_chance > 0:
                 detected_invention_cost = invention_cost / (invention_chance * runs_per_copy)
             else:
                 detected_invention_cost = 0
-            
-            
+
             full_material_cost = material_cost + detected_invention_cost
 
-        # Save/update logic
+        # === Save/update logic ===
         if blueprint_tier == "T2":
-            existing = BlueprintT2.query.filter_by(name=name).first()
-            if existing:
-                existing.type_id = typeID
-                existing.materials = normalized_materials
-                existing.sell_price = sell_price
-                existing.material_cost = material_cost
+            model = BlueprintT2
+        else:
+            model = BlueprintModel
+
+        existing = model.query.filter_by(name=name).first()
+        if existing:
+            existing.type_id = typeID
+            existing.materials = normalized_materials
+            existing.sell_price = sell_price
+            existing.material_cost = material_cost
+            existing.tier = blueprint_tier
+            if blueprint_tier == "T2":
                 existing.full_material_cost = full_material_cost
                 existing.invention_chance = invention_chance
                 existing.invention_cost = invention_cost
-                existing.tier = blueprint_tier
                 existing.amt_per_run = amt_per_run
                 existing.runs_per_copy = runs_per_copy
-                
-                db.session.commit()
-                return jsonify({"message": "Blueprint updated successfully"}), 200
-            new_blueprint = BlueprintT2(
-                name=name,
-                type_id=typeID,
-                materials=normalized_materials,
-                sell_price=sell_price,
-                material_cost= material_cost,
-                full_material_cost=full_material_cost,
-                invention_chance=invention_chance,
-                invention_cost= invention_cost,
-                tier= blueprint_tier,
-                amt_per_run=amt_per_run,
-                runs_per_copy=runs_per_copy
-                
-            )
-        else: # T1 case
-            existing = BlueprintModel.query.filter_by(name=name).first()
-            if existing:
-                existing.materials = normalized_materials
-                existing.sell_price = sell_price
-                existing.material_cost = material_cost
-                existing.tier = blueprint_tier
-                db.session.commit()
-                return jsonify({"message": "Blueprint updated successfully"}), 200
-            new_blueprint = BlueprintModel(
-                name=name,
-                type_id=typeID,
-                materials=normalized_materials,
-                sell_price=sell_price,
-                material_cost=material_cost,
-                tier= blueprint_tier
-            )
+            db.session.commit()
+            return jsonify({
+                "message": "Blueprint updated successfully",
+                "is_reaction": is_reaction,
+                "tier": blueprint_tier
+            }), 200
+
+        # New entry
+        new_blueprint = model(
+            name=name,
+            type_id=typeID,
+            materials=normalized_materials,
+            sell_price=sell_price,
+            material_cost=material_cost,
+            tier=blueprint_tier
+        )
+        if blueprint_tier == "T2":
+            new_blueprint.full_material_cost = full_material_cost
+            new_blueprint.invention_chance = invention_chance
+            new_blueprint.invention_cost = invention_cost
+            new_blueprint.amt_per_run = amt_per_run
+            new_blueprint.runs_per_copy = runs_per_copy
+
         db.session.add(new_blueprint)
         db.session.commit()
-        logger.info(f"Blueprint: {name} was added successfully")
-        return jsonify({"message": "Blueprint added successfully"}), 201
+
+        logger.info(f"Blueprint: {name} (Reaction: {is_reaction}) added successfully")
+
+        return jsonify({
+            "message": "Blueprint added successfully",
+            "is_reaction": is_reaction,
+            "tier": blueprint_tier
+        }), 201
 
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error adding blueprint! See the traceback for more info:")
+        logger.error(f"Error adding blueprint! See traceback:")
         logger.error(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
+
 
 
 

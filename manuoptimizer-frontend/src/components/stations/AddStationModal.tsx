@@ -69,7 +69,7 @@ export default function AddStationModal({
         onOpenChange(false);
     };
     return (<Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md bg-slate-900 text-blue-100 border border-blue-700">
+      <DialogContent  className="rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 border-blue-800 shadow-2xl w-full max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-blue-300">Add New Station</DialogTitle>
         </DialogHeader>

@@ -411,15 +411,19 @@ def get_item_name(type_id):
 def parse_blueprint_text(raw_text, category_lookup=None):
     lines = [l.strip() for l in raw_text.splitlines() if l.strip()]
     if not lines:
-        return {}, "Unknown", 0
+        return {}, "Unknown", False
+
     # --- ISK/hour format detection ---
     if any("Component Material List" in l for l in lines):
         return parse_iskhour_format(lines, category_lookup)
-    # --- In-game format detection ---
-    if any("Blueprint" in l and "\t" in l for l in lines):
+
+    # --- In-game Blueprint or Reaction Formula format detection ---
+    if any(("Blueprint" in l or "Reaction Formula" in l) and "\t" in l for l in lines):
         return parse_ingame_format(lines, category_lookup)
-    # --- Fallback in case of unknown format ---
-    return {}, "Unknown", 0
+
+    # --- Fallback ---
+    return {}, "Unknown", False
+
 
 
 def parse_iskhour_format(lines, category_lookup=None):
@@ -532,36 +536,54 @@ def parse_ingame_invention_text(raw_text):
 from collections import defaultdict
 
 def parse_ingame_format(lines, category_lookup=None):
-    # First line contains blueprint name and typeID
+    """
+    Parse in-game blueprint or reaction formula text.
+    Supports both lines like:
+        "Bastion Module I Blueprint\t33401"
+    and
+        "Graphene Nanoribbons Reaction Formula\t46163"
+    """
+
+    # --- Header line: name and typeID ---
     first_line_parts = lines[0].split('\t')
-    blueprint_name = first_line_parts[0].replace(' Blueprint', '').strip()
+    raw_name = first_line_parts[0].strip()
+
+    # Detect whether it's a Blueprint or Reaction Formula
+    if "Reaction Formula" in raw_name:
+        name = raw_name.replace(" Reaction Formula", "").strip()
+        is_reaction = True
+    else:
+        name = raw_name.replace(" Blueprint", "").strip()
+        is_reaction = False
 
     materials_by_category = defaultdict(dict)
-
     if category_lookup is None:
         category_lookup = {}
 
+    # --- Parse material lines ---
     for line in lines[1:]:
         clean_line = line.strip()
         if not clean_line or clean_line.lower().startswith(('item\t', 'material\t')):
             continue
-        
+
         if '\t' in clean_line:
             parts = [p.strip() for p in clean_line.split('\t')]
-
             if len(parts) < 2:
                 continue
 
             try:
-                name = parts[0]
+                mat_name = parts[0]
                 quantity = int(float(parts[1]))
 
-                category = category_lookup.get(name, 'Uncategorized')
-                materials_by_category[category][name] = quantity
+                # Lookup or default category
+                category = category_lookup.get(mat_name, "Uncategorized")
+                materials_by_category[category][mat_name] = quantity
             except Exception:
                 continue
 
-    return materials_by_category, blueprint_name
+    # You can return a tag for reactions if needed downstream
+    return materials_by_category, name, is_reaction
+
 
 
 def get_material_category_lookup():

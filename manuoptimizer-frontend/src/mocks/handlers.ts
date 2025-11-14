@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import { Blueprint, BlueprintT1, BlueprintT2, mockBlueprints } from '@/types/blueprints';
+import { Blueprint, BlueprintT1, BlueprintT2, Reaction, mockBlueprints } from '@/types/blueprints';
 import { Material, mockMaterials } from '@/types/materials';
 import { mockStations } from '@/types/stations';
 import { mockOptimizeResponse } from '@/types/optimize';
@@ -310,6 +310,7 @@ export const handlers = [
   // POST /api/blueprints/blueprints to add a new blueprint by the parser
   http.post('/api/blueprints/blueprints', async ({ request }) => {
     console.log('📦 MSW Intercepted POST /api/blueprints/blueprints');
+    
 
     const body = await request.json() as BlueprintPayload;
 
@@ -323,6 +324,9 @@ export const handlers = [
       invention_chance,
       runs_per_copy,
     } = body;
+
+    // console.log("Received tier:", tier);
+    
 
     // Parse name and type ID from blueprint_paste first line
     const [firstLine] = blueprint_paste.trim().split('\n');
@@ -360,6 +364,22 @@ export const handlers = [
         station_name: 'Jita 4-4',
         station_id: 60011866
       } satisfies BlueprintT2;
+    } else if (tier === 'Reaction') {
+      newBlueprint = {
+        id: nextId++,
+        name,
+        type_id,
+        amt_per_run: amt_per_run ?? 1,
+        materials: materialsForBlueprint,
+        sell_price: sell_price ?? 0,
+        material_cost: material_cost ?? 0,
+        tier: 'Reaction',
+        region_id: 0,
+        use_jita_sell: false,
+        used_jita_fallback: false,
+        station_name: 'Jita 4-4',
+        station_id: 60011866
+      } satisfies Reaction;
     } else {
       newBlueprint = {
         id: nextId++,
@@ -377,6 +397,8 @@ export const handlers = [
         station_id: 60011866
       } satisfies BlueprintT1;
     }
+
+    // console.log("New blueprint:", newBlueprint);
 
     localBlueprints.push(newBlueprint);
 

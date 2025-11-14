@@ -22,7 +22,7 @@ import { Material } from "@/types/materials";
 type EditBlueprintModalProps = {
   open: boolean;
   blueprint: Blueprint | null;
-  tier: "T1" | "T2" | null
+  tier: BlueprintTier | null
   onClose: () => void;
   onSave: (bp: import('@/types/blueprints').Blueprint) => void;
 };
@@ -274,6 +274,24 @@ function removeMaterial(index: number) {
         "bg-[#3b2e08] text-amber-500 hover:bg-amber-900",
       title: "text-amber-400",
     },
+
+    Reaction: {
+      modal: "rounded-2xl bg-gradient-to-br from-blue-200 via-blue-100 to-blue-300 border border-blue-400 shadow-lg text-blue-900",
+      label: "text-blue-600 font-medium",
+      input: "bg-blue-50 border border-blue-300 text-blue-800 placeholder:text-blue-400 focus:ring-2 focus:ring-blue-300 focus:border-blue-300",
+      li: "text-blue-800",
+      dropdown: "border border-blue-300 text-blue-800 shadow-md rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-300 bg-blue-50",
+      dropdownItem: "px-4 py-2 rounded-md text-blue-800 hover:bg-blue-200 hover:text-blue-900 focus:bg-blue-300 focus:text-blue-900 cursor-pointer transition-colors",
+      selectTrigger: "bg-blue-50 border border-blue-300 text-blue-800 focus:ring-2 focus:ring-blue-300 focus:border-blue-300",
+      selectContent: "bg-blue-100 text-blue-800",
+      selectValue: "bg-blue-50 border border-blue-300 text-blue-800 focus:ring-2 focus:ring-blue-300 focus:border-blue-300",
+      buttonPrimary: "bg-blue-400 hover:bg-blue-300 focus:ring-2 focus:ring-blue-300 text-white font-semibold",
+      buttonSecondary: "bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-900 border border-blue-300",
+      title: "text-blue-700 font-bold",
+      description: "text-blue-600",
+  
+    },
+
   };
 
 

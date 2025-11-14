@@ -45,6 +45,13 @@ class BlueprintT2(Blueprint):
         "polymorphic_identity": "T2",
     }
 
+class ReactionFormula(Blueprint):
+    __tablename__ = 'reaction_formula'
+
+    __mapper_args__ = {
+        "polymorphic_identity": "Reaction",
+    }
+
 class Material(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sell_price = db.Column(db.Float, nullable=True)

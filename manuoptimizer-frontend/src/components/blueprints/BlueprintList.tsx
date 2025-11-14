@@ -85,7 +85,7 @@ function MaterialsCell({ materials }: { materials: Material[] }) {
 
 type BlueprintsListProps = {
   blueprints: Blueprint[];
-  onEdit?: (bp: Blueprint, tier: "T1" | "T2") => void;
+  onEdit?: (bp: Blueprint, tier: BlueprintTier) => void;
   onSetBlueprints?: React.Dispatch<React.SetStateAction<Blueprint[]>>;
   loading?: boolean;
   fetchBlueprints?: () => Promise<Blueprint[]>
@@ -317,10 +317,15 @@ function filterBlueprints(bpList: Blueprint[], query: string): Blueprint[] {
 
   // Split by tier
   const t1Blueprints = blueprints.filter((b) => b.tier === "T1");
-  const t2Blueprints = blueprints.filter(bpTierCheck);
+  const t2Blueprints = blueprints.filter((b) => b.tier === "T2");
+  const reactionBlueprints = blueprints.filter((b) => b.tier === "Reaction");
+
+  
+
 
   const filteredT1 = filterBlueprints(t1Blueprints, searchQuery);
   const filteredT2 = filterBlueprints(t2Blueprints, searchQuery);
+  const filteredReactions = filterBlueprints(reactionBlueprints, searchQuery);
 
 
   // Table headers config
@@ -352,7 +357,7 @@ const t2Headers: { key: string; label: string }[] = [
 function renderHeader(
   headers: { key: string; label: string }[],
   sort: SortState,
-  tier: "T1" | "T2",
+  tier: "T1" | "T2" | "Reaction",
   setSort: (s: SortState) => void
 ) {
   return (
@@ -661,6 +666,121 @@ function renderHeader(
                     </AccordionContent>
 
                 </AccordionItem>
+              {/* Reactions Section */}
+              <AccordionItem value="reactions">
+                <AccordionTrigger
+                  className="text-lg font-semibold text-[#dbeafe] bg-gradient-to-r from-[#60a5fa] via-[#3b82f6] to-[#38bdf8] hover:no-underline rounded-t-none px-4 py-3"
+                  style={{
+                    borderBottom: "2px solid #93c5fd",
+                    boxShadow: "0 2px 8px 0 #60a5fa33",
+                  }}
+                >
+                  <span className="text-[#e0f2fe]">Reaction Formulas</span>
+                </AccordionTrigger>
+                <AccordionContent className="bg-[#263b6c] rounded-b-xl px-2 pb-4 pt-2">
+                  {filteredReactions.length ? (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full text-sm bg-[#1e293b]/70 rounded-xl shadow">
+                        <thead>
+                          {renderHeader(t1Headers, t1Sort, "Reaction", setT1Sort)}
+                        </thead>
+                        <tbody>
+                          {sortBlueprints(filteredReactions, t1Sort).map((bp) => {
+                            const sellPrice = Math.round(bp.sell_price);
+                            const materialCost = Math.round(bp.material_cost);
+                            const profit = sellPrice - materialCost;
+                            const profitPct =
+                              materialCost > 0
+                                ? ((profit / materialCost) * 100).toFixed(2)
+                                : "-";
+                            return (
+                              <tr
+                                key={bp.id}
+                                className="border-b border-blue-600 hover:bg-cyan-600/60 text-blue-300 transition"
+                              >
+                                <td className="py-2 px-3 font-semibold">{bp.name}</td>
+                                <td className="py-2 px-3">
+                                  {formatIsk(sellPrice)}{" "}
+                                  <span className="text-xs text-blue-200 ml-1">
+                                    ({numberToWords(sellPrice)} isk)
+                                  </span>
+                                  {bp.used_jita_fallback && (
+                                    <span
+                                      className="ml-2 text-yellow-400"
+                                      title="Fallback to Jita pricing"
+                                    >
+                                      &#9888;
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-2 px-3">
+                                  {formatIsk(materialCost)}{" "}
+                                  <span className="text-xs text-blue-200 ml-1">
+                                    ({numberToWords(materialCost)} isk)
+                                  </span>
+                                </td>
+                                <td className="py-2 px-3">
+                                  <MaterialsCell materials={bp.materials} />
+                                </td>
+                                <td className="py-2 px-3 text-center">{profitPct}%</td>
+                                <td className="py-2 px-3 text-center">
+                                  {bp.station_name || bp.station?.name || "Jita 4-4"}
+                                </td>
+                                <td className="py-2 px-3 text-center">
+                                  <Input
+                                    type="number"
+                                    value={maxEdits[bp.id] ?? (bp.max ?? "")}
+                                    onChange={(e) => handleMaxInput(bp.id, e.target.value)}
+                                    onBlur={() => handleMaxBlur(bp.id)}
+                                    className="w-16 text-center bg-blue-600 border-blue-500"
+                                  />
+                                </td>
+                                <td className="py-2 px-3 text-center">
+                                  <div className="flex flex-col gap-2 items-stretch">
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      className="bg-[#3b82f6] text-white hover:bg-[#2563eb]"
+                                      onClick={() => onEdit?.(bp, "Reaction")}
+                                    >
+                                      <Pencil className="w-4 h-4 mr-1" /> Edit
+                                    </Button>
+                                    <ConfirmDeleteButton onDelete={() => handleDelete(bp.id)}>
+                                      <Trash2 className="w-4 h-4 mr-1" /> Delete
+                                    </ConfirmDeleteButton>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="border-blue-500 text-blue-500 bg-blue-100"
+                                      onClick={() => handleResetMax(bp.id)}
+                                    >
+                                      <RotateCcw className="w-4 h-4 mr-1" /> Reset Max
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                      <div className="flex justify-end mt-3">
+                        <Button
+                          variant="outline"
+                          className="border-blue-300 text-blue-500 bg-blue-50"
+                          onClick={() => handleResetAllMax("Reaction")}
+                          disabled={!!resettingAll["Reaction"]}
+                        >
+                          <RotateCcw className="w-4 h-4 mr-2" />
+                          {resettingAll["Reaction"] ? "Resetting..." : "Reset All Max Values"}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-6 text-green-400">No Reactions found.</div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+
               </Accordion>
               <div className="price-legend mt-2 text-sm text-[#ff9500]">
                 <span className="text-orange-400">&#9888;</span> Fallback to Jita pricing

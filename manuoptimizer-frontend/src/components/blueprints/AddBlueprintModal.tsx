@@ -14,7 +14,7 @@ import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { toast } from "react-hot-toast";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { E } from "vitest/dist/chunks/environment.d.cL3nLXbE.js";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
@@ -22,7 +22,8 @@ import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { cn } from "@/lib/utils";
-
+import { Blueprint } from "@/types/blueprints";
+import { BlueprintTier } from "@/types/blueprints";
 interface AddBlueprintModalProps {
   open: boolean
   onSubmit: (data: {
@@ -30,7 +31,7 @@ interface AddBlueprintModalProps {
     sell_price: number;
     amt_per_run: number;
     material_cost: number;
-    tier: "T1" | "T2";
+    tier: BlueprintTier;
     invention_materials?: string;
     invention_chance?: number;
     runs_per_copy?: number;
@@ -108,6 +109,40 @@ const tierStyles = {
 
     description: "text-amber-400",
   },
+
+  Reaction: {
+    modal:
+      "rounded-2xl bg-gradient-to-br from-blue-500 via-blue-400 to-blue-600 border border-blue-800 shadow-2xl text-white",
+
+    label: "text-cyan-200",
+
+    input:
+      "bg-slate-900 border border-cyan-700 text-cyan-100 placeholder:text-cyan-400 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400",
+
+    li: "text-cyan-100",
+
+    dropdown:
+      "border border-cyan-700 text-cyan-100 shadow-lg rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400",
+
+    dropdownItem:
+      "px-4 py-2 rounded-md text-cyan-100 hover:bg-cyan-900 hover:text-cyan-200 focus:bg-cyan-950 focus:text-white cursor-pointer transition-colors",
+
+    selectTrigger:
+      "bg-slate-900 border border-cyan-700 text-cyan-100 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400",
+
+    selectContent: "bg-slate-950 text-cyan-100",
+
+    buttonPrimary:
+      "bg-cyan-600 hover:bg-cyan-500 focus:ring-2 focus:ring-cyan-400 text-white font-semibold",
+
+    buttonSecondary:
+      "bg-slate-900 text-cyan-300 hover:bg-cyan-900 hover:text-white border border-cyan-700",
+
+    title: "text-cyan-200",
+
+    description: "text-cyan-200",
+  },
+
 };
 
 export default function AddBlueprintModal({ 
@@ -115,7 +150,7 @@ export default function AddBlueprintModal({
   onClose,
   onBlueprintAdded 
 }: AddBlueprintModalProps) {
-  const [tier, setTier] = useState<"T1" | "T2">("T1");
+  const [tier, setTier] = useState<BlueprintTier>("T1");
   const [mode, setMode] = useState<"game" | "isk">("game");
   const [blueprintData, setBlueprintData] = useState("");
   const [inventionData, setInventionData] = useState("");
@@ -227,7 +262,9 @@ export default function AddBlueprintModal({
 
 
 
-
+useEffect(() => {
+  console.log("tier changed:", tier);
+}, [tier]);
 
   async function handleSubmit(e: { preventDefault: () => void; }) {
     e.preventDefault();
@@ -297,37 +334,58 @@ export default function AddBlueprintModal({
 
           {mode === "game" && (
             <>
-              <RadioGroup
+             <RadioGroup
                 value={tier}
-                onValueChange={(val) => setTier(val as "T1" | "T2")}
+                onValueChange={(val) => setTier(val as "T1" | "T2" | "Reaction")}
                 className={`flex gap-4 ${styles.label}`}
               >
-                <Label htmlFor="T1" className="flex items-center gap-2 cursor-pointer select-none">
+                <div className="flex items-center gap-2 cursor-pointer select-none">
                   <RadioGroupItem
-                    id="T1"
                     value="T1"
                     className="border-blue-500 data-[state=checked]:bg-blue-400 data-[state=checked]:ring-2 data-[state=checked]:ring-blue-500"
                   />
                   T1
-                </Label>
-                <Label htmlFor="T2" className="flex items-center gap-2 cursor-pointer select-none">
+                </div>
+
+                <div className="flex items-center gap-2 cursor-pointer select-none">
                   <RadioGroupItem
-                    id="T2"
                     value="T2"
                     className="border-amber-500 data-[state=checked]:bg-amber-400 data-[state=checked]:ring-2 data-[state=checked]:ring-amber-500"
                   />
                   T2
-                </Label>
+                </div>
+
+                <div className="flex items-center gap-2 cursor-pointer select-none">
+                  <RadioGroupItem
+                    value="Reaction"
+                    className="border-cyan-400 data-[state=checked]:bg-cyan-300 data-[state=checked]:ring-2 data-[state=checked]:ring-cyan-400"
+                  />
+                  Reaction
+                </div>
               </RadioGroup>
 
 
-              <Textarea
-                placeholder="Paste blueprint data from game"
-                value={blueprintData}
-                onChange={(e) => setBlueprintData(e.target.value)}
-                className={`${styles.input} placeholder:${styles.label} min-h-[120px] resize-y w-full break-words`}
-                style={{ wordBreak: "break-word" }}
-              />
+
+
+              {tier === "Reaction" ? (
+                <Textarea
+                  placeholder="Paste reaction formula from game"
+                  value={blueprintData}
+                  onChange={(e) => setBlueprintData(e.target.value)}
+                  className={`${styles.input} placeholder:${styles.label} min-h-[120px] resize-y w-full break-words`}
+                  style={{ wordBreak: "break-word" }}
+                />
+              ) : (
+                <Textarea
+                  placeholder="Paste blueprint data from game"
+                  value={blueprintData}
+                  onChange={(e) => setBlueprintData(e.target.value)}
+                  className={`${styles.input} placeholder:${styles.label} min-h-[120px] resize-y w-full break-words`}
+                  style={{ wordBreak: "break-word" }}
+                />
+              )}
+
+              
 
              <div>
                <Label htmlFor="blueprintParseAmtPerRun" className={`${styles.label} mb-1 block`}>
