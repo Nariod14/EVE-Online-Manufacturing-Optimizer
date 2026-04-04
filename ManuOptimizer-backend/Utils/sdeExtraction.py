@@ -1,10 +1,25 @@
+import os
 import sqlite3
 
-# Path to full SDE
-SDE_PATH = r"C:\Users\nario\Documents\Coding Stuff\Eve-Code\ManuOptimizer\Utils\sde.sqlite"
+# Base dir where this script lives (ManuOptimizer-backend\Utils)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Path to full SDE (actual location)
+SDE_PATH = os.path.join(
+    BASE_DIR,
+    'sde.sqlite'
+)
+# This resolves to:
+# C:\Users\nario\Documents\Coding Stuff\Eve-Code\ManuOptimizer\ManuOptimizer-backend\Utils\sde.sqlite
+
+# Output mini SDE in the same folder (so your app can find it)
+MINI_SDE_PATH = os.path.join(
+    BASE_DIR,
+    'mini_sde.sqlite'
+)
 
 # Output mini SDE
-mini_conn = sqlite3.connect('mini_sde.sqlite')
+mini_conn = sqlite3.connect(MINI_SDE_PATH)
 mini_cursor = mini_conn.cursor()
 
 # Load full SDE
@@ -12,7 +27,6 @@ full_conn = sqlite3.connect(SDE_PATH)
 full_cursor = full_conn.cursor()
 
 # 1. Create invTypes table
-
 mini_cursor.execute('''
 CREATE TABLE IF NOT EXISTS invTypes (
     typeID INTEGER PRIMARY KEY,
@@ -22,7 +36,10 @@ CREATE TABLE IF NOT EXISTS invTypes (
 
 full_cursor.execute('SELECT typeID, typeName FROM invTypes WHERE published = 1')
 invtype_rows = full_cursor.fetchall()
-mini_cursor.executemany("INSERT INTO invTypes (typeID, typeName) VALUES (?, ?)", invtype_rows)
+mini_cursor.executemany(
+    "INSERT INTO invTypes (typeID, typeName) VALUES (?, ?)",
+    invtype_rows
+)
 
 # 2. Create materialClassifications table
 mini_cursor.execute('''
@@ -37,7 +54,6 @@ CREATE TABLE IF NOT EXISTS materialClassifications (
 )
 ''')
 
-# Mapping of groupName -> Manufacturing Category
 MANUFACTURING_GROUP_MAP = {
     # Minerals and Raw
     'Minerals': 'Minerals',
@@ -64,7 +80,7 @@ MANUFACTURING_GROUP_MAP = {
     'Components': 'Components',
     'Advanced Components': 'Advanced Components',
     'Structure Components': 'Structure Components',
-    'Construction Components': 'Components',  # Legacy naming
+    'Construction Components': 'Components',
 
     # Salvage
     'Salvaged Materials': 'Salvage',
@@ -90,7 +106,7 @@ MANUFACTURING_GROUP_MAP = {
     'Drone Upgrades': 'Items',
     'Ship Modifications': 'Items',
 
-    # Ammunition (used in some manufacturing chains)
+    # Ammunition
     'Ammunition & Charges': 'Items',
     'Standard Ammo': 'Items',
     'Standard Charges': 'Items',
@@ -110,7 +126,7 @@ MANUFACTURING_GROUP_MAP = {
     'Datacores': 'Invention Materials',
     'Decryptors': 'Invention Materials',
 
-    # Rigs and Subsystems (used in manufacturing T2 ships)
+    # Rigs and Subsystems
     'Armor Rigs': 'Items',
     'Drone Rigs': 'Items',
     'Engineering Rigs': 'Items',
@@ -130,21 +146,20 @@ MANUFACTURING_GROUP_MAP = {
     'Mining Lasers': 'Items',
     'Mining Crystals': 'Items',
 
-    # Reaction Formulas (can be used for tech chaining)
+    # Reaction Formulas
     'Reaction Formulas': 'Invention Materials',
     'Simple Reactions': 'Invention Materials',
     'Complex Reactions': 'Invention Materials',
     'Polymer Reactions': 'Invention Materials',
     'Composite Reaction Formulas': 'Invention Materials',
 
-    # Ancient Relics (used for T3 invention)
+    # Ancient Relics
     'Ancient Relics': 'Invention Materials',
 
     # RAM and RDB
     'R.A.M.': 'Invention Materials',
     'R.Db': 'Invention Materials',
 }
-
 
 # Build marketGroupID -> manufacturing category
 full_cursor.execute('SELECT marketGroupID, marketGroupName FROM invMarketGroups')
@@ -157,7 +172,6 @@ market_to_category = {
 }
 
 # 3. Fetch all relevant items
-
 full_cursor.execute('''
 SELECT t.typeID, t.typeName, g.groupID, g.groupName, c.categoryID, c.categoryName, t.marketGroupID
 FROM invTypes t
@@ -173,28 +187,23 @@ filtered = []
 for typeID, typeName, groupID, groupName, categoryID, categoryName, marketGroupID in rows:
     manu_cat = market_to_category.get(marketGroupID)
 
-
-    # Check for explicit category match
     if manu_cat:
         filtered.append((typeID, typeName, groupID, groupName, categoryID, categoryName, manu_cat))
         inserted_ids.add(typeID)
         continue
 
-    # Heuristic: If name ends in " I" and not " II", it's a T1 item
     if typeName.endswith(" I") and not typeName.endswith(" II"):
         if typeID not in inserted_ids:
             filtered.append((typeID, typeName, groupID, groupName, categoryID, categoryName, "Items"))
             inserted_ids.add(typeID)
 
-
-# 4. Insert filtered materials
 mini_cursor.executemany('''
-INSERT OR IGNORE INTO materialClassifications 
+INSERT OR IGNORE INTO materialClassifications
 (typeID, typeName, groupID, groupName, categoryID, categoryName, manufacturingCategory)
 VALUES (?, ?, ?, ?, ?, ?, ?)
 ''', filtered)
 
-# 5. Hardcode core minerals if not already present
+# 5. Hardcode core minerals
 known_minerals = [
     "Tritanium", "Pyerite", "Mexallon", "Isogen",
     "Nocxium", "Zydrine", "Megacyte", "Morphite"
@@ -214,7 +223,7 @@ for mineral in known_minerals:
         if typeID not in inserted_ids:
             try:
                 mini_cursor.execute('''
-                    INSERT INTO materialClassifications 
+                    INSERT INTO materialClassifications
                     (typeID, typeName, groupID, groupName, categoryID, categoryName, manufacturingCategory)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''', (typeID, typeName, groupID, groupName, categoryID, categoryName, "Minerals"))
@@ -222,8 +231,6 @@ for mineral in known_minerals:
             except sqlite3.IntegrityError:
                 pass
 
-
-# 6. Finalize
 mini_conn.commit()
 full_conn.close()
 mini_conn.close()

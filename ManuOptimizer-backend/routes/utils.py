@@ -319,7 +319,7 @@ def get_item_info(material_names):
     placeholders = ', '.join('?' for _ in normalized_names)
     query = f'''
     SELECT i.typeName, i.typeID, COALESCE(m.manufacturingCategory, 'Other')
-    FROM invTypes i
+    FROM types i
     LEFT JOIN materialClassifications m ON i.typeID = m.typeID
     WHERE i.typeName IN ({placeholders})
     '''

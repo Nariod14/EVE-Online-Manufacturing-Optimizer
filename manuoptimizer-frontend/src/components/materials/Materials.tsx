@@ -47,36 +47,8 @@ export default function Materials() {
     }
 
     async function handleAddMaterialSubmit(data: { materialsText: string; updateType: "replace" | "add" }) {
-      const lines = data.materialsText.trim().split("\n");
-      const parsed = lines
-        .map(line => {
-          const [name, qtyStr] = line.split("\t");
-          const quantity = parseInt(qtyStr);
-          return name && !isNaN(quantity) ? { name: name.trim(), quantity } : null;
-        })
-        .filter((item): item is { name: string; quantity: number } => item !== null);
-
-      const materials: Record<string, number> = {};
-      parsed.forEach(({ name, quantity }) => {
-        materials[name] = quantity;
-      });
-
-      try {
-        const res = await fetch("/api/materials/update_materials", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ materials, updateType: data.updateType }),
-        });
-
-        if (!res.ok) throw new Error("Failed to update materials");
-
-        await fetchMaterials(); // ✅ refresh the updated state
-      } catch (error) {
-        console.error("Failed to add materials:", error);
-        alert("Failed to update materials");
-      }
+        await fetchMaterials();
     }
-
 
     async function handleDelete(id: number) {
       try {
