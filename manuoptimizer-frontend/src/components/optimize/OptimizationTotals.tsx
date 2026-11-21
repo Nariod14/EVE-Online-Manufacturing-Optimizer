@@ -6,14 +6,24 @@ type OptimizationTotalsProps = {
     total_profit: number;
     true_profit_jita: number;
     true_profit_inventory: number;
+    invention_cost?: number;
+    sales_fees?: number;
+    purchase_cost?: number;
+    cash_profit?: number;
   };
 };
 
 export default function OptimizationTotals({ data }: OptimizationTotalsProps) {
-  // Percent of inventory-aware profit over total profit
-  const percentInventory = (data.true_profit_inventory / data.total_profit) * 100;
-  // Percent of Jita profit over total profit
-  const percentJita = (data.true_profit_jita / data.total_profit) * 100;
+  // Nothing sold means there is no percentage to show (and no dividing by zero)
+  const hasSales = data.total_profit > 0;
+  // Percent of inventory-aware profit over total sell value
+  const percentInventory = hasSales ? (data.true_profit_inventory / data.total_profit) * 100 : 0;
+  // Percent of Jita profit over total sell value
+  const percentJita = hasSales ? (data.true_profit_jita / data.total_profit) * 100 : 0;
+
+  // These only come from the newer backend
+  const hasCostBreakdown =
+    data.sales_fees !== undefined || data.purchase_cost !== undefined || data.cash_profit !== undefined;
 
   function getProfitClass(percent: number): string {
     if (percent < 15) return 'text-red-400'; // Low
@@ -58,13 +68,28 @@ export default function OptimizationTotals({ data }: OptimizationTotalsProps) {
           className={getProfitClass(percentInventory)}
         />
       </div>
+
+      {hasCostBreakdown && (
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 text-center text-blue-100 mt-6">
+          <Stat title="Sales Fees" value={data.sales_fees ?? 0} color="text-rose-400" />
+          <Stat title="Purchases" value={data.purchase_cost ?? 0} color="text-cyan-400" />
+          <Stat title="Invention Cost" value={data.invention_cost ?? 0} color="text-purple-400" />
+          <Stat title="Cash Profit" value={data.cash_profit ?? 0} color="text-green-400" />
+        </div>
+      )}
+
       <div className="mt-4 text-xs text-blue-400 text-center">
         <span className="block">
-          <span className="font-bold">True Profit (Jita):</span> Profit if you bought all materials at Jita sell price.
+          <span className="font-bold">True Profit (Jita):</span> Sell value minus fees, invention and every material used, with your own stock counted at its Jita sell price.
         </span>
         <span className="block">
-          <span className="font-bold">True Profit (Inventory):</span> Profit accounting for your current inventory (only buying what you lack).
+          <span className="font-bold">True Profit (Inventory):</span> The same, but finished items you already had in stock and used as components count as free.
         </span>
+        {hasCostBreakdown && (
+          <span className="block">
+            <span className="font-bold">Cash Profit:</span> Sell value minus fees, purchases and invention. Everything already in your inventory counts as free here.
+          </span>
+        )}
       </div>
     </div>
   );
@@ -98,7 +123,7 @@ export function Stat({ title, value, color, isPercent, className }: StatProps) {
           ? `${value.toFixed(2)}%`
           : shorthand
           ? numberToWords(value as number)
-          : `${value.toLocaleString()} ISK`}
+          : `${Math.round(value).toLocaleString()} ISK`}
       </span>
     </div>
   );

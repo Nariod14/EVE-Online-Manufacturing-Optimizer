@@ -74,6 +74,20 @@ def callback():
     client_secret = config["client_secret"]
     code = request.args.get("code")
 
+    # The state sent from /login must come back unchanged; otherwise this callback
+    # was not started by this browser (login CSRF). The session cookie only reaches
+    # this callback when EVE_CALLBACK_URL uses the same host the app was opened on
+    # (127.0.0.1:5000, which run.py opens).
+    expected_state = session.pop('oauth_state', None)
+    returned_state = request.args.get("state")
+    if not expected_state or not returned_state or not secrets.compare_digest(expected_state, returned_state):
+        logger.error("Login callback rejected: OAuth state missing or does not match. "
+                     "Open the app at the same host as EVE_CALLBACK_URL and log in again.")
+        return redirect(url_for('serve_frontend'))
+    if not code:
+        logger.error(f"Login callback without a code (error: {request.args.get('error')})")
+        return redirect(url_for('serve_frontend'))
+
     response = requests.post(
         TOKEN_URL,
         auth=(client_id, client_secret),
@@ -111,7 +125,8 @@ def callback():
     session["token"] = access_token
     session["character"] = character_name
 
-    logger.info(f"Logged in as {character_name} — Access Token: {access_token}. Try not to share this.")
+    # The access token is deliberately not logged: app.log is a plain text file.
+    logger.info(f"Logged in as {character_name}")
 
     return redirect(url_for('serve_frontend'))
 

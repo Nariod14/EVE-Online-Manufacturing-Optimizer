@@ -58,7 +58,21 @@ class Material(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     type_id = db.Column(db.Integer, nullable=True)  # Make sure this is here
-    category = db.Column(db.String, nullable=True) 
+    category = db.Column(db.String, nullable=True)
+
+class BuyListItem(db.Model):
+    """A material the optimizer may buy when a budget is given.
+
+    Kept apart from Material so pasting a new inventory (which replaces every
+    Material row) does not wipe the list, and so items you hold none of
+    (e.g. Morphite) can still be priced and bought.
+    """
+    __tablename__ = 'buy_list_item'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    type_id = db.Column(db.Integer, nullable=True)
+    sell_price = db.Column(db.Float, nullable=True)  # Jita lowest sell, per unit
 
 class Region(db.Model):
     id = db.Column(db.Integer, primary_key=True)

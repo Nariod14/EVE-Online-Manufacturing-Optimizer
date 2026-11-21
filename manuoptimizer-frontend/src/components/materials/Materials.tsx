@@ -9,6 +9,8 @@ import { waitForMswReady } from "@/lib/mswReady";
 import { AddMaterialModal } from "./AddMaterialModal";
 import { Accordion, AccordionContent, AccordionTrigger } from "../ui/accordion";
 import { AccordionItem } from "@radix-ui/react-accordion";
+import { toast } from "sonner";
+import AddItemPanel from "./AddItemPanel";
 
 
 export default function Materials() {
@@ -30,11 +32,17 @@ export default function Materials() {
     }
     async function handleSave(updated: Material) {
       try {
-        await fetch(`/api/materials/material/${updated.id}`, {
+        const res = await fetch(`/api/materials/material/${updated.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updated),
         });
+        if (!res.ok) {
+          // Previously the table showed the edit even when the server rejected it
+          const problem = await res.json().catch(() => null);
+          toast.error(problem?.error || problem?.ERROR || "Could not save the material");
+          return;
+        }
 
         setMaterials((prev) =>
           prev.map((mat) => (mat.id === updated.id ? updated : mat))
@@ -43,6 +51,7 @@ export default function Materials() {
         handleEditClose();
       } catch (error) {
         console.error("Error updating material:", error);
+        toast.error("Could not save the material");
       }
     }
 
@@ -115,6 +124,8 @@ export default function Materials() {
           </CardHeader>
 
           <CardContent className="space-y-4">
+            <AddItemPanel materials={materials} onChanged={fetchMaterials} />
+
             <Accordion type="single" collapsible>
               <AccordionItem
                 value="materials"

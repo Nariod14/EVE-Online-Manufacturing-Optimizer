@@ -11,6 +11,7 @@ from flask_migrate import Migrate
 from routes.materials import materials_bp
 from routes.blueprints import blueprints_bp
 from routes.stations import stations_bp
+from routes.buylist import buylist_bp
 from auth import auth_bp, get_oauth_config
 from dotenv import load_dotenv
 
@@ -85,6 +86,7 @@ def create_app():
     flask_app.register_blueprint(blueprints_bp)
     flask_app.register_blueprint(auth_bp)
     flask_app.register_blueprint(stations_bp)
+    flask_app.register_blueprint(buylist_bp)
 
     # 👇 This will serve index.html for all unknown routes (like a SPA)
     @flask_app.route("/")

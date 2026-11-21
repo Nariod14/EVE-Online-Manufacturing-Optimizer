@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { waitForMswReady } from '@/lib/mswReady';
-import { a } from 'vitest/dist/chunks/suite.d.FvehnV49.js';
 
 export default function LoginPanel() {
   const [characterName, setCharacterName] = useState<string | undefined>();

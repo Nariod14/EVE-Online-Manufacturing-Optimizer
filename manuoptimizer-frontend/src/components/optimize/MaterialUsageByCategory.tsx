@@ -73,7 +73,8 @@ function getRemainingColor(percent: number): string {
 
 export default function MaterialUsageByCategory({ usage, savings = {}, expected_invention, invention_cost }: Props) {
   const categorized: Record<string, Record<string, MaterialUsage>> = {};
-  const [open, setOpen] = useState(false);
+  // One open/closed flag per category (they used to share one, so all of them opened together)
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [open2, setOpen2] = useState(false);
   for (const material in usage) {
     const info = usage[material];
@@ -89,7 +90,7 @@ export default function MaterialUsageByCategory({ usage, savings = {}, expected_
     <div className="space-y-4">
       <div className="mb-4">
         <h3 className="text-2xl text-blue-300 font-semibold">Material Usage by Category</h3>
-        <p className="text-lg text-blue-300 font-normal mb-2">See "To be built" and "Inventory Savings" for more details on negative materials.</p>
+        <p className="text-lg text-blue-300 font-normal mb-2">See "To be built" and "Inventory Savings" for more details on negative materials. A negative amount on a raw material is what the shopping list tells you to buy.</p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {CATEGORY_ORDER.map((category) => {
@@ -100,6 +101,7 @@ export default function MaterialUsageByCategory({ usage, savings = {}, expected_
           // const totalRemaining = Object.values(materials).reduce((sum, m) => sum + m.remaining, 0);
           const usedCount = Object.values(materials).filter((m) => m.used > 0).length;
           const totalCount = Object.keys(materials).length;
+          const open = !!openCategories[category];
 
           return (
             <div
@@ -111,7 +113,7 @@ export default function MaterialUsageByCategory({ usage, savings = {}, expected_
             >
               <div
                 className="cursor-pointer flex justify-between items-center p-4"
-                onClick={() => setOpen(!open)}
+                onClick={() => setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))}
               >
                 <div>
                   <h4 className="text-lg text-blue-200 font-bold">{category}</h4>

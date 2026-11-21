@@ -47,7 +47,7 @@ export default function WhereToSell({ productionPlan, allBlueprints }: WhereToSe
   return (
     <div className="w-full">
       <h3 className="text-2xl text-blue-300 font-semibold">Where to Sell</h3>
-      <h4 className="text-lg text-blue-300 font-normal mb-2">Which stations to your items</h4>
+      <h4 className="text-lg text-blue-300 font-normal mb-2">Which station to sell each item at</h4>
 
       {rows.map((row, rowIdx) => {
         if (row.length === 1) {

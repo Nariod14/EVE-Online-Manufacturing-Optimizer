@@ -9,6 +9,13 @@ export type Material = {
     category?: string | null;
 };
 
+// GET /api/materials/search?q=
+export type ItemSearchResult = {
+    name: string;
+    type_id: number;
+    category: string;
+};
+
 
 export const mockMaterials: Material[] = [
 {

@@ -299,29 +299,53 @@ def fetch_price(type_id, station_id, headers):
 
 
 
-def get_item_info(material_names):
-    # Get the path to the SDE
+def _sde_path():
     base_path = getattr(sys, '_MEIPASS', os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
     sde_path = os.path.join(base_path, 'sde', 'mini_sde.sqlite')
-    
     if not os.path.exists(sde_path):
         logger.error(f"SDE database not found at: {sde_path}")
         raise FileNotFoundError(f"SDE database not found at: {sde_path}")
+    return sde_path
 
-    # Connect to the SDE database
-    conn = sqlite3.connect(sde_path)
+
+def _open_sde():
+    """Read-only connection to the mini SDE."""
+    uri = 'file:' + _sde_path().replace('\\', '/') + '?mode=ro'
+    return sqlite3.connect(uri, uri=True)
+
+
+def _marketable_sql(cursor, alias="i"):
+    """SQL that is 1 for a marketable type, or a constant 1 on an older mini SDE
+    that has no published / marketGroupID columns (Utils/sdeExtractionCatalyst.py adds them)."""
+    cols = {r[1] for r in cursor.execute("PRAGMA table_info(types)")}
+    if {"published", "marketGroupID"} <= cols:
+        return f"({alias}.published = 1 AND COALESCE({alias}.marketGroupID, 0) > 0)"
+    return "1"
+
+
+def get_item_info(material_names):
+    if isinstance(material_names, str):       # a single name; iterating it would look up each letter
+        material_names = [material_names]
+    material_names = list(material_names)
+    if not material_names:
+        return {}
+
+    conn = _open_sde()
     cursor = conn.cursor()
 
     # Normalize the material names
     normalized_names = [unicodedata.normalize('NFC', normalize_name(name)) for name in material_names]
 
-    # Query the SDE database
+    # Query the SDE database. A few names belong to several types (an unpublished
+    # copy, crates, SKINs); marketable rows sort last so they win below.
+    marketable = _marketable_sql(cursor)
     placeholders = ', '.join('?' for _ in normalized_names)
     query = f'''
     SELECT i.typeName, i.typeID, COALESCE(m.manufacturingCategory, 'Other')
     FROM types i
     LEFT JOIN materialClassifications m ON i.typeID = m.typeID
     WHERE i.typeName IN ({placeholders})
+    ORDER BY {marketable}, i.typeID
     '''
     cursor.execute(query, normalized_names)
     rows = cursor.fetchall()
@@ -340,6 +364,122 @@ def get_item_info(material_names):
         normalize_name(name): info.get(normalize_name(name), {"type_id": 0, "category": "Other"})
         for name in material_names
     }
+
+
+def get_item_volumes(names):
+    """{name: m3 per unit} for the names the mini SDE knows a volume for.
+
+    Empty on an older mini SDE without a volume column (Utils/sdeExtractionCatalyst.py adds it).
+    Duplicate names resolve to the marketable type, as in get_item_info.
+    """
+    names = list(dict.fromkeys(normalize_name(n) for n in names if isinstance(n, str)))
+    if not names:
+        return {}
+    conn = _open_sde()
+    try:
+        cursor = conn.cursor()
+        cols = {r[1] for r in cursor.execute("PRAGMA table_info(types)")}
+        if "volume" not in cols:
+            logger.warning("Mini SDE has no volume column; rebuild it with Utils/sdeExtractionCatalyst.py")
+            return {}
+        marketable = _marketable_sql(cursor)
+        result = {}
+        for i in range(0, len(names), 500):          # stay under SQLite's parameter limit
+            chunk = names[i:i + 500]
+            rows = cursor.execute(f'''
+                SELECT i.typeName, i.volume FROM types i
+                WHERE i.typeName IN ({', '.join('?' for _ in chunk)})
+                ORDER BY {marketable}, i.typeID
+            ''', chunk).fetchall()
+            for name, vol in rows:                   # marketable rows come last and win
+                if vol is not None and vol > 0:
+                    result[name] = float(vol)
+        return result
+    finally:
+        conn.close()
+
+
+def _like_escape(text):
+    return text.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+
+
+def search_items(query, limit=20):
+    """Marketable items whose name contains `query` (case-insensitive).
+
+    Exact matches first, then names starting with the query, then the rest;
+    shorter names before longer ones. Returns [{name, type_id, category}].
+    """
+    query = normalize_name(query or "")
+    if len(query) < 2:
+        return []
+    limit = max(1, min(int(limit), 50))
+    conn = _open_sde()
+    try:
+        cursor = conn.cursor()
+        marketable = _marketable_sql(cursor)
+        pattern = '%' + _like_escape(query) + '%'
+        rows = cursor.execute(f'''
+            SELECT i.typeName, i.typeID, COALESCE(m.manufacturingCategory, 'Other')
+            FROM types i
+            LEFT JOIN materialClassifications m ON i.typeID = m.typeID
+            WHERE i.typeName LIKE ? ESCAPE '\\' AND {marketable}
+            ORDER BY
+                CASE WHEN i.typeName = ? COLLATE NOCASE THEN 0
+                     WHEN i.typeName LIKE ? ESCAPE '\\' THEN 1
+                     ELSE 2 END,
+                LENGTH(i.typeName), i.typeName
+            LIMIT ?
+        ''', (pattern, query, _like_escape(query) + '%', limit * 2)).fetchall()
+    finally:
+        conn.close()
+    seen, result = set(), []
+    for name, tid, cat in rows:          # a handful of names exist twice; show each once
+        if name in seen:
+            continue
+        seen.add(name)
+        result.append({"name": name, "type_id": tid, "category": cat})
+        if len(result) >= limit:
+            break
+    return result
+
+
+def resolve_item_names(names):
+    """Match names to SDE items: exact first, then ignoring case.
+
+    Returns (found, unknown):
+      found    {input name: {"name": SDE spelling, "type_id", "category"}}
+      unknown  [input names with no item of that name]
+    """
+    names = [n for n in dict.fromkeys(normalize_name(n) for n in names if isinstance(n, str)) if n]
+    if not names:
+        return {}, []
+    found = {}
+    exact = get_item_info(names)
+    for n in names:
+        info = exact.get(n)
+        if info and info.get("type_id"):
+            found[n] = {"name": n, "type_id": info["type_id"], "category": info["category"]}
+    rest = [n for n in names if n not in found]
+    if rest:
+        conn = _open_sde()
+        try:
+            cursor = conn.cursor()
+            marketable = _marketable_sql(cursor)
+            for n in rest:
+                row = cursor.execute(f'''
+                    SELECT i.typeName, i.typeID, COALESCE(m.manufacturingCategory, 'Other')
+                    FROM types i
+                    LEFT JOIN materialClassifications m ON i.typeID = m.typeID
+                    WHERE i.typeName = ? COLLATE NOCASE
+                    ORDER BY {marketable} DESC, i.typeID DESC
+                    LIMIT 1
+                ''', (n,)).fetchone()
+                if row:
+                    found[n] = {"name": row[0], "type_id": row[1], "category": row[2]}
+        finally:
+            conn.close()
+    unknown = [n for n in names if n not in found]
+    return found, unknown
 
 def compute_expanded_materials(blueprint, quantity, blueprints):
     """Returns dict of materials (including Items) required to produce `quantity` final units of blueprint output"""

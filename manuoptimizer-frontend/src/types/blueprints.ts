@@ -1,7 +1,6 @@
 import { Station } from "./stations";
 import { Material, mockMaterials } from "./materials";
 import { mockStations } from "./stations";
-import { mock } from "node:test";
 
 export type BlueprintTier = "T1" | "T2" | "Reaction";
 
@@ -40,6 +39,23 @@ export type Reaction = BlueprintBase & {
 }
 
 export type Blueprint = BlueprintT1 | BlueprintT2 | Reaction;
+
+// GET /api/blueprints/blueprints/suggested_max
+export type SuggestedMaxRow = {
+  id: number;
+  name: string;
+  tier: BlueprintTier;
+  region_id: number | null;
+  current_max: number | null;
+  avg_daily_volume: number | null; // units per day; null = no market data
+  suggested_max: number | null;
+};
+
+export type SuggestedMaxResponse = {
+  days: number;
+  window: number;
+  blueprints: SuggestedMaxRow[];
+};
 
 export const mockBlueprints = [
   {

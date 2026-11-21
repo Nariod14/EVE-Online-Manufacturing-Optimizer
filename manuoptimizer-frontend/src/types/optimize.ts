@@ -7,6 +7,78 @@ export type InventorySavings = Record<
 >;
 
 
+// One row of the production plan: what to install and what comes out of it
+export type ProductionPlanRow = {
+  name: string;
+  tier: string;
+  runs: number;
+  units_per_run: number;
+  units_produced: number;
+  units_sold: number;
+  units_for_other_builds: number;
+  revenue: number;
+};
+
+export type ShoppingListEntry = {
+  quantity: number;
+  unit_price: number;
+  cost: number;
+  category?: string;
+  volume_m3?: number | null; // m3 of this line; null = volume unknown
+};
+
+// One item the plan sells, for hauling it out
+export type SaleLine = {
+  name: string;
+  units: number;
+  unit_volume: number | null; // m3 per unit; null = unknown
+  volume_m3: number | null;
+  value: number;              // units x sell price, before fees
+};
+
+// What one more unit of a material would add to the plan, next to what it costs
+export type MarginalValue = {
+  name: string;
+  category?: string;
+  value: number;
+  market_price: number;
+  ratio: number;
+};
+
+// "list" = only what is on the buy list (GET/PUT /api/buylist)
+export type BuyMode = "none" | "list" | "all";
+
+// GET /api/buylist/candidates
+export type BuyListCandidate = {
+  name: string;
+  category: string;
+  sell_price: number | null;
+  in_stock: number;
+  on_list: boolean;
+};
+
+export type BuyListItem = {
+  name: string;
+  type_id: number | null;
+  sell_price: number | null;
+};
+
+// PUT /api/buylist
+export type BuyListSaveResponse = {
+  items: BuyListItem[];
+  unknown: string[];   // not found in the SDE, not added
+  no_price: string[];  // added, no market price yet
+};
+
+export type OptimizeSettings = {
+  budget: number;
+  fee: number; // fraction: 0.05 = 5%
+  buy: BuyMode;
+  cargo_m3?: number | null; // m3 limit (capacity x trips); null = no limit
+  cargo_buy?: boolean;      // limit applied to purchases
+  cargo_sell?: boolean;     // limit applied to sales
+};
+
 export type OptimizeResponse = {
   expected_invention_materials_used: Record<string, number>;
   invention_cost: number;
@@ -24,8 +96,29 @@ export type OptimizeResponse = {
       used: number;
       remaining: number;
       category?: string;
+      bought?: number;
     }
   >;
+
+  // Added with the reworked optimizer. Optional so an older backend still type-checks.
+  true_profit?: number;
+  total_revenue?: number;
+  sales_fees?: number;
+  purchase_cost?: number;
+  purchase_volume?: number; // m3 of the shopping list
+  sales?: SaleLine[];
+  sell_volume?: number;     // m3 of everything sold
+  cash_profit?: number;
+  stock_value_used?: number;
+  inventory_cost_savings?: number;
+  production_plan?: ProductionPlanRow[];
+  units_produced?: Record<string, number>;
+  units_sold?: Record<string, number>;
+  shopping_list?: Record<string, ShoppingListEntry>;
+  marginal_values?: MarginalValue[];
+  settings?: OptimizeSettings;
+  solver_status?: string;
+  warnings?: string[];
 };
 
 
@@ -123,4 +216,24 @@ export const mockOptimizeResponse: OptimizeResponse = {
     "Datacore - Quantum Physics": 2,
     "Datacore - Gravity Physics": 2,
   },
+
+  // Fields from the reworked optimizer
+  sales_fees: 21000000,
+  purchase_cost: 150000000,
+  cash_profit: 199000000,
+  production_plan: [
+    { name: "Hobgoblin II", tier: "T2", runs: 20, units_per_run: 1, units_produced: 20, units_sold: 20, units_for_other_builds: 0, revenue: 20000000 },
+    { name: "Warp Core Stabilizer I", tier: "T1", runs: 999, units_per_run: 1, units_produced: 999, units_sold: 985, units_for_other_builds: 14, revenue: 300000000 },
+    { name: "Warp Core Stabilizer II", tier: "T2", runs: 14, units_per_run: 1, units_produced: 14, units_sold: 14, units_for_other_builds: 0, revenue: 100000000 },
+  ],
+  shopping_list: {
+    "Nocxium": { quantity: 150000, unit_price: 800, cost: 120000000, category: "Minerals" },
+    "Tritanium": { quantity: 7000000, unit_price: 4.2, cost: 29400000, category: "Minerals" },
+  },
+  marginal_values: [
+    { name: "Nocxium", category: "Minerals", value: 1300, market_price: 800, ratio: 1.625 },
+    { name: "Megacyte", category: "Minerals", value: 2400, market_price: 2000, ratio: 1.2 },
+  ],
+  settings: { budget: 150000000, fee: 0.05, buy: "list" },
+  warnings: [],
 };
