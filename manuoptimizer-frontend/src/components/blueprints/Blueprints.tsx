@@ -5,10 +5,10 @@ import { EditBlueprintModal } from "@/components/blueprints/EditBlueprintModal";
 import type { Blueprint, BlueprintTier } from "@/types/blueprints";
 import { Card, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import AddBlueprintModal from "./AddBlueprintModal";
+import SuggestedMaxPanel from "./SuggestedMaxPanel";
 import { Button } from "../ui/button";
 import { waitForMswReady } from "@/lib/mswReady";
 import { toast } from "sonner";
-import { s } from "vitest/dist/chunks/reporters.d.DL9pg5DB.js";
 import { Alert, AlertDescription } from "../ui/alert";
 
 
@@ -175,6 +175,7 @@ useEffect(() => {
       loading={loading}
       fetchBlueprints={() => fetchBlueprints(setBlueprints, setLoading)}
     />
+    <SuggestedMaxPanel onApplied={() => fetchBlueprints(setBlueprints, setLoading)} />
    <div className="flex flex-col items-center gap-2 px-6 pt-4">
      <Button
        id="update-blueprints-btn"

@@ -11,6 +11,7 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { ScrollArea } from "../ui/scroll-area";
 import { CheckCircle2, AlertTriangle } from "lucide-react";
+import { parseQuantity } from "./AddItemPanel";
 
 interface AddMaterialModalProps {
   open: boolean;
@@ -25,17 +26,27 @@ export function AddMaterialModal({ open, onClose, onSubmit }: AddMaterialModalPr
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const parsedMaterials = useMemo(() => {
-    const lines = materialsText.trim().split("\n");
-    return lines
-      .map((line) => {
-        const [name, qtyStr] = line.split("\t");
-        const quantity = parseInt(qtyStr);
-        return name && !isNaN(quantity)
-          ? { name: name.trim(), quantity }
-          : null;
-      })
-      .filter((item): item is { name: string; quantity: number } => item !== null);
+  // Game copy format: "Name<TAB>Quantity<TAB>...". The same item can appear in several
+  // stacks, so quantities are summed (they used to overwrite each other), and "1,234"
+  // is read as 1234 (parseInt used to read it as 1). Lines that cannot be read are listed.
+  const { parsedMaterials, skippedLines } = useMemo(() => {
+    const totals = new Map<string, number>();
+    const skipped: string[] = [];
+    for (const rawLine of materialsText.split(/\r?\n/)) {
+      if (!rawLine.trim()) continue;
+      const [rawName, qtyStr = ""] = rawLine.split("\t");
+      const name = (rawName ?? "").trim();
+      const quantity = parseQuantity(qtyStr.trim());
+      if (!name || quantity === null) {
+        skipped.push(rawLine.trim());
+        continue;
+      }
+      totals.set(name, (totals.get(name) ?? 0) + quantity);
+    }
+    return {
+      parsedMaterials: Array.from(totals, ([name, quantity]) => ({ name, quantity })),
+      skippedLines: skipped,
+    };
   }, [materialsText]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -128,6 +139,21 @@ export function AddMaterialModal({ open, onClose, onSubmit }: AddMaterialModalPr
                       <span>{name}</span>
                       <span className="text-blue-300">{quantity}</span>
                     </li>
+                  ))}
+                </ul>
+              </ScrollArea>
+            </div>
+          )}
+
+          {skippedLines.length > 0 && (
+            <div className="bg-yellow-950/40 border border-yellow-700 rounded-lg p-3 text-sm text-yellow-100">
+              <strong className="block mb-1 text-yellow-300">
+                {skippedLines.length} line(s) not understood, will be skipped (expected Name, tab, whole number):
+              </strong>
+              <ScrollArea className="max-h-24 pr-2">
+                <ul className="space-y-0.5">
+                  {skippedLines.map((line, i) => (
+                    <li key={i} className="truncate">{line}</li>
                   ))}
                 </ul>
               </ScrollArea>

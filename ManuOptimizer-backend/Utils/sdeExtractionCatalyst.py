@@ -84,8 +84,12 @@ mini_cursor = mini_conn.cursor()
 
 mini_cursor.execute('''
 CREATE TABLE IF NOT EXISTS types (
-    typeID   INTEGER PRIMARY KEY,
-    typeName TEXT
+    typeID        INTEGER PRIMARY KEY,
+    typeName      TEXT,
+    published     INTEGER,  -- 1 = exists in the game client
+    marketGroupID INTEGER,  -- NULL or 0 = cannot be traded on the market
+    volume        REAL,     -- m3 per unit (assembled; ships are smaller packaged)
+    portionSize   INTEGER   -- units per batch (ore reprocesses in batches of this)
 )
 ''')
 
@@ -112,6 +116,9 @@ SELECT
     eg.categoryID,
     cn.en           AS categoryName,
     et.marketGroupID,
+    et.published    AS typePublished,
+    et.volume       AS typeVolume,
+    et.portionSize  AS typePortionSize,
     mgn.en          AS marketGroupName,
     eg.published    AS groupPublished
 FROM EveType et
@@ -128,9 +135,13 @@ rows = full_cursor.fetchall()
 # ── Populate types table ───────────────────────────────────────────────────────
 
 mini_cursor.executemany(
-    "INSERT OR IGNORE INTO types (typeID, typeName) VALUES (?, ?)",
-    [(row['typeID'], row['typeName']) for row in rows]
+    "INSERT OR IGNORE INTO types (typeID, typeName, published, marketGroupID, volume, portionSize) VALUES (?, ?, ?, ?, ?, ?)",
+    [(row['typeID'], row['typeName'], row['typePublished'], row['marketGroupID'],
+      row['typeVolume'], row['typePortionSize']) for row in rows]
 )
+
+# Item search in the app only offers marketable items, by name
+mini_cursor.execute('CREATE INDEX IF NOT EXISTS idx_types_name ON types (typeName)')
 
 # ── Classify and populate materialClassifications ─────────────────────────────
 

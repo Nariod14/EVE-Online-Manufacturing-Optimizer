@@ -2,7 +2,15 @@
 
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
+import pulp
+
 block_cipher = None
+
+# PuLP's CBC solver is a data file inside the package; no PyInstaller hook collects it,
+# so without this the exe fails with "Pulp: cannot execute ...cbc.exe".
+# Taken from the PuLP installed in the environment that runs PyInstaller (use the .venv).
+PULP_CBC_DIR = os.path.join(os.path.dirname(pulp.__file__), 'solverdir', 'cbc', 'win', 'i64')
 
 a = Analysis(
     ['run.py'],  # This is your entry point, so keep this as-is
@@ -11,7 +19,9 @@ a = Analysis(
     datas=[
         ('out', 'out'),
         ('sde/mini_sde.sqlite', 'sde'),  # Add the mini SDE here
-        ('.env', '.')
+        ('.env', '.'),
+        (os.path.join(PULP_CBC_DIR, 'cbc.exe'), 'pulp/solverdir/cbc/win/i64'),
+        (os.path.join(PULP_CBC_DIR, 'coin-license.txt'), 'pulp/solverdir/cbc/win/i64'),
     ],
     hiddenimports=[],
     hookspath=[],

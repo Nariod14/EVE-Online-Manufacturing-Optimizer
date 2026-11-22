@@ -38,7 +38,8 @@ export function EditMaterialModal({
         ...material,
         quantity,
         type_id: typeId,
-        category: category === "Other" ? manualCategory : category,
+        // An empty custom category used to wipe the category; keep "Other" instead
+        category: category === "Other" ? (manualCategory.trim() || "Other") : category,
       };
 
       onSave(updatedMaterial); // Let parent handle PUT + fetch
@@ -53,6 +54,8 @@ export function EditMaterialModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             type="number"
+            min={0}
+            step={1}
             placeholder="Quantity"
             value={quantity}
             onChange={(e) => setQuantity(Number(e.target.value))}
